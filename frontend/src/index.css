@@ -1,4 +1,18 @@
 @import 'tailwindcss';
 @plugin "daisyui" {
-  themes: light --default, dark --prefersdark, lemonade;
+  themes:
+    light --default,
+    dark --prefersdark,
+    lemonade;
+}
+/* For overriding browser default style */
+/* Remove autofill color without touching border or creating thin border */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: inherit !important;
+  transition:
+    background-color 9999s ease-out,
+    color 9999s ease-out !important;
+  background-color: white !important;
 }

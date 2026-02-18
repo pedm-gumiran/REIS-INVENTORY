@@ -1,47 +1,186 @@
-import React, { useEffect, useState } from 'react';
-import axios from './api/axios.js';
+import React, { Suspense } from 'react';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from 'react-router-dom';
+import { ToastContainer, Slide } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+import Layout from './components/Layouts/Layout.jsx';
+//import PrivateRoute from './components/Layouts/PrivateRoute.jsx';
+import { UserProvider } from './components/context/UserContext.jsx';
+
+// Lazy load Page
+import LogIn_Page from './pages/Authentication/LogIn_Page.jsx';
+import Forgot_Password_Page from './pages/Authentication/Forgot_Password_Page.jsx';
+import Reset_Password_Page from './pages/Authentication/Reset_Password_Page.jsx';
+import Register_Account from './pages/Authentication/Register_Account_Page.jsx';
+
+const NotFound = React.lazy(
+  () => import('./pages/Fallback_Page/Not_Found.jsx'),
+);
+import LoadingSpinner from './components/Loading_UI/LoadingSpinner.jsx';
+import Reset_Password_Form from './components/Forms/Authentication/Reset_Password_Form.jsx';
+// Pages
+const Home_Page = React.lazy(() => import('./pages/Dashboard/Home_Page.jsx'));
+const Manage_Consumable_Products = React.lazy(
+  () => import('./pages/Dashboard/Home_Page.jsx'),
+);
+const Manage_Non_Consumable_Products = React.lazy(
+  () => import('./pages/Dashboard/Home_Page.jsx'),
+);
+const Product_Categories = React.lazy(
+  () => import('./pages/Dashboard/Home_Page.jsx'),
+);
+const Transaction_Audit = React.lazy(
+  () => import('./pages/Dashboard/Home_Page.jsx'),
+);
+const Equipment_Returned_Audit = React.lazy(
+  () => import('./pages/Dashboard/Home_Page.jsx'),
+);
+const Create_Transaction_Page = React.lazy(
+  () => import('./pages/Dashboard/Home_Page.jsx'),
+);
+const Backup_Restore_Page = React.lazy(
+  () => import('./pages/Dashboard/Home_Page.jsx'),
+);
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      {
+        path: '/',
+        //element: <Navigate to="/login" replace />,
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <LogIn_Page />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'login',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <LogIn_Page />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'register_account',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Register_Account />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'forgot_password',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Forgot_Password_Page />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'reset_password',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Reset_Password_Page />
+          </Suspense>
+        ),
+      },
+
+      // Admin Routes
+      {
+        path: 'home_admin',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Home_Page />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'consumable_products',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Manage_Consumable_Products />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'non_consumable_products',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Manage_Non_Consumable_Products />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'product_categories',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Product_Categories />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'transaction_audit',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Transaction_Audit />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: 'create_transaction',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Create_Transaction_Page />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'backup_restore',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Backup_Restore_Page />
+          </Suspense>
+        ),
+      },
+    ],
+  },
+  {
+    path: '*',
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <NotFound />
+      </Suspense>
+    ),
+  },
+]);
 
 export default function App() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get('/users');
-        console.log('Fetched users:', res.data);
-        setUsers(res.data);
-      } catch (err) {
-        console.error('Error fetching users:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  if (loading) return <div className="text-center mt-10">Loading users...</div>;
-
   return (
-    <div className="text-center mt-10">
-      <h1 className="text-2xl font-bold mb-5">Users List</h1>
-      <table className="mx-auto border border-gray-300">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="px-4 py-2 border">User ID</th>
-            <th className="px-4 py-2 border">Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.user_id}>
-              <td className="px-4 py-2 border">{user.user_id}</td>
-              <td className="px-4 py-2 border">{user.user_name}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <UserProvider>
+      <div className="bg-gray-50 font-sans">
+        <RouterProvider router={router} />
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={true}
+          newestOnTop={false}
+          closeOnClick
+          pauseOnHover
+          draggable={false}
+          theme="colored"
+          transition={Slide}
+          limit={3}
+        />
+      </div>
+    </UserProvider>
   );
 }

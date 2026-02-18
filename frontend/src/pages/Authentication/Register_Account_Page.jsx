@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import Reset_Password_Form from '../../components/Forms/Authentication/Reset_Password_Form';
+import Register_Account_Form from '../../components/Forms/Authentication/Register_Account_Form';
 import BrandingAside from '../../components/Branding/Branding_Aside';
 import LoadingSpinner from '../../components/Loading_UI/LoadingSpinner';
 
-export default function Reset_Password_Page() {
+export default function Register_Account_Page() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function Reset_Password_Page() {
   return (
     <main className="mx-4 w-full border flex bg-white border-gray-300 max-w-6xl shadow-3xl rounded-3xl overflow-hidden flex-col md:flex-row">
       <BrandingAside />
-      <Reset_Password_Form />
+      <Register_Account_Form />
     </main>
   );
 }
