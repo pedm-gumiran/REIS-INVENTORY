@@ -58,12 +58,14 @@ export default function Reset_Password_Form() {
     <section className="md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-10 border border-gray-300">
       <div className="w-full max-w-sm">
         <header className="text-center mb-8">
-          <h2 className="text-xl md:text-2xl font-semibold text-neutral">
-            Reset Password
-          </h2>
-          <p className="text-sm text-gray-500">
-            Enter and confirm your new password below.
-          </p>
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-xl shadow-lg">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">
+              Set New Password
+            </h2>
+            <p className="text-green-100">
+              Complete REIMS Password Reset
+            </p>
+          </div>
         </header>
 
         <form className="space-y-5">
@@ -124,10 +126,10 @@ export default function Reset_Password_Form() {
             isLoading={loading}
             loadingText="Updating Password........."
             type="submit"
-            className={`bg-green-700 w-full text-white ${
-              !isFormValid || loading ? 'opacity-70 cursor-not-allowed' : ''
+            className={`bg-gradient-to-r from-green-500 to-emerald-600 w-full text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 ${
+              !isFormValid || loading || error ? 'opacity-70 cursor-not-allowed' : ''
             }`}
-            disabled={!isFormValid || loading ||error }
+            disabled={!isFormValid || loading || error}
           />
 
           <p className="text-center text-sm text-gray-500 mt-4">
@@ -135,7 +137,7 @@ export default function Reset_Password_Form() {
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="text-blue-600 hover:underline font-medium"
+              className="text-green-600 hover:text-green-800 hover:underline font-medium transition-colors"
             >
               Back to Login
             </button>

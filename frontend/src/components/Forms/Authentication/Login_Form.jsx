@@ -33,12 +33,14 @@ export default function LoginForm() {
     <section className="md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-10 border border-gray-300">
       <div className="w-full max-w-sm">
         <header className="text-center mb-8">
-          <h2 className="text-xl md:text-2xl font-semibold text-neutral">
-            Welcome
-          </h2>
-          <p className="text-sm text-gray-500">
-            Please log in to access your account
-          </p>
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-xl shadow-lg">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">
+              Welcome to REIMS
+            </h2>
+            <p className="text-green-100">
+              Research Extension Inventory Management System
+            </p>
+          </div>
         </header>
 
         <form className="space-y-5">
@@ -72,7 +74,7 @@ export default function LoginForm() {
           <div className="text-right -mt-4 ">
             <Link
               to="/forgot_password"
-              className="text-sm text-blue-500 hover:underline font-medium"
+              className="text-sm text-green-600 hover:text-green-800 hover:underline font-medium transition-colors"
             >
               Forgot Password?
             </Link>
@@ -85,7 +87,7 @@ export default function LoginForm() {
               isLoading={loading}
               loadingText="Logging in ...."
               type="submit"
-              className={`bg-green-700 w-full text-white ${
+              className={`bg-gradient-to-r from-green-500 to-emerald-600 w-full text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 ${
                 !isFormValid || loading ? 'opacity-70 cursor-not-allowed' : ''
               }`}
               disabled={!isFormValid || loading}
@@ -96,7 +98,7 @@ export default function LoginForm() {
           <p>No Account?</p>
           <Link
             to="/register_account"
-            className="text-sm text-blue-800 hover:underline font-medium mt-1"
+            className="text-sm text-green-600 hover:text-green-800 hover:underline font-medium transition-colors mt-1"
           >
             Register Account
           </Link>

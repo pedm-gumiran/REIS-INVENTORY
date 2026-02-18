@@ -9,13 +9,14 @@ export default function SearchBar({
   disabled,
   id,
   name = 'search', // default name
+  width = 'md:w-1/2', // default width
 }) {
   const handleClear = () => {
     onChange({ target: { name, value: '' } });
   };
 
   return (
-    <div className="relative flex items-center mb-4 w-full md:w-1/2 z-0">
+    <div className={`relative flex items-center mb-4 w-full ${width} z-0`}>
       {/* Search icon inside container */}
       <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 " />
 

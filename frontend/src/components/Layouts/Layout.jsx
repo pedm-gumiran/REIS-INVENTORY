@@ -21,11 +21,15 @@ const Layout = () => {
 
   // LABEL Path → Menu name mapping
   const pathToMenu = {
-    //  Admin Routes
-
-    //  Subject Teacher Routes '/home_admin': 'Home',
-    '/manage_users_admin': 'Users',
-
+    // Admin Routes
+    '/home_admin': 'Home',
+    '/consumable_products': 'Consumable Products',
+    '/non_consumable_products': 'Non-Consumable Products',
+    '/create_transaction': 'Create Transaction',
+    '/transaction_audit': 'Transaction Audit',
+    '/equipment_return': 'Equipment Return',
+    '/backup_restore': 'Backup & Restore',
+    '/product_categories': 'Product Categories',
   };
 
   const activeMenu = pathToMenu[location.pathname] || 'Dashboard';

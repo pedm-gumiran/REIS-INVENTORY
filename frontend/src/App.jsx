@@ -25,25 +25,25 @@ import Reset_Password_Form from './components/Forms/Authentication/Reset_Passwor
 // Pages
 const Home_Page = React.lazy(() => import('./pages/Dashboard/Home_Page.jsx'));
 const Manage_Consumable_Products = React.lazy(
-  () => import('./pages/Dashboard/Home_Page.jsx'),
+  () => import('./pages/Dashboard/Manage_Consumable_Products.jsx'),
 );
 const Manage_Non_Consumable_Products = React.lazy(
-  () => import('./pages/Dashboard/Home_Page.jsx'),
+  () => import('./pages/Dashboard/Manage_Non_Consumable_Products.jsx'),
 );
 const Product_Categories = React.lazy(
-  () => import('./pages/Dashboard/Home_Page.jsx'),
+  () => import('./pages/Dashboard/Product_Categories.jsx'),
 );
 const Transaction_Audit = React.lazy(
-  () => import('./pages/Dashboard/Home_Page.jsx'),
+  () => import('./pages/Dashboard/Transaction_Audit.jsx'),
 );
 const Equipment_Returned_Audit = React.lazy(
-  () => import('./pages/Dashboard/Home_Page.jsx'),
+  () => import('./pages/Dashboard/Equipment_Returned_Audit.jsx'),
 );
 const Create_Transaction_Page = React.lazy(
-  () => import('./pages/Dashboard/Home_Page.jsx'),
+  () => import('./pages/Dashboard/Create_Transaction_Page.jsx'),
 );
 const Backup_Restore_Page = React.lazy(
-  () => import('./pages/Dashboard/Home_Page.jsx'),
+  () => import('./pages/Dashboard/Backup_Restore_Page.jsx'),
 );
 
 const router = createBrowserRouter([
@@ -131,6 +131,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <Transaction_Audit />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'equipment_return',
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Equipment_Returned_Audit />
           </Suspense>
         ),
       },

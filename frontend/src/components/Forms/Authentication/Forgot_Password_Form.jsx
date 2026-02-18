@@ -24,12 +24,14 @@ export default function Forgot_Password_Form() {
     <section className="md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-10 border border-gray-300">
       <div className="w-full max-w-sm">
         <header className="text-center mb-8">
-          <h2 className="text-xl md:text-2xl font-semibold text-neutral">
-            Forgot Password
-          </h2>
-          <p className="text-sm text-gray-500">
-            Enter your registered user id and email to reset your password.
-          </p>
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-xl shadow-lg">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">
+              Reset Password
+            </h2>
+            <p className="text-green-100">
+              REIMS Password Recovery
+            </p>
+          </div>
         </header>
 
         <form className="space-y-5">
@@ -67,7 +69,7 @@ export default function Forgot_Password_Form() {
               isLoading={loading}
               loadingText="Verifying....."
               type="submit"
-              className={`bg-green-700 w-full text-white ${
+              className={`bg-gradient-to-r from-green-500 to-emerald-600 w-full text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 ${
                 !formData.email.trim() || loading
                   ? 'opacity-70 cursor-not-allowed'
                   : ''
@@ -80,8 +82,8 @@ export default function Forgot_Password_Form() {
             Remember your password?{' '}
             <button
               type="button"
-              onClick={() => navigate('/')}
-              className="text-blue-600 hover:underline font-medium"
+              onClick={() => navigate('/login')}
+              className="text-green-600 hover:text-green-800 hover:underline font-medium transition-colors"
             >
               Back to Login
             </button>

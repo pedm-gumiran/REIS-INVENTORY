@@ -12,6 +12,7 @@ export default function DataTable({
   emptyMessage = 'No records found',
   keyField = '', // default key field
   loading = false, //
+  showCheckboxes = true, // control checkbox visibility
 }) {
   const allSelected = data.length > 0 && selected.length === data.length;
   const headerCheckboxRef = useRef();
@@ -35,7 +36,7 @@ export default function DataTable({
       <table className="w-full text-left border-gray-300 border-1 min-w-max text-xs sm:text-sm">
         <thead className="bg-white border-b-2 border-gray-400 sticky top-0 z-10">
           <tr>
-            {selectable && (
+            {selectable && showCheckboxes && (
               <th className="p-3 cursor-pointer">
                 <input
                   ref={headerCheckboxRef}
@@ -72,7 +73,7 @@ export default function DataTable({
             <tr>
               <td
                 colSpan={
-                  columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0)
+                  columns.length + (selectable && showCheckboxes ? 1 : 0) + (actions ? 1 : 0)
                 }
                 className="p-6 text-center text-gray-600"
               >
@@ -94,7 +95,7 @@ export default function DataTable({
                     isSelected ? 'bg-blue-100' : 'hover:bg-gray-200'
                   }`}
                 >
-                  {selectable && (
+                  {selectable && showCheckboxes && (
                     <td className="p-3 cursor-pointer">
                       <input
                         title="Select Row"
@@ -129,7 +130,7 @@ export default function DataTable({
             <tr>
               <td
                 colSpan={
-                  columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0)
+                  columns.length + (selectable && showCheckboxes ? 1 : 0) + (actions ? 1 : 0)
                 }
                 className="p-4 text-center text-gray-500"
               >

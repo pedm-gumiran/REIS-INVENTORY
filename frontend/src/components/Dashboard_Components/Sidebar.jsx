@@ -14,13 +14,17 @@ import {
   FaChevronDown,
   FaChevronRight,
   FaChevronLeft,
+  FaBox,
+  FaBoxes,
+  FaExchangeAlt,
+  FaHistory,
+  FaUndo,
 } from 'react-icons/fa';
-import System_Logo from '../Logo/System_Logo';
 import Tooltip from '../utility/Tooltip';
 import { useUser } from '../context/UserContext';
 
 export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
-  const [collapsed, setCollapsed] = useState(true); // Default collapsed
+  const [collapsed, setCollapsed] = useState(true); // Default to collapsed on larger screens
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [openSubmenu, setOpenSubmenu] = useState({});
   const [hoveredSubIndex, setHoveredSubIndex] = useState({});
@@ -30,13 +34,18 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
   const { user } = useUser();
   const { role } = user || {};
 
+  // Debug: Log user and menu items
+  console.log('User:', user);
+  console.log('Role:', role);
+  console.log('Menu Items:', role === 'Admin' ? roleMenus.Admin : []);
+
   // Auto open/close sidebar based on screen size
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
-        setCollapsed(false);
+        setCollapsed(false); // Expanded on mobile/tablet
       } else {
-        setCollapsed(true);
+        setCollapsed(true); // Collapsed on desktop (larger screens)
       }
     };
 
@@ -56,31 +65,54 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
       { name: 'Home', icon: <FaHome />, path: '/home_admin' },
       
       {
-        name: 'Students',
-        icon: <FaGraduationCap />,
-        path: '/manage_students_admin',
+        name: 'Inventory',
+        icon: <FaBoxes />,
+        textTooltip: 'Please expand to see inventory options',
+        submenu: [
+          {
+            name: 'Consumable Products',
+            icon: <FaBox />,
+            path: '/consumable_products',
+          },
+          {
+            name: 'Non-consumable Products',
+            icon: <FaBoxes />,
+            path: '/non_consumable_products',
+          },
+          {
+            name: 'Create Transaction',
+            icon: <FaExchangeAlt />,
+            path: '/create_transaction',
+          },
+        ],
       },
-      { name: 'Subjects', icon: <FaBook />, path: '/manage_subjects_admin' },
-      { name: 'Sections', icon: <FaThLarge />, path: '/manage_sections_admin' },
-      {
-        name: 'Grades',
-        icon: <FaClipboardCheck />,
-        path: '/manage_grades_admin',
-      },
+      
       {
         name: 'Settings',
         icon: <FaCog />,
         textTooltip: 'Please expand to see the settings',
         submenu: [
           {
-            name: 'Audit Trail',
-            icon: <FaFileArchive />,
-            path: '/manage_audit_admin',
+            name: 'Audit',
+            icon: <FaHistory />,
+            textTooltip: 'Please expand to see audit options',
+            submenu: [
+              {
+                name: 'Transaction',
+                icon: <FaClipboardCheck />,
+                path: '/transaction_audit',
+              },
+              {
+                name: 'Equipment Return',
+                icon: <FaUndo />,
+                path: '/equipment_return',
+              },
+            ],
           },
           {
             name: 'Backup & Restore',
             icon: <FaDatabase />,
-            path: '/backup_restore_admin',
+            path: '/backup_restore',
           },
         ],
       },
@@ -89,8 +121,10 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
 
 
   // Final menu based on role
-  const menuItems =
-    role === 'Admin' ? roleMenus.Admin : role === 'Teacher' ? roleMenus.Teacher || [] : [];
+  const menuItems = roleMenus.Admin || []; // Default to Admin menu for now
+
+  // Debug: Log final menu items
+  console.log('Final Menu Items:', menuItems);
 
   const toggleSubmenu = (name) => {
     setOpenSubmenu((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -120,14 +154,14 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
         `}
       >
         {/* Logo */}
-        <div className="bg-primary flex items-center justify-center h-16 border-b border-base-200">
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center h-16 border-b border-base-200">
           {collapsed ? (
-            <System_Logo className="w-5 h-5" />
+            <img src="/reims-logo-icon.svg" alt="REIMS" className="w-8 h-8" />
           ) : (
-            <div className="flex items-center gap-2">
-              <System_Logo className="w-5 h-5" />
-              <span className="text-lg font-extrabold text-white tracking-wide">
-                Consoli<span className="text-yellow-400">Grade</span>
+            <div className="flex items-center gap-3">
+              <img src="/reims-logo-icon.svg" alt="REIMS" className="w-8 h-8" />
+              <span className="text-xl font-extrabold text-white tracking-wide">
+                RE<span className="text-yellow-400">IMS</span>
               </span>
             </div>
           )}
@@ -136,66 +170,78 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
         {/* Menu */}
         <nav className="flex-1 px-1 py-4 overflow-visible">
           <ul className="space-y-2">
-            {menuItems.map((item, idx) => {
-              const isActive = item.path === location.pathname;
-              const tooltipText =
-                collapsed && item.textTooltip ? item.textTooltip : item.name;
+            {menuItems && menuItems.length > 0 ? (
+              menuItems.map((item, idx) => {
+                const isActive = item.path === location.pathname;
+                const tooltipText =
+                  collapsed && item.textTooltip ? item.textTooltip : item.name;
 
-              return (
-                <li key={idx} className="relative">
-                  <Tooltip
-                    text={tooltipText}
-                    show={hoveredIndex === idx && collapsed}
-                  >
-                    <div className="flex flex-col w-full rounded-lg transition-colors text-xs">
-                      <div
-                        onMouseEnter={() => setHoveredIndex(idx)}
-                        onMouseLeave={() => setHoveredIndex(null)}
-                        className={`flex rounded-md w-full py-3 px-4 items-center justify-between cursor-pointer transition-colors
-                          ${isActive ? 'bg-primary text-white' : ''}
-                          ${hoveredIndex === idx ? 'bg-primary/80 text-white' : ''}
-                          ${collapsed ? 'justify-center' : 'justify-between gap-3'}
-                        `}
-                        onClick={() => item.submenu && toggleSubmenu(item.name)}
-                      >
-                        {item.path && !item.submenu ? (
-                          <Link
-                            to={item.path}
-                            className="flex items-center gap-3 w-full"
-                            onClick={() => {
-                              if (window.innerWidth < 1024) onCloseMobile();
-                            }}
-                          >
-                            <span className="text-lg">{item.icon}</span>
-                            {!collapsed && (
-                              <span className="text-sm font-medium">
-                                {item.name}
-                              </span>
-                            )}
-                          </Link>
-                        ) : (
-                          <div className="flex items-center gap-3 w-full">
-                            <span className="text-lg">{item.icon}</span>
-                            {!collapsed && (
-                              <span className="text-sm font-medium">
-                                {item.name}
-                              </span>
-                            )}
-                          </div>
-                        )}
+                return (
+                  <li key={idx} className="relative">
+                    <Tooltip
+                      text={tooltipText}
+                      show={hoveredIndex === idx && collapsed}
+                    >
+                      <div className="flex flex-col w-full rounded-lg transition-colors text-xs">
+                        <div
+                          onMouseEnter={() => setHoveredIndex(idx)}
+                          onMouseLeave={() => setHoveredIndex(null)}
+                          className={`flex rounded-md w-full py-3 px-4 items-center justify-between cursor-pointer transition-colors
+                            ${isActive ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' : ''}
+                            ${hoveredIndex === idx ? 'bg-gradient-to-r from-green-500/80 to-emerald-600/80 text-white' : ''}
+                            ${collapsed ? 'justify-center' : 'justify-between gap-3'}
+                          `}
+                          onClick={() => {
+  if (collapsed) {
+    setCollapsed(false); // Expand sidebar if collapsed
+  } else if (item.submenu) {
+    toggleSubmenu(item.name); // Toggle submenu if already expanded
+  }
+}}
+                        >
+                          {item.path && !item.submenu ? (
+                            <Link
+                              to={item.path}
+                              className="flex items-center gap-3 w-full"
+                              onClick={(e) => {
+                                if (collapsed) {
+                                  e.preventDefault(); // Prevent navigation if collapsed
+                                  setCollapsed(false); // Expand sidebar instead
+                                } else {
+                                  if (window.innerWidth < 1024) onCloseMobile();
+                                }
+                              }}
+                            >
+                              <span className="text-lg">{item.icon}</span>
+                              {!collapsed && (
+                                <span className="text-sm font-medium">
+                                  {item.name}
+                                </span>
+                              )}
+                            </Link>
+                          ) : (
+                            <div className="flex items-center gap-3 w-full">
+                              <span className="text-lg">{item.icon}</span>
+                              {!collapsed && (
+                                <span className="text-sm font-medium">
+                                  {item.name}
+                                </span>
+                              )}
+                            </div>
+                          )}
 
-                        {!collapsed && item.submenu && (
-                          <span
-                            className={`transition-transform duration-500 ease-in-out ${
-                              openSubmenu[item.name] ? 'rotate-180' : ''
-                            }`}
-                          >
-                            <FaChevronDown />
-                          </span>
-                        )}
-                      </div>
+                          {!collapsed && item.submenu && (
+                            <span
+                              className={`transition-transform duration-500 ease-in-out ${
+                                openSubmenu[item.name] ? 'rotate-180' : ''
+                              }`}
+                            >
+                              <FaChevronDown />
+                            </span>
+                          )}
+                        </div>
 
-                      {!collapsed && item.submenu && openSubmenu[item.name] && (
+                      {item.submenu && openSubmenu[item.name] && (
                         <ul className="pl-10 space-y-1">
                           {item.submenu.map((sub, subIdx) => {
                             const isSubActive = sub.path === location.pathname;
@@ -214,37 +260,117 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
                                     [item.name]: null,
                                   }))
                                 }
-                                className={`flex items-center gap-2 py-2 px-2 rounded cursor-pointer transition-colors
-                                  ${isSubActive ? 'bg-primary text-white' : ''}
+                                className={`flex flex-col w-full rounded cursor-pointer transition-colors
+                                  ${isSubActive ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' : ''}
                                   ${
                                     hoveredSubIndex[item.name] === subIdx
-                                      ? 'bg-primary/80 text-white'
+                                      ? 'bg-gradient-to-r from-green-500/80 to-emerald-600/80 text-white'
                                       : ''
                                   }
                                 `}
                               >
-                                {sub.path ? (
-                                  <Link
-                                    to={sub.path}
-                                    className="flex items-center gap-2 w-full"
-                                    onClick={() => {
-                                      setOpenSubmenu((prev) => ({
-                                        ...prev,
-                                        [item.name]: false,
-                                      }));
-                                      if (window.innerWidth < 1024) {
-                                        onCloseMobile();
-                                      }
-                                    }}
-                                  >
-                                    <span className="text-lg">{sub.icon}</span>
-                                    <span className="text-sm">{sub.name}</span>
-                                  </Link>
-                                ) : (
-                                  <>
-                                    <span className="text-lg">{sub.icon}</span>
-                                    <span className="text-sm">{sub.name}</span>
-                                  </>
+                                <div
+                                  className={`flex items-center justify-between py-2 px-2 rounded cursor-pointer transition-colors w-full
+                                    ${isSubActive ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' : ''}
+                                    ${
+                                      hoveredSubIndex[item.name] === subIdx
+                                        ? 'bg-gradient-to-r from-green-500/80 to-emerald-600/80 text-white'
+                                        : ''
+                                    }
+                                  `}
+                                  onClick={() => {
+  if (collapsed) {
+    setCollapsed(false); // Expand sidebar if collapsed
+  } else {
+    sub.submenu && toggleSubmenu(`${item.name}-${sub.name}`);
+  }
+}}
+                                >
+                                  {sub.path && !sub.submenu ? (
+                                    <Link
+                                      to={sub.path}
+                                      className="flex items-center gap-2 w-full"
+                                      onClick={(e) => {
+                                        if (collapsed) {
+                                          e.preventDefault(); // Prevent navigation if collapsed
+                                          setCollapsed(false); // Expand sidebar instead
+                                        } else {
+                                          setOpenSubmenu((prev) => ({
+                                            ...prev,
+                                            [item.name]: false,
+                                          }));
+                                          if (window.innerWidth < 1024) {
+                                            onCloseMobile();
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <span className="text-lg">{sub.icon}</span>
+                                      <span className="text-sm">{sub.name}</span>
+                                    </Link>
+                                  ) : (
+                                    <div className="flex items-center gap-2 w-full">
+                                      <span className="text-lg">{sub.icon}</span>
+                                      <span className="text-sm">{sub.name}</span>
+                                    </div>
+                                  )}
+
+                                  {!collapsed && sub.submenu && (
+                                    <span
+                                      className={`transition-transform duration-500 ease-in-out ${
+                                        openSubmenu[`${item.name}-${sub.name}`] ? 'rotate-180' : ''
+                                      }`}
+                                    >
+                                      <FaChevronDown />
+                                    </span>
+                                  )}
+                                </div>
+
+                                {!collapsed && sub.submenu && openSubmenu[`${item.name}-${sub.name}`] && (
+                                  <ul className="pl-8 space-y-1 mt-1">
+                                    {sub.submenu.map((nestedSub, nestedIdx) => {
+                                      const isNestedActive = nestedSub.path === location.pathname;
+                                      return (
+                                        <li
+                                          key={nestedIdx}
+                                          className={`flex items-center gap-2 py-2 px-2 rounded cursor-pointer transition-colors
+                                            ${isNestedActive ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' : ''}
+                                            hover:bg-gradient-to-r hover:from-green-500/80 hover:to-emerald-600/80 hover:text-white
+                                          `}
+                                        >
+                                          {nestedSub.path ? (
+                                            <Link
+                                              to={nestedSub.path}
+                                              className="flex items-center gap-2 w-full"
+                                              onClick={(e) => {
+                                              if (collapsed) {
+                                                e.preventDefault(); // Prevent navigation if collapsed
+                                                setCollapsed(false); // Expand sidebar instead
+                                              } else {
+                                                setOpenSubmenu((prev) => ({
+                                                  ...prev,
+                                                  [item.name]: false,
+                                                  [`${item.name}-${sub.name}`]: false,
+                                                }));
+                                                if (window.innerWidth < 1024) {
+                                                  onCloseMobile();
+                                                }
+                                              }
+                                            }}
+                                            >
+                                              <span className="text-lg">{nestedSub.icon}</span>
+                                              <span className="text-sm">{nestedSub.name}</span>
+                                            </Link>
+                                          ) : (
+                                            <>
+                                              <span className="text-lg">{nestedSub.icon}</span>
+                                              <span className="text-sm">{nestedSub.name}</span>
+                                            </>
+                                          )}
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
                                 )}
                               </li>
                             );
@@ -255,7 +381,12 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
                   </Tooltip>
                 </li>
               );
-            })}
+            })
+            ) : (
+              <li className="px-4 py-2 text-gray-500 text-sm">
+                No menu items available
+              </li>
+            )}
           </ul>
         </nav>
 
@@ -272,13 +403,13 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
             <button
               onClick={toggleSidebar}
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="group flex items-center justify-center w-full py-2.5 px-3 rounded-lg border border-base-300/50 hover:border-primary/40 bg-white/50 hover:bg-white/80 shadow-sm hover:shadow-xs transition-all duration-200 ease-in-out cursor-pointer"
+              className="group flex items-center justify-center w-full py-2.5 px-3 rounded-lg border border-green-300/50 hover:border-green-500/40 bg-white/50 hover:bg-white/80 shadow-sm hover:shadow-xs transition-all duration-200 ease-in-out cursor-pointer"
             >
-              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors">
+              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
                 {collapsed ? (
-                  <FaChevronRight className="text-xs text-primary/70 group-hover:text-primary" />
+                  <FaChevronRight className="text-xs text-green-600/70 group-hover:text-green-600" />
                 ) : (
-                  <FaChevronLeft className="text-xs text-primary/70 group-hover:text-primary" />
+                  <FaChevronLeft className="text-xs text-green-600/70 group-hover:text-green-600" />
                 )}
               </div>
 
