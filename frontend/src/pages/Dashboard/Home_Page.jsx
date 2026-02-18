@@ -14,11 +14,96 @@ export default function Home_Page() {
 
   // Sample data for stocks
   const stocksData = [
-    { id: 1, productName: 'Laptop Dell XPS', category: 'Electronics', quantity: 15, unitPrice: 1200, status: 'In Stock' },
-    { id: 2, productName: 'Office Chair', category: 'Furniture', quantity: 8, unitPrice: 250, status: 'In Stock' },
-    { id: 3, productName: 'Wireless Mouse', category: 'Electronics', quantity: 25, unitPrice: 35, status: 'In Stock' },
-    { id: 4, productName: 'Desk Lamp', category: 'Furniture', quantity: 12, unitPrice: 45, status: 'Low Stock' },
-    { id: 5, productName: 'USB Keyboard', category: 'Electronics', quantity: 30, unitPrice: 65, status: 'In Stock' },
+    { 
+      Consumable_Product_ID: 'CP001', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Office Paper A4 Premium Quality', 
+      Unit: 'per ream', 
+      Quantity: 500, 
+      Unit_Cost: 25.00, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP002', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Ballpoint Pens Blue Ink', 
+      Unit: 'per piece', 
+      Quantity: 1200, 
+      Unit_Cost: 2.50, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP003', 
+      Category_Name: 'Office Supplies', 
+      Item_Description: 'Printer Toner HP Black', 
+      Unit: 'per cartridge', 
+      Quantity: 45, 
+      Unit_Cost: 85.00, 
+      Status: 'Low Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP004', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Manila Folders Letter Size', 
+      Unit: 'per piece', 
+      Quantity: 800, 
+      Unit_Cost: 3.75, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP005', 
+      Category_Name: 'Electronics', 
+      Item_Description: 'USB Flash Drives 32GB', 
+      Unit: 'per piece', 
+      Quantity: 75, 
+      Unit_Cost: 12.00, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP006', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Whiteboard Markers Assorted Colors', 
+      Unit: 'per set', 
+      Quantity: 150, 
+      Unit_Cost: 4.25, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP007', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Binding Clips Metal 2 inch', 
+      Unit: 'per box (100pcs)', 
+      Quantity: 2000, 
+      Unit_Cost: 0.50, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP008', 
+      Category_Name: 'Accessories', 
+      Item_Description: 'Laptop Stands Adjustable', 
+      Unit: 'per piece', 
+      Quantity: 30, 
+      Unit_Cost: 35.00, 
+      Status: 'Low Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP009', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Desk Calendars 2024', 
+      Unit: 'per piece', 
+      Quantity: 25, 
+      Unit_Cost: 15.00, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP010', 
+      Category_Name: 'Accessories', 
+      Item_Description: 'Mouse Pads Gel Wrist Rest', 
+      Unit: 'per piece', 
+      Quantity: 60, 
+      Unit_Cost: 8.50, 
+      Status: 'In Stock' 
+    },
   ];
 
   // Sample data for equipment
@@ -41,8 +126,11 @@ export default function Home_Page() {
 
   // Filter stocks based on stock search term
   const filteredStocks = stocksData.filter(stock =>
-    stock.productName.toLowerCase().includes(stockSearchTerm.toLowerCase()) ||
-    stock.category.toLowerCase().includes(stockSearchTerm.toLowerCase())
+    stock.Consumable_Product_ID.toLowerCase().includes(stockSearchTerm.toLowerCase()) ||
+    stock.Category_Name.toLowerCase().includes(stockSearchTerm.toLowerCase()) ||
+    stock.Item_Description.toLowerCase().includes(stockSearchTerm.toLowerCase()) ||
+    stock.Unit.toLowerCase().includes(stockSearchTerm.toLowerCase()) ||
+    stock.Status.toLowerCase().includes(stockSearchTerm.toLowerCase())
   );
 
   // Filter equipment based on equipment search term
@@ -52,7 +140,7 @@ export default function Home_Page() {
   );
 
   // Calculate totals
-  const totalStockQuantity = stocksData.reduce((sum, stock) => sum + stock.quantity, 0);
+  const totalStockQuantity = stocksData.reduce((sum, stock) => sum + stock.Quantity, 0);
   const totalEquipmentQuantity = equipmentData.reduce((sum, equipment) => sum + equipment.quantity, 0);
 
   // Search handlers
@@ -66,12 +154,19 @@ export default function Home_Page() {
 
   // Table columns for stocks
   const stockColumns = [
-    { key: 'productName', label: 'Product Name' },
-    { key: 'category', label: 'Category' },
-    { key: 'quantity', label: 'Quantity' },
-    { key: 'unitPrice', label: 'Unit Price ($)' },
+    { key: 'Consumable_Product_ID', label: 'Product ID' },
+    { key: 'Category_Name', label: 'Category' },
+    { key: 'Item_Description', label: 'Description' },
+    { key: 'Unit', label: 'Unit' },
+    { key: 'Quantity', label: 'Quantity' },
+    { key: 'Unit_Cost', label: 'Unit Cost (₱)' },
     { 
-      key: 'status', 
+      key: 'Total_Cost', 
+      label: 'Total Cost (₱)',
+      render: (cellValue, row) => (row.Quantity * row.Unit_Cost).toFixed(2)
+    },
+    { 
+      key: 'Status', 
       label: 'Status',
       render: (status) => (
         <span className={`px-2 py-1 text-xs rounded-full ${

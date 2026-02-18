@@ -109,7 +109,7 @@ export default function Navbar({
               setIsProfileModalOpen(true);
               setOpen(false);
             }}
-            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-primary hover:text-white rounded text-sm sm:text-base"
+            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-600 hover:text-white rounded text-sm sm:text-base transition-colors"
           >
             Profile
           </button>
@@ -119,7 +119,7 @@ export default function Navbar({
               setIsChangePasswordModalOpen(true);
               setOpen(false);
             }}
-            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-primary hover:text-white rounded text-sm sm:text-base"
+            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-600 hover:text-white rounded text-sm sm:text-base transition-colors"
           >
             Change Password
           </button>
@@ -129,7 +129,7 @@ export default function Navbar({
               setLogoutConfirm(true);
               setOpen(false);
             }}
-            className="w-full text-left px-4 py-2 text-red-600 hover:bg-primary hover:text-white rounded text-sm sm:text-base"
+            className="w-full text-left px-4 py-2 text-red-600 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-600 hover:text-white rounded text-sm sm:text-base transition-colors"
           >
             Logout
           </button>

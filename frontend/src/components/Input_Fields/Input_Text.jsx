@@ -29,11 +29,15 @@ export default function Input_Text({
       return;
     }
 
-    // capitalize only if there is content
-    let formattedValue =
-      type === 'email'
-        ? inputValue // keep as-is for email
-        : inputValue.replace(/\b\w/g, (char) => char.toUpperCase());
+    // Format based on input type and name
+    let formattedValue;
+    if (type === 'email') {
+      formattedValue = inputValue; // keep as-is for email
+    } else if (name === 'rrfNumber') {
+      formattedValue = inputValue.toUpperCase(); // ALL CAPS for RRF number
+    } else {
+      formattedValue = inputValue.replace(/\b\w/g, (char) => char.toUpperCase()); // capitalize first letter of each word
+    }
 
     onChange({ target: { name, value: formattedValue } });
   };

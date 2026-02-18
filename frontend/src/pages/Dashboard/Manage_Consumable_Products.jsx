@@ -9,29 +9,122 @@ export default function Manage_Consumable_Products() {
 
   // Sample data for consumable products
   const consumableProducts = [
-    { id: 1, productName: 'Office Paper A4', category: 'Stationery', quantity: 500, unit: 'Reams', unitCost: 25.00, status: 'In Stock', reorderLevel: 100 },
-    { id: 2, productName: 'Ballpoint Pens', category: 'Writing Supplies', quantity: 200, unit: 'Boxes', unitCost: 15.50, status: 'In Stock', reorderLevel: 50 },
-    { id: 3, productName: 'Printer Ink', category: 'Office Supplies', quantity: 30, unit: 'Cartridges', unitCost: 45.00, status: 'Low Stock', reorderLevel: 20 },
-    { id: 4, productName: 'Cleaning Solution', category: 'Maintenance', quantity: 15, unit: 'Bottles', unitCost: 12.00, status: 'In Stock', reorderLevel: 10 },
-    { id: 5, productName: 'Coffee Beans', category: 'Pantry', quantity: 5, unit: 'Kg', unitCost: 35.00, status: 'Critical', reorderLevel: 2 },
+    { 
+      Consumable_Product_ID: 'CP001', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Office Paper A4 Premium Quality', 
+      Unit: 'per ream', 
+      Quantity: 500, 
+      Unit_Cost: 25.00, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP002', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Ballpoint Pens Blue Ink', 
+      Unit: 'per piece', 
+      Quantity: 1200, 
+      Unit_Cost: 2.50, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP003', 
+      Category_Name: 'Office Supplies', 
+      Item_Description: 'Printer Toner HP Black', 
+      Unit: 'per cartridge', 
+      Quantity: 45, 
+      Unit_Cost: 85.00, 
+      Status: 'Low Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP004', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Manila Folders Letter Size', 
+      Unit: 'per piece', 
+      Quantity: 800, 
+      Unit_Cost: 3.75, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP005', 
+      Category_Name: 'Electronics', 
+      Item_Description: 'USB Flash Drives 32GB', 
+      Unit: 'per piece', 
+      Quantity: 75, 
+      Unit_Cost: 12.00, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP006', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Whiteboard Markers Assorted Colors', 
+      Unit: 'per set', 
+      Quantity: 150, 
+      Unit_Cost: 4.25, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP007', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Binding Clips Metal 2 inch', 
+      Unit: 'per box (100pcs)', 
+      Quantity: 2000, 
+      Unit_Cost: 0.50, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP008', 
+      Category_Name: 'Accessories', 
+      Item_Description: 'Laptop Stands Adjustable', 
+      Unit: 'per piece', 
+      Quantity: 30, 
+      Unit_Cost: 35.00, 
+      Status: 'Low Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP009', 
+      Category_Name: 'Stationery', 
+      Item_Description: 'Desk Calendars 2024', 
+      Unit: 'per piece', 
+      Quantity: 25, 
+      Unit_Cost: 15.00, 
+      Status: 'In Stock' 
+    },
+    { 
+      Consumable_Product_ID: 'CP010', 
+      Category_Name: 'Accessories', 
+      Item_Description: 'Mouse Pads Gel Wrist Rest', 
+      Unit: 'per piece', 
+      Quantity: 60, 
+      Unit_Cost: 8.50, 
+      Status: 'In Stock' 
+    },
   ];
 
   // Filter products based on search term
   const filteredProducts = consumableProducts.filter(product =>
-    product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    product.Consumable_Product_ID.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.Category_Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.Item_Description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.Unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.Status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Table columns
   const columns = [
-    { key: 'productName', label: 'Product Name' },
-    { key: 'category', label: 'Category' },
-    { key: 'quantity', label: 'Quantity' },
-    { key: 'unit', label: 'Unit' },
-    { key: 'unitCost', label: 'Unit Cost ($)' },
-    { key: 'reorderLevel', label: 'Reorder Level' },
+    { key: 'Consumable_Product_ID', label: 'Product ID' },
+    { key: 'Category_Name', label: 'Category' },
+    { key: 'Item_Description', label: 'Description' },
+    { key: 'Unit', label: 'Unit' },
+    { key: 'Quantity', label: 'Quantity' },
+    { key: 'Unit_Cost', label: 'Unit Cost (₱)' },
     { 
-      key: 'status', 
+      key: 'Total_Cost', 
+      label: 'Total Cost (₱)',
+      render: (cellValue, row) => (row.Quantity * row.Unit_Cost).toFixed(2)
+    },
+    { 
+      key: 'Status', 
       label: 'Status',
       render: (status) => {
         const statusColors = {
@@ -60,29 +153,8 @@ export default function Manage_Consumable_Products() {
         </div>
       </Card>
 
-      {/* Search and Actions */}
-      <Card>
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <SearchBar
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search consumable products..."
-            name="productSearch"
-            width="w-full sm:w-1/2"
-          />
-          <div className="flex gap-2">
-            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-              Add Product
-            </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Export
-            </button>
-          </div>
-        </div>
-      </Card>
-
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-blue-600 text-sm font-medium">Total Products</p>
@@ -93,7 +165,7 @@ export default function Manage_Consumable_Products() {
           <div className="text-center">
             <p className="text-green-600 text-sm font-medium">In Stock</p>
             <p className="text-2xl font-bold text-green-900">
-              {consumableProducts.filter(p => p.status === 'In Stock').length}
+              {consumableProducts.filter(p => p.Status === 'In Stock').length}
             </p>
           </div>
         </Card>
@@ -101,7 +173,7 @@ export default function Manage_Consumable_Products() {
           <div className="text-center">
             <p className="text-yellow-600 text-sm font-medium">Low Stock</p>
             <p className="text-2xl font-bold text-yellow-900">
-              {consumableProducts.filter(p => p.status === 'Low Stock').length}
+              {consumableProducts.filter(p => p.Status === 'Low Stock').length}
             </p>
           </div>
         </Card>
@@ -109,11 +181,38 @@ export default function Manage_Consumable_Products() {
           <div className="text-center">
             <p className="text-red-600 text-sm font-medium">Critical</p>
             <p className="text-2xl font-bold text-red-900">
-              {consumableProducts.filter(p => p.status === 'Critical').length}
+              {consumableProducts.filter(p => p.Status === 'Critical').length}
             </p>
           </div>
         </Card>
       </div>
+
+      {/* Search and Actions */}
+      <Card>
+        <div className="space-y-4">
+          <SearchBar
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search consumable products..."
+            name="productSearch"
+            width="w-full"
+          />
+          <div className="flex gap-2">
+            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              Add Product
+            </button>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Edit
+            </button>
+            <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+              Delete
+            </button>
+            <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+              Export
+            </button>
+          </div>
+        </div>
+      </Card>
 
       {/* Products Table */}
       <Card title="Consumable Products Inventory">
