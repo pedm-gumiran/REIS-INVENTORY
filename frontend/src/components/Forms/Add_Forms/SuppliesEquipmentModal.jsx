@@ -86,10 +86,10 @@ export default function SuppliesEquipmentModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
+    <div className="fixed inset-0 w-screen h-screen bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-primary text-white px-6 py-4 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button
             onClick={() => {
@@ -351,9 +351,9 @@ export default function SuppliesEquipmentModal({
           <button
             onClick={handleSave}
             disabled={selectedItems.length === 0}
-            className={`px-4 py-2 rounded-md transition-colors ${
+            className={`px-4 py-2 rounded-md transition-all ${
               selectedItems.length > 0
-                ? 'bg-primary text-white hover:bg-primary/90'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >

@@ -19,6 +19,8 @@ import {
   FaExchangeAlt,
   FaHistory,
   FaUndo,
+  FaAngleDoubleRight,
+  FaAngleDoubleLeft,
 } from 'react-icons/fa';
 import Tooltip from '../utility/Tooltip';
 import { useUser } from '../context/UserContext';
@@ -406,9 +408,9 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
             >
               <div className="flex items-center justify-center w-5 h-5 rounded-full bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
                 {collapsed ? (
-                  <FaChevronRight className="text-xs text-green-600/70 group-hover:text-green-600" />
+                  <FaAngleDoubleRight className="text-xs text-green-600/70 group-hover:text-green-600" />
                 ) : (
-                  <FaChevronLeft className="text-xs text-green-600/70 group-hover:text-green-600" />
+                  <FaAngleDoubleLeft className="text-xs text-green-600/70 group-hover:text-green-600" />
                 )}
               </div>
 

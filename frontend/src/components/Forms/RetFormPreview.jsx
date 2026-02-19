@@ -9,7 +9,7 @@ export default function RetFormPreview({ formData, onClose }) {
     size: 14in 8.5in; /* Legal size - Landscape */
     margin: 0.25in;
   }
-  
+
   @media print {
     html,
     body {
@@ -26,7 +26,7 @@ export default function RetFormPreview({ formData, onClose }) {
        to avoid blank pages when users trigger Ctrl+P. */
     .sticky,
     button,
-    .print\:hidden {
+    .print:hidden {
       display: none !important;
     }
 
@@ -42,17 +42,17 @@ export default function RetFormPreview({ formData, onClose }) {
     }
   }
 `;
-    
+
     const styleElement = document.createElement('style');
     styleElement.textContent = printStyles;
     styleElement.id = 'ret-form-print-styles';
-    
+
     // Remove existing styles if present
     const existingStyles = document.getElementById('ret-form-print-styles');
     if (existingStyles) {
       existingStyles.remove();
     }
-    
+
     document.head.appendChild(styleElement);
 
     // Prevent body scrolling when modal is open
@@ -103,7 +103,9 @@ export default function RetFormPreview({ formData, onClose }) {
       return;
     }
 
-    const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+    const styles = Array.from(
+      document.querySelectorAll('link[rel="stylesheet"], style'),
+    )
       .map((el) => el.outerHTML)
       .join('\n');
 
@@ -150,17 +152,19 @@ export default function RetFormPreview({ formData, onClose }) {
     <div className="ret-print-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header Controls */}
-        <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-sm">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">RET Request Form Preview</h1>
+            <h1 className="text-xl font-bold text-white">
+              RET Request Form Preview
+            </h1>
           </div>
           <div className="flex items-center gap-3">
-            <button 
-              className="flex items-center gap-2 bg-green-700 text-white px-4 py-2 rounded-md hover:bg-green-800 transition-all font-semibold" 
+            <button
+              className="flex items-center gap-2 bg-white text-green-600 px-4 py-2 rounded-md hover:bg-gray-50 transition-all font-semibold shadow-lg border-2 border-green-500/30"
               onClick={handlePrint}
             >
               <FiPrinter size={16} />
-              Print / Export PDF
+              Print
             </button>
             <button
               onClick={onClose}
@@ -173,284 +177,393 @@ export default function RetFormPreview({ formData, onClose }) {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-          <div className="ret-form-content bg-white dark:bg-white text-black w-full max-w-[1400px] mx-auto p-6 shadow-2xl rounded-sm flex gap-8 relative overflow-hidden print:w-full print:max-w-none print:p-0 print:shadow-none print:rounded-none" style={{ fontFamily: 'Arial, sans-serif' }}>
-          {/* First Form */}
-          <div className="flex-1 flex flex-col border border-gray-300 p-1">
-            <div className="border-[1.5px] border-black flex flex-col h-full">
-              {/* University Header */}
-              <div className="flex border-b-[1.5px] border-black">
-                <div className="w-16 h-16 p-1 border-r-[1.5px] border-black flex items-center justify-center">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-                    NVSU
+          <div
+            className="ret-form-content bg-white dark:bg-white text-black w-full max-w-[1400px] mx-auto p-6 shadow-2xl rounded-sm flex gap-8 relative overflow-hidden print:w-full print:max-w-none print:p-0 print:shadow-none print:rounded-none"
+            style={{ fontFamily: 'Arial, sans-serif' }}
+          >
+            {/* First Form */}
+            <div className="flex-1 flex flex-col border border-gray-300 p-1">
+              <div className="border-[1.5px] border-black flex flex-col h-full">
+                {/* University Header */}
+                <div className="flex border-b-[1.5px] border-black">
+                  <div className="w-16 h-16 p-1 border-r-[1.5px] border-black  border-b-[1.5px] flex items-center justify-center">
+                    <img
+                      src="/nvsu logo.jfif"
+                      alt="NVSU"
+                      className="w-12 h-12 object-cover rounded-full "
+                    />
                   </div>
-                </div>
-               <div className="flex-1 text-center py-1"> <div className="flex-1 text-center py-1">
-                  <p className="text-[10px] leading-tight font-medium uppercase">Republic of the Philippines</p>
-                  <p className="text-xs font-bold leading-tight uppercase">NUEVA VIZCAYA STATE UNIVERSITY</p>
-                  <p className="text-[10px] leading-tight italic">Bayombong, Nueva Vizcaya</p>
-                </div>
-                <div className="border-b-[1.5px] border-t-[1.5px] border-left-[1.5px] border-black text-center py-1 bg-gray-50 ">
-                <h2 className="text-sm font-bold tracking-widest ">RET REQUEST FORM</h2>
-              </div></div>
-              </div>
-              
-              {/* Form Title */}
-              
-              
-              {/* RRF Number */}
-              <div className="flex justify-end px-4 py-1 text-xs font-bold border-b-[1.5px] border-black">
-                <span>RRF No.: <span className="inline-block w-24 border-b-[1.5px] border-black ml-1">{formData.rrfNumber || ''}</span></span>
-              </div>
-              
-              {/* Type of Request */}
-              <div className="text-center py-1 text-xs font-bold border-b-[1.5px] border-black">
-                Type of Request
-              </div>
-              
-              {/* Request Type Selection */}
-              <div className="flex border-b-[1.5px] border-black text-[10px] h-32">
-                <div className="w-[60%] border-r-[1.5px] border-black p-2 flex flex-col gap-2">
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center">
-                      <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[12px] font-bold">
-                        {formData.requestType?.includes('document') ? '✓' : ''}
-                      </span>
-                      Document
-                    </label>
-                    <label className="flex items-center">
-                      <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[12px] font-bold">
-                        {formData.requestType?.includes('supplies') ? '✓' : ''}
-                      </span>
-                      Supplies/materials/ Equipment
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <p className="font-bold mb-1">Document/ Supplies/ Materials/ Equipment Requested:</p>
-                    <div className="border-b-[1.5px] border-black w-full mb-3 mt-4 min-h-[20px]">
-                      {formData.description || ''}
+                  <div className="flex-1 text-center py-1">
+                    <p className="text-[~0.833rem] leading-tight font-bold uppercase">
+                      Republic of the Philippines
+                    </p>
+                    <p className="text-[~0.833rem] font-bold leading-tight uppercase">
+                      NUEVA VIZCAYA STATE UNIVERSITY
+                    </p>
+                    <p className="text-[~0.833rem] font-bold leading-tight">
+                      Bayombong, Nueva Vizcaya
+                    </p>
+                    <div className=" border-t-[1.5px]  border-black text-center bg-gray-50 ">
+                      <h2 className="text-[1rem] font-bold tracking-widest ">
+                        RET REQUEST FORM
+                      </h2>
                     </div>
-                    <div className="border-b-[1.5px] border-black w-full mb-3 mt-4 min-h-[20px]"></div>
-                    <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
                   </div>
                 </div>
-                <div className="w-[40%] p-2 flex flex-col gap-3">
-                  <label className="flex items-center">
-                    <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[12px] font-bold">
-                      {formData.requestType?.includes('conference') ? '✓' : ''}
+                <div className="flex justify-end px-4  text-[0.916rem] font-bold border-b-[1.5px]  ">
+                  <span className='mb-2'>
+                    RRF No.:{' '}
+                    <span className="inline-block w-24 border-b-[1.5px] ml-1">
+                      {formData.rrfNumber || ''}
                     </span>
-                    Use of RET Conference Room
-                  </label>
-                  <div className="flex flex-col gap-3 mt-1">
-                    <div className="flex">Date of Activity: <span className="flex-grow border-b-[1.5px] border-dotted border-black ml-1 min-h-[16px]">{formData.dateOfActivity || ''}</span></div>
-                    <div className="flex">Start Time: <span className="flex-grow border-b-[1.5px] border-dotted border-black ml-1 min-h-[16px]">{formData.startTime || ''}</span></div>
-                    <div className="flex">End Time: <span className="flex-grow border-b-[1.5px] border-dotted border-black ml-1 min-h-[16px]">{formData.endTime || ''}</span></div>
-                  </div>
+                  </span>
                 </div>
-              </div>
-              
-              {/* Purpose */}
-              <div className="border-b-[1.5px] border-black p-2 min-h-[100px]">
-                <p className="text-[10px] font-bold">Purpose:</p>
-                <div className="border-b-[1.5px] border-black w-full mb-4 mt-6 min-h-[20px]">
-                  {formData.purpose || ''}
-                </div>
-                <div className="border-b-[1.5px] border-black w-full mb-4 mt-6 min-h-[20px]"></div>
-                <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
-              </div>
-              
-              {/* Certification */}
-              <div className="border-b-[1.5px] border-black p-1 text-[10px] italic">
-                I hereby certify that the request will be used exclusively for the above stated purpose.
-              </div>
-              
-              {/* Signatures */}
-              <div className="flex flex-col flex-1">
-                <div className="border-b-[1.5px] border-black p-2">
-                  <p className="text-[10px] font-bold">Requested by:</p>
-                  <div className="mt-4 flex flex-col items-center">
-                    <div className="border-b-[1.5px] border-black min-h-[20px] text-center">
-                      {formData.requestorName || ''}
-                    </div>
-                    <span className="text-[10px] mt-1 italic">Signature over Printed Name</span>
-                  </div>
-                </div>
-                <div className="border-b-[1.5px] border-black p-2">
-                  <p className="text-[10px] font-bold">Approved by:</p>
-                  <div className="mt-6 flex flex-col items-center text-center">
-                    <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
-                      {formData.approvedBy || ''}
-                    </div>
-                    <span className="text-[10px] mt-1 font-bold leading-tight">Director for Research and Development/<br/>Director for Extension and Training</span>
-                  </div>
-                </div>
-                <div className="border-b-[1.5px] border-black p-2">
-                  <p className="text-[10px] font-bold">Served by:</p>
-                  <div className="mt-4 flex flex-col items-center">
-                    <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
-                      {formData.servedBy || ''}
-                    </div>
-                    <span className="text-[10px] mt-1 italic">Name/Signature of RET Staff</span>
-                  </div>
-                </div>
-                <div className="p-2 flex-1">
-                  <p className="text-[10px] font-bold">Received by: <span className="font-normal">(if document)</span></p>
-                  <div className="mt-4 flex flex-col items-center">
-                    <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
-                      {formData.receivedBy || ''}
-                    </div>
-                    <span className="text-[10px] mt-1 italic">Signature over Printed Name</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-2 text-[9px] flex justify-between px-1">
-              <p className="italic">Note: For RET Conference Room users please always practice CLAYGO (Clean As You Go).</p>
-              <p className="font-bold">NVSU-FR-RET-20-00 (080723)</p>
-            </div>
-          </div>
 
-          {/* Second Form (Duplicate) */}
-          <div className="flex-1 flex flex-col border border-gray-300 p-1">
-            <div className="border-[1.5px] border-black flex flex-col h-full">
-              {/* University Header */}
-              <div className="flex border-b-[1.5px] border-black">
-                <div className="w-16 h-16 p-1 border-r-[1.5px] border-black flex items-center justify-center">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-                    NVSU
+                {/* Type of Request */}
+                <div className="text-center  border-b-[1.5px] border-black">
+                 <h2 className="font-bold  text-[0.916rem]">Type of Request</h2>
+                </div>
+
+                {/* Request Type Selection */}
+                <div className="flex border-b-[1.5px] border-black h-45 ">
+                  <div className="w-[60%] border-r-[1.5px] border-black  flex flex-col ">
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center font-bold">
+                        <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
+                          {formData.requestType?.includes('document')
+                            ? '✓'
+                            : ''}
+                        </span>
+                        Document
+                      </label>
+                      <label className="flex items-center font-bold">
+                        <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
+                          {formData.requestType?.includes('supplies')
+                            ? '✓'
+                            : ''}
+                        </span>
+                        Supplies/materials/ Equipment
+                      </label>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-[~0.833rem]  ">
+                        Document/ Supplies/ Materials/ Equipment Requested:
+                      </p>
+                      <div className=" w-full ">
+                        {formData.description || ''}
+                      </div>
+                      <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                      <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                       <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex-1 text-center py-1">
-                  <p className="text-[10px] leading-tight font-medium uppercase">Republic of the Philippines</p>
-                  <p className="text-xs font-bold leading-tight uppercase">NUEVA VIZCAYA STATE UNIVERSITY</p>
-                  <p className="text-[10px] leading-tight italic">Bayombong, Nueva Vizcaya</p>
-                </div>
-              </div>
-              
-              {/* Form Title */}
-              <div className="border-b-[1.5px] border-black text-center py-1 bg-gray-50">
-                <h2 className="text-sm font-bold tracking-widest">RET REQUEST FORM</h2>
-              </div>
-              
-              {/* RRF Number */}
-              <div className="flex justify-end px-4 py-1 text-xs font-bold border-b-[1.5px] border-black">
-                <span>RRF No.: <span className="inline-block w-24 border-b-[1.5px] border-black ml-1">{formData.rrfNumber || ''}</span></span>
-              </div>
-              
-              {/* Type of Request */}
-              <div className="text-center py-1 text-xs font-bold border-b-[1.5px] border-black">
-                Type of Request
-              </div>
-              
-              {/* Request Type Selection */}
-              <div className="flex border-b-[1.5px] border-black text-[10px] h-32">
-                <div className="w-[60%] border-r-[1.5px] border-black p-2 flex flex-col gap-2">
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center">
-                      <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[12px] font-bold">
-                        {formData.requestType?.includes('document') ? '✓' : ''}
+                  <div className="w-[40%]  flex flex-col gap-3">
+                    <label className="flex items-center font-bold ">
+                      <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
+                        {formData.requestType?.includes('conference')
+                          ? '✓'
+                          : ''}
                       </span>
-                      Document
+                      Use of RET Conference Room
                     </label>
-                    <label className="flex items-center">
-                      <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[12px] font-bold">
-                        {formData.requestType?.includes('supplies') ? '✓' : ''}
+                    <div className="flex flex-col gap-3 mt-1 text-[~0.833rem]">
+                      <div className="flex">
+                        Date of Activity:{' '}
+                        <span className="flex-grow border-b-[1.5px]  border-black ml-1 min-h-[16px]">
+                          {formData.dateOfActivity || ''}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        Start Time:{' '}
+                        <span className="flex-grow border-b-[1.5px]  border-black ml-1 min-h-[16px]">
+                          {formData.startTime || ''}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        End Time:{' '}
+                        <span className="flex-grow border-b-[1.5px]  border-black ml-1 min-h-[16px]">
+                          {formData.endTime || ''}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Purpose */}
+                <div className=" border-black p-2 min-h-[100px] ">
+                  <p className="text-[0.833rem] font-bold">Purpose:</p>
+                  <div className="border-b-[1.5px] border-black w-full  min-h-[0.833rem]">
+                    {formData.purpose || ''}
+                  </div>
+                  <div className="border-b-[1.5px] border-black w-full  min-h-[20px]"></div>
+                  <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                </div>
+
+                {/* Certification */}
+                <div className="border-t-[1.5px] border-black  text-[0.833rem] ml-1">
+                  I hereby certify that the request will be used exclusively for
+                  the above stated purpose.
+                </div>
+
+                {/* Signatures */}
+                <div className="flex flex-col  ">
+                  <div className="border-b-[1.5px] border-black">
+                    <p className="text-[0.833rem] font-bold ml-2">Requested by:</p>
+                    <div className="mt-4 flex flex-col items-center text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
+                        {formData.requestorName || ''}
+                      </div>
+                      <span className="text-[0.833rem] leading-tight">
+                        Signature over Printed Name
                       </span>
-                      Supplies/materials/ Equipment
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <p className="font-bold mb-1">Document/ Supplies/ Materials/ Equipment Requested:</p>
-                    <div className="border-b-[1.5px] border-black w-full mb-3 mt-4 min-h-[20px]">
-                      {formData.description || ''}
                     </div>
-                    <div className="border-b-[1.5px] border-black w-full mb-3 mt-4 min-h-[20px]"></div>
-                    <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
                   </div>
-                </div>
-                <div className="w-[40%] p-2 flex flex-col gap-3">
-                  <label className="flex items-center">
-                    <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[12px] font-bold">
-                      {formData.requestType?.includes('conference') ? '✓' : ''}
-                    </span>
-                    Use of RET Conference Room
-                  </label>
-                  <div className="flex flex-col gap-3 mt-1">
-                    <div className="flex">Date of Activity: <span className="flex-grow border-b-[1.5px] border-dotted border-black ml-1 min-h-[16px]">{formData.dateOfActivity || ''}</span></div>
-                    <div className="flex">Start Time: <span className="flex-grow border-b-[1.5px] border-dotted border-black ml-1 min-h-[16px]">{formData.startTime || ''}</span></div>
-                    <div className="flex">End Time: <span className="flex-grow border-b-[1.5px] border-dotted border-black ml-1 min-h-[16px]">{formData.endTime || ''}</span></div>
+                  <div className="border-b-[1.5px] border-black ">
+                    <p className="text-[0.833rem] font-bold ml-2">Approved by:</p>
+                    <div className="mt-4 flex flex-col items-center text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black  text-center">
+                        {formData.approvedBy || ''}
+                      </div>
+                      <span className="text-[0.833rem]  leading-tight">
+                        Director for Research and Development/
+                        <br />
+                        Director for Extension and Training
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border-b-[1.5px] border-black ">
+                    <p className="text-[0.833rem] font-bold ml-2">Served by:</p>
+                    <div className="mt-4 flex flex-col items-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black text-center">
+                        {formData.servedBy || ''}
+                      </div>
+                      <span className="text-[0.833rem] mt-1 ">
+                        Name/Signature of RET Staff
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-2 flex-1">
+                    <p className="text-[0.833rem] font-bold">
+                      Received by:{' '}
+                      <span className="font-normal">(if document)</span>
+                    </p>
+                     <div className="mt-1 flex flex-col items-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[10px] text-center">
+                        {formData.receivedBy || ''}
+                      </div>
+                      <span className="text-[0.833rem] mt-1 ">
+                        Signature over Printed Name
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Purpose */}
-              <div className="border-b-[1.5px] border-black p-2 min-h-[100px]">
-                <p className="text-[10px] font-bold">Purpose:</p>
-                <div className="border-b-[1.5px] border-black w-full mb-4 mt-6 min-h-[20px]">
-                  {formData.purpose || ''}
-                </div>
-                <div className="border-b-[1.5px] border-black w-full mb-4 mt-6 min-h-[20px]"></div>
-                <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
-              </div>
-              
-              {/* Certification */}
-              <div className="border-b-[1.5px] border-black p-1 text-[10px] italic">
-                I hereby certify that the request will be used exclusively for the above stated purpose.
-              </div>
-              
-              {/* Signatures */}
-              <div className="flex flex-col flex-1">
-                <div className="border-b-[1.5px] border-black p-2">
-                  <p className="text-[10px] font-bold">Requested by:</p>
-                  <div className="mt-4 flex flex-col items-center">
-                    <div className="border-b-[1.5px] border-black min-h-[20px] text-center">
-                      {formData.requestorName || ''}
-                    </div>
-                    <span className="text-[10px] mt-1 italic">Signature over Printed Name</span>
-                  </div>
-                </div>
-                <div className="border-b-[1.5px] border-black p-2">
-                  <p className="text-[10px] font-bold">Approved by:</p>
-                  <div className="mt-6 flex flex-col items-center text-center">
-                    <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
-                      {formData.approvedBy || ''}
-                    </div>
-                    <span className="text-[10px] mt-1 font-bold leading-tight">Director for Research and Development/<br/>Director for Extension and Training</span>
-                  </div>
-                </div>
-                <div className="border-b-[1.5px] border-black p-2">
-                  <p className="text-[10px] font-bold">Served by:</p>
-                  <div className="mt-4 flex flex-col items-center">
-                    <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
-                      {formData.servedBy || ''}
-                    </div>
-                    <span className="text-[10px] mt-1 italic">Name/Signature of RET Staff</span>
-                  </div>
-                </div>
-                <div className="p-2 flex-1">
-                  <p className="text-[10px] font-bold">Received by: <span className="font-normal">(if document)</span></p>
-                  <div className="mt-4 flex flex-col items-center">
-                    <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
-                      {formData.receivedBy || ''}
-                    </div>
-                    <span className="text-[10px] mt-1 italic">Signature over Printed Name</span>
-                  </div>
-                </div>
+              <div className="mt-2 flex flex-col px-1">
+                <p className=" text-[0.833rem] ">
+                  Note: For RET Conference Room users please always practice
+                  CLAYGO (Clean As You Go).
+                </p>
+                <p className="text-[0.667rem]">NVSU-FR-RET-20-00 (080723)</p>
               </div>
             </div>
-            <div className="mt-2 text-[9px] flex justify-between px-1">
-              <p className="italic">Note: For RET Conference Room users please always practice CLAYGO (Clean As You Go).</p>
-              <p className="font-bold">NVSU-FR-RET-20-00 (080723)</p>
+
+            {/* Second Form (Duplicate) */}
+              <div className="flex-1 flex flex-col border border-gray-300 p-1">
+              <div className="border-[1.5px] border-black flex flex-col h-full">
+                {/* University Header */}
+                <div className="flex border-b-[1.5px] border-black">
+                  <div className="w-16 h-16 p-1 border-r-[1.5px] border-black  border-b-[1.5px] flex items-center justify-center">
+                    <img
+                      src="/nvsu logo.jfif"
+                      alt="NVSU"
+                      className="w-12 h-12 object-cover rounded-full "
+                    />
+                  </div>
+                  <div className="flex-1 text-center py-1">
+                    <p className="text-[~0.833rem] leading-tight font-bold uppercase">
+                      Republic of the Philippines
+                    </p>
+                    <p className="text-[~0.833rem] font-bold leading-tight uppercase">
+                      NUEVA VIZCAYA STATE UNIVERSITY
+                    </p>
+                    <p className="text-[~0.833rem] font-bold leading-tight">
+                      Bayombong, Nueva Vizcaya
+                    </p>
+                    <div className=" border-t-[1.5px]  border-black text-center bg-gray-50 ">
+                      <h2 className="text-[1rem] font-bold tracking-widest ">
+                        RET REQUEST FORM
+                      </h2>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end px-4  text-[0.916rem] font-bold border-b-[1.5px]  ">
+                  <span className='mb-2'>
+                    RRF No.:{' '}
+                    <span className="inline-block w-24 border-b-[1.5px] ml-1">
+                      {formData.rrfNumber || ''}
+                    </span>
+                  </span>
+                </div>
+
+                {/* Type of Request */}
+                <div className="text-center  border-b-[1.5px] border-black">
+                 <h2 className="font-bold  text-[0.916rem]">Type of Request</h2>
+                </div>
+
+                {/* Request Type Selection */}
+                <div className="flex border-b-[1.5px] border-black h-45 ">
+                  <div className="w-[60%] border-r-[1.5px] border-black  flex flex-col ">
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center font-bold">
+                        <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
+                          {formData.requestType?.includes('document')
+                            ? '✓'
+                            : ''}
+                        </span>
+                        Document
+                      </label>
+                      <label className="flex items-center font-bold">
+                        <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
+                          {formData.requestType?.includes('supplies')
+                            ? '✓'
+                            : ''}
+                        </span>
+                        Supplies/materials/ Equipment
+                      </label>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-[~0.833rem]  ">
+                        Document/ Supplies/ Materials/ Equipment Requested:
+                      </p>
+                      <div className=" w-full ">
+                        {formData.description || ''}
+                      </div>
+                      <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                      <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                       <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                    </div>
+                  </div>
+                  <div className="w-[40%]  flex flex-col gap-3">
+                    <label className="flex items-center font-bold ">
+                      <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
+                        {formData.requestType?.includes('conference')
+                          ? '✓'
+                          : ''}
+                      </span>
+                      Use of RET Conference Room
+                    </label>
+                    <div className="flex flex-col gap-3 mt-1 text-[~0.833rem]">
+                      <div className="flex">
+                        Date of Activity:{' '}
+                        <span className="flex-grow border-b-[1.5px]  border-black ml-1 min-h-[16px]">
+                          {formData.dateOfActivity || ''}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        Start Time:{' '}
+                        <span className="flex-grow border-b-[1.5px]  border-black ml-1 min-h-[16px]">
+                          {formData.startTime || ''}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        End Time:{' '}
+                        <span className="flex-grow border-b-[1.5px]  border-black ml-1 min-h-[16px]">
+                          {formData.endTime || ''}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Purpose */}
+                <div className=" border-black p-2 min-h-[100px] ">
+                  <p className="text-[0.833rem] font-bold">Purpose:</p>
+                  <div className="border-b-[1.5px] border-black w-full  min-h-[0.833rem]">
+                    {formData.purpose || ''}
+                  </div>
+                  <div className="border-b-[1.5px] border-black w-full  min-h-[20px]"></div>
+                  <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                </div>
+
+                {/* Certification */}
+                <div className="border-t-[1.5px] border-black  text-[0.833rem] ml-1">
+                  I hereby certify that the request will be used exclusively for
+                  the above stated purpose.
+                </div>
+
+                {/* Signatures */}
+                <div className="flex flex-col  ">
+                  <div className="border-b-[1.5px] border-black">
+                    <p className="text-[0.833rem] font-bold ml-2">Requested by:</p>
+                    <div className="mt-4 flex flex-col items-center text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
+                        {formData.requestorName || ''}
+                      </div>
+                      <span className="text-[0.833rem] leading-tight">
+                        Signature over Printed Name
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border-b-[1.5px] border-black ">
+                    <p className="text-[0.833rem] font-bold ml-2">Approved by:</p>
+                    <div className="mt-4 flex flex-col items-center text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black  text-center">
+                        {formData.approvedBy || ''}
+                      </div>
+                      <span className="text-[0.833rem]  leading-tight">
+                        Director for Research and Development/
+                        <br />
+                        Director for Extension and Training
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border-b-[1.5px] border-black ">
+                    <p className="text-[0.833rem] font-bold ml-2">Served by:</p>
+                    <div className="mt-4 flex flex-col items-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black text-center">
+                        {formData.servedBy || ''}
+                      </div>
+                      <span className="text-[0.833rem] mt-1 ">
+                        Name/Signature of RET Staff
+                      </span>
+                    </div>
+                  </div>
+                  <div className=" flex-1">
+                    <p className="text-[0.833rem] font-bold">
+                      Received by:{' '}
+                      <span className="font-normal">(if document)</span>
+                    </p>
+                    <div className="mt-1 flex flex-col items-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[10px] text-center">
+                        {formData.receivedBy || ''}
+                      </div>
+                      <span className="text-[0.833rem] mt-1 ">
+                        Signature over Printed Name
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+                <div className="mt-2 flex flex-col px-1">
+                <p className=" text-[0.833rem] ">
+                  Note: For RET Conference Room users please always practice
+                  CLAYGO (Clean As You Go).
+                </p>
+                <p className="text-[0.667rem]">NVSU-FR-RET-20-00 (080723)</p>
+              </div>
             </div>
           </div>
-        </div>
         </div>
 
         {/* Print Instructions */}
         <div className="px-6 pb-4 text-center text-gray-500 dark:text-gray-400 text-sm print:hidden">
-          <p>This digital form is optimized for 8.5" x 13" Landscape printing. For best results, ensure "Background Graphics" is enabled and margins are set to 0.5" in your browser's print dialog.</p>
+          <p>
+            This digital form is optimized for 8.5" x 13" Landscape printing.
+            For best results, ensure "Background Graphics" is enabled and
+            margins are set to 0.5" in your browser's print dialog.
+          </p>
         </div>
       </div>
     </div>
   );
 }
-

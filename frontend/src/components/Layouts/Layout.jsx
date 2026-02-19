@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../Dashboard_Components/Sidebar.jsx';
 import Navbar from '../Dashboard_Components/Navbar.jsx';
+import Footer from '../Dashboard_Components/Footer.jsx';
 
 const Layout = () => {
   const location = useLocation();
@@ -69,6 +70,9 @@ const Layout = () => {
             }}
           />
         </main>
+        
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   );

@@ -51,10 +51,10 @@ export default function DocumentRequestModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
+    <div className="fixed inset-0 w-screen h-screen bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-primary text-white px-6 py-4 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button
             onClick={() => {
@@ -132,8 +132,14 @@ export default function DocumentRequestModal({
             Cancel
           </button>
           <button
+            type="submit"
             onClick={handleSubmit}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+            disabled={!documents.some(doc => doc.name.trim() !== '')}
+            className={`px-4 py-2 rounded-md transition-all ${
+              documents.some(doc => doc.name.trim() !== '')
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
             Save Documents
           </button>

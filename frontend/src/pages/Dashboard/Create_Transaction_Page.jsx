@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../../components/cards/Card';
 import { FiPrinter, FiEye, FiTrash2, FiPlus } from 'react-icons/fi';
 import RetFormPreview from '../../components/Forms/RetFormPreview';
@@ -37,6 +37,8 @@ export default function Create_Transaction_Page() {
   const [returnCondition, setReturnCondition] = useState('');
   const [returnNotes, setReturnNotes] = useState('');
   const [returnDate, setReturnDate] = useState('');
+  const [returneeName, setReturneeName] = useState('');
+  const [inspectedBy, setInspectedBy] = useState('');
 
   // Document Request Modal State
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
@@ -196,7 +198,9 @@ export default function Create_Transaction_Page() {
       returnQuantity,
       returnCondition,
       returnNotes,
-      returnDate
+      returnDate,
+      returneeName,
+      inspectedBy
     });
     // Reset form
     setReturnProduct('');
@@ -204,7 +208,23 @@ export default function Create_Transaction_Page() {
     setReturnCondition('');
     setReturnNotes('');
     setReturnDate('');
+    setReturneeName('');
+    setInspectedBy('');
   };
+
+  // Scroll lock when modals are open
+  useEffect(() => {
+    if (isDocumentModalOpen || isSuppliesModalOpen || showPreview) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    // Clean up when component unmounts
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isDocumentModalOpen, isSuppliesModalOpen, showPreview]);
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -250,7 +270,7 @@ export default function Create_Transaction_Page() {
       {activeTab === 'create' && (
         <div className="bg-white shadow-xl rounded-2xl border border-slate-200 overflow-hidden">
           {/* Header */}
-          <div className="bg-green-700 px-8 py-6 text-white flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-6 text-white flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
               <h3 className="text-2xl font-bold">RET REQUEST FORM</h3>
               <p className="text-green-100 text-sm mt-1">Research, Extension, and Training Department</p>
@@ -262,7 +282,7 @@ export default function Create_Transaction_Page() {
                 name="rrfNumber"
                 value={formData.rrfNumber }
                 onChange={handleInputChange}
-                className="text-lg font-mono font-bold bg-transparent border-none focus:ring-0 text-white w-full"
+                className="text-lg font-mono font-bold bg-transparent border-none focus:ring-0 text-white w-full outline-none"
                 placeholder="Enter RRF number "
               />
             </div>
@@ -445,7 +465,7 @@ export default function Create_Transaction_Page() {
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 transition-all"
+                      className="w-full rounded-xl border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 transition-all outline-none"
                       placeholder="List documents, supplies, materials or equipment requested..."
                       rows="4"
                     />
@@ -503,7 +523,7 @@ export default function Create_Transaction_Page() {
                       value={formData.dateOfActivity}
                       onChange={handleInputChange}
                       disabled={!formData.requestType.includes('conference')}
-                      className="w-full rounded-lg border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full rounded-lg border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed outline-none"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -515,7 +535,7 @@ export default function Create_Transaction_Page() {
                         value={formData.startTime}
                         onChange={handleInputChange}
                         disabled={!formData.requestType.includes('conference')}
-                        className="w-full rounded-lg border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full rounded-lg border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed outline-none"
                       />
                     </div>
                     <div>
@@ -526,7 +546,7 @@ export default function Create_Transaction_Page() {
                         value={formData.endTime}
                         onChange={handleInputChange}
                         disabled={!formData.requestType.includes('conference')}
-                        className="w-full rounded-lg border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full rounded-lg border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed outline-none"
                       />
                     </div>
                   </div>
@@ -543,7 +563,7 @@ export default function Create_Transaction_Page() {
                 name="purpose"
                 value={formData.purpose}
                 onChange={handleInputChange}
-                className="w-full rounded-xl border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 transition-all"
+                className="w-full rounded-xl border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 transition-all outline-none"
                 placeholder="Please state specific purpose of this request..."
                 rows="3"
               />
@@ -568,7 +588,7 @@ export default function Create_Transaction_Page() {
                     value={formData.requestorName}
                     onChange={handleInputChange}
                     placeholder="Full Name of Requestor"
-                    className="w-full bg-transparent border-none focus:ring-0 text-lg font-medium"
+                    className="w-full bg-transparent border-none focus:ring-0 text-lg font-medium text-center outline-none"
                   />
                 </div>
                 <p className="text-[10px] text-center text-slate-400 font-medium">Signature over Printed Name</p>
@@ -582,7 +602,7 @@ export default function Create_Transaction_Page() {
                     value={formData.approvedBy || ''}
                     onChange={handleInputChange}
                     placeholder="Full Name of Approving Staff"
-                    className="w-full bg-transparent border-none focus:ring-0 text-lg font-medium"
+                    className="w-full bg-transparent border-none focus:ring-0 text-lg font-medium text-center outline-none"
                   />
                 </div>
                 <p className="text-[10px] text-center text-slate-400 font-medium">Signature over Printed Name</p>
@@ -596,7 +616,7 @@ export default function Create_Transaction_Page() {
                     value={formData.servedBy || ''}
                     onChange={handleInputChange}
                     placeholder="Assigned Staff Name"
-                    className="w-full bg-transparent border-none focus:ring-0 text-lg font-medium"
+                    className="w-full bg-transparent border-none focus:ring-0 text-lg font-medium text-center outline-none"
                   />
                 </div>
                 <p className="text-[10px] text-center text-slate-400 font-medium">Name/Signature of RET Staff</p>
@@ -610,7 +630,7 @@ export default function Create_Transaction_Page() {
                     value={formData.receivedBy || ''}
                     onChange={handleInputChange}
                     placeholder="Recipient Name"
-                    className="w-full bg-transparent border-none focus:ring-0 text-lg font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="w-full bg-transparent border-none focus:ring-0 text-lg font-medium text-center disabled:text-gray-400 disabled:cursor-not-allowed outline-none"
                     disabled={!formData.requestType.includes('document')}
                   />
                 </div>
@@ -630,8 +650,8 @@ export default function Create_Transaction_Page() {
                   type="button"
                   className="flex-1 md:flex-initial px-6 py-3 text-slate-600 font-semibold hover:bg-slate-100 rounded-xl transition-all flex items-center justify-center space-x-2 border-2 border-green-700"
                 >
-                  <FiPrinter className="w-4 h-4" />
-                  <span>Print</span>
+                  <FiEye className="w-4 h-4" />
+                  <span>Preview</span>
                 </button>
                 
                 <button
@@ -644,7 +664,7 @@ export default function Create_Transaction_Page() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 md:flex-initial bg-green-700 hover:bg-green-800 text-white font-bold px-10 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 md:flex-initial bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-10 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2"
                 >
                   <span>➤</span>
                   <span>Submit Request</span>
@@ -673,7 +693,7 @@ export default function Create_Transaction_Page() {
               <select
                 value={returnProduct}
                 onChange={(e) => setReturnProduct(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                 required
               >
                 <option value="">Select equipment...</option>
@@ -694,7 +714,7 @@ export default function Create_Transaction_Page() {
                   type="number"
                   value={returnQuantity}
                   onChange={(e) => setReturnQuantity(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                   placeholder="Enter quantity"
                   min="1"
                   required
@@ -710,7 +730,7 @@ export default function Create_Transaction_Page() {
                   type="date"
                   value={returnDate}
                   onChange={(e) => setReturnDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                   required
                 />
               </div>
@@ -724,7 +744,7 @@ export default function Create_Transaction_Page() {
               <select
                 value={returnCondition}
                 onChange={(e) => setReturnCondition(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                 required
               >
                 <option value="">Select condition...</option>
@@ -743,10 +763,43 @@ export default function Create_Transaction_Page() {
               <textarea
                 value={returnNotes}
                 onChange={(e) => setReturnNotes(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                 rows="3"
                 placeholder="Enter any damage notes or observations..."
               />
+            </div>
+
+            {/* Returnee and Inspector Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Returnee Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Returnee Name
+                </label>
+                <input
+                  type="text"
+                  value={returneeName}
+                  onChange={(e) => setReturneeName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  placeholder="Enter name of person returning equipment"
+                  required
+                />
+              </div>
+
+              {/* Inspected By */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Inspected By
+                </label>
+                <input
+                  type="text"
+                  value={inspectedBy}
+                  onChange={(e) => setInspectedBy(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  placeholder="Enter name of inspector"
+                  required
+                />
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -765,6 +818,8 @@ export default function Create_Transaction_Page() {
                   setReturnCondition('');
                   setReturnNotes('');
                   setReturnDate('');
+                  setReturneeName('');
+                  setInspectedBy('');
                 }}
                 className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
               >
@@ -795,11 +850,7 @@ export default function Create_Transaction_Page() {
         title="Specify Supplies/Materials/Equipment"
       />
 
-      {/* Footer */}
-      <footer className="mt-12 text-center text-slate-400 text-sm">
-        <p>© 2024 Nueva Vizcaya State University. All rights reserved.</p>
-        <p className="mt-1 font-mono text-xs">Internal Document NVSU-FR-RET-20-00 (080723)</p>
-      </footer>
+    
     </div>
   );
 }
