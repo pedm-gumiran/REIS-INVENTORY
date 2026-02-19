@@ -37,7 +37,6 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
   // Debug: Log user and menu items
   console.log('User:', user);
   console.log('Role:', role);
-  console.log('Menu Items:', role === 'Admin' ? roleMenus.Admin : []);
 
   // Auto open/close sidebar based on screen size
   useEffect(() => {

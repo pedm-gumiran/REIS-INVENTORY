@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import Card from '../../components/cards/Card';
-import { FiPrinter, FiEye, FiTrash2 } from 'react-icons/fi';
+import { FiPrinter, FiEye, FiTrash2, FiPlus } from 'react-icons/fi';
 import RetFormPreview from '../../components/Forms/RetFormPreview';
 import Input_Text from '../../components/Input_Fields/Input_Text';
+import DocumentRequestModal from '../../components/Forms/Add_Forms/DocumentRequestModal';
+import SuppliesEquipmentModal from '../../components/Forms/Add_Forms/SuppliesEquipmentModal';
 export default function Create_Transaction_Page() {
   const [activeTab, setActiveTab] = useState('create');
   const [showPreview, setShowPreview] = useState(false);
@@ -36,6 +38,14 @@ export default function Create_Transaction_Page() {
   const [returnNotes, setReturnNotes] = useState('');
   const [returnDate, setReturnDate] = useState('');
 
+  // Document Request Modal State
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+  const [requestedDocuments, setRequestedDocuments] = useState([]);
+
+  // Supplies/Equipment Modal State
+  const [isSuppliesModalOpen, setIsSuppliesModalOpen] = useState(false);
+  const [requestedItems, setRequestedItems] = useState([]);
+
   // Handle input changes for new form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -45,12 +55,8 @@ export default function Create_Transaction_Page() {
     }));
   };
 
-  const handleCreateTransaction = (e) => {
-    e.preventDefault();
-    // Handle transaction submission with new form structure
-    console.log('Transaction submitted:', formData);
-    
-    // Reset form
+  // Reset form function
+  const resetForm = () => {
     setFormData({
       requestType: [],
       description: '',
@@ -63,6 +69,123 @@ export default function Create_Transaction_Page() {
       servedBy: '',
       receivedBy: ''
     });
+    setRequestedDocuments([]);
+    setRequestedItems([]);
+  };
+
+  const handleCreateTransaction = (e) => {
+    e.preventDefault();
+    // Handle transaction submission with new form structure
+    console.log('Transaction submitted:', formData);
+    console.log('Requested documents:', requestedDocuments);
+    console.log('Requested items:', requestedItems);
+    
+    // Reset form after submission
+    resetForm();
+  };
+
+  // Document Modal Handlers
+  const handleOpenDocumentModal = () => {
+    setRequestedDocuments([]); // Clear to ensure fresh state
+    setIsDocumentModalOpen(true);
+  };
+
+  const handleCloseDocumentModal = () => {
+    setIsDocumentModalOpen(false);
+  };
+
+  const handleSaveDocuments = (documents) => {
+    setRequestedDocuments(documents);
+    // Append documents to existing description
+    const documentDetails = documents.map(doc => doc.name).join(', ');
+    const currentDescription = formData.description || '';
+    
+    setFormData(prev => ({
+      ...prev,
+      description: currentDescription 
+        ? `${currentDescription}, ${documentDetails}` 
+        : documentDetails
+    }));
+  };
+
+  // Supplies/Equipment Modal Handlers
+  const handleOpenSuppliesModal = () => {
+    setIsSuppliesModalOpen(true);
+    setRequestedItems([]);
+  };
+
+  const handleCloseSuppliesModal = () => {
+    setIsSuppliesModalOpen(false);
+  };
+
+  const handleSaveItems = (items) => {
+    setRequestedItems(items);
+    // Append items to existing description
+    const itemDetails = items.map(item => 
+      `${item.name} (Qty: ${item.quantity})`
+    ).join(', ');
+    const currentDescription = formData.description || '';
+    
+    setFormData(prev => ({
+      ...prev,
+      description: currentDescription 
+        ? `${currentDescription}, ${itemDetails}` 
+        : itemDetails
+    }));
+  };
+
+  // Handle clearing data when modal is closed/cancelled
+  const handleClearData = (type) => {
+    // Remove the specific checkbox from requestType
+    const newRequestType = formData.requestType.filter(requestType => requestType !== type);
+    
+    setFormData(prev => ({
+      ...prev,
+      requestType: newRequestType
+    }));
+    
+    // Clear specific data based on type
+    if (type === 'document') {
+      setRequestedDocuments([]);
+      // Remove documents from description
+      const currentDescription = formData.description || '';
+      const documentNames = requestedDocuments.map(doc => doc.name);
+      let newDescription = currentDescription;
+      
+      documentNames.forEach(docName => {
+        const regex = new RegExp(`,?\\s*${docName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,?`, 'g');
+        newDescription = newDescription.replace(regex, '');
+      });
+      
+      // Clean up extra commas and spaces
+      newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+      
+      setFormData(prev => ({
+        ...prev,
+        description: newDescription
+      }));
+    } else if (type === 'supplies') {
+      setRequestedItems([]);
+      // Remove supplies from description
+      const currentDescription = formData.description || '';
+      const itemPatterns = requestedItems.map(item => 
+        `${item.name.replace(/[.*+?^${}()[\]\\]/g, '\\$&')}\\s*\\(Qty:\\s*\\d+\\)`
+      );
+      let newDescription = currentDescription;
+      
+      itemPatterns.forEach(pattern => {
+        const regex = new RegExp(`,?\\s*${pattern}\\s*,?`, 'g');
+        newDescription = newDescription.replace(regex, '');
+      });
+      
+      // Clean up extra commas and spaces
+      newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+      
+      setFormData(prev => ({
+        ...prev,
+        description: newDescription
+      }));
+    }
   };
 
   const handleReturnEquipment = (e) => {
@@ -149,7 +272,7 @@ export default function Create_Transaction_Page() {
             {/* Type of Request */}
             <section>
               <div className="flex items-center space-x-2 mb-6">
-                <span className="text-green-700">📋</span>
+             
                 <h4 className="text-lg font-bold text-slate-800">Type of Request</h4>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -173,12 +296,123 @@ export default function Create_Transaction_Page() {
                       checked={formData.requestType.includes(type.value)}
                       onChange={(e) => {
                         const { checked, value } = e.target;
+                        const newRequestType = checked 
+                          ? [...formData.requestType, value]
+                          : formData.requestType.filter(type => type !== value);
+                        
                         setFormData(prev => ({
                           ...prev,
-                          requestType: checked 
-                            ? [...prev.requestType, value]
-                            : prev.requestType.filter(type => type !== value)
+                          requestType: newRequestType
                         }));
+                        
+                        // Check if all checkboxes are unchecked, then reset entire form
+                        if (newRequestType.length === 0) {
+                          resetForm();
+                          return;
+                        }
+                        
+                        // Handle modal opening and data clearing
+                        if (value === 'document') {
+                          if (checked) {
+                            // Clear existing document data before opening modal
+                            const documentsToRemove = [...requestedDocuments];
+                            setRequestedDocuments([]);
+                            
+                            // Remove existing documents from description
+                            const currentDescription = formData.description || '';
+                            const documentNames = documentsToRemove.map(doc => doc.name);
+                            let newDescription = currentDescription;
+                            
+                            documentNames.forEach(docName => {
+                              const regex = new RegExp(`,?\\s*${docName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,?`, 'g');
+                              newDescription = newDescription.replace(regex, '');
+                            });
+                            
+                            // Clean up extra commas and spaces
+                            newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+                            
+                            setFormData(prev => ({
+                              ...prev,
+                              description: newDescription
+                            }));
+                            
+                            handleOpenDocumentModal();
+                          } else {
+                            // Clear document data
+                            const documentsToRemove = [...requestedDocuments];
+                            setRequestedDocuments([]);
+                            
+                            // Remove documents from description
+                            const currentDescription = formData.description || '';
+                            const documentNames = documentsToRemove.map(doc => doc.name);
+                            let newDescription = currentDescription;
+                            
+                            documentNames.forEach(docName => {
+                              const regex = new RegExp(`,?\\s*${docName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,?`, 'g');
+                              newDescription = newDescription.replace(regex, '');
+                            });
+                            
+                            // Clean up extra commas and spaces
+                            newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+                            
+                            setFormData(prev => ({
+                              ...prev,
+                              description: newDescription
+                            }));
+                          }
+                        } else if (value === 'supplies') {
+                          if (checked) {
+                            // Clear existing supplies data before opening modal
+                            const itemsToRemove = [...requestedItems];
+                            setRequestedItems([]);
+                            
+                            // Remove existing supplies from description
+                            const currentDescription = formData.description || '';
+                            const itemPatterns = itemsToRemove.map(item => 
+                              `${item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\(Qty:\\s*\\d+\\)`
+                            );
+                            let newDescription = currentDescription;
+                            
+                            itemPatterns.forEach(pattern => {
+                              const regex = new RegExp(`,?\\s*${pattern}\\s*,?`, 'g');
+                              newDescription = newDescription.replace(regex, '');
+                            });
+                            
+                            // Clean up extra commas and spaces
+                            newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+                            
+                            setFormData(prev => ({
+                              ...prev,
+                              description: newDescription
+                            }));
+                            
+                            handleOpenSuppliesModal();
+                          } else {
+                            // Clear supplies data
+                            const itemsToRemove = [...requestedItems];
+                            setRequestedItems([]);
+                            
+                            // Remove supplies from description
+                            const currentDescription = formData.description || '';
+                            const itemPatterns = itemsToRemove.map(item => 
+                              `${item.name.replace(/[.*+?^${}()[\]\\]/g, '\\$&')}\\s*\\(Qty:\\s*\\d+\\)`
+                            );
+                            let newDescription = currentDescription;
+                            
+                            itemPatterns.forEach(pattern => {
+                              const regex = new RegExp(`,?\\s*${pattern}\\s*,?`, 'g');
+                              newDescription = newDescription.replace(regex, '');
+                            });
+                            
+                            // Clean up extra commas and spaces
+                            newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+                            
+                            setFormData(prev => ({
+                              ...prev,
+                              description: newDescription
+                            }));
+                          }
+                        }
                       }}
                       className={`w-5 h-5 border-2 rounded focus:ring-green-500 focus:ring-2 ${
                       formData.requestType.includes(type.value)
@@ -206,14 +440,54 @@ export default function Create_Transaction_Page() {
               
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Document/Supplies/Materials/Equipment Requested:</label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 transition-all"
-                    placeholder="List documents, supplies, materials or equipment requested..."
-                    rows="4"
-                  />
+                  <div className="space-y-3">
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 transition-all"
+                      placeholder="List documents, supplies, materials or equipment requested..."
+                      rows="4"
+                    />
+                    {formData.requestType.includes('document') && (
+                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="text-sm text-green-700 font-medium">
+                          {requestedDocuments.length > 0 
+                            ? `${requestedDocuments.length} document(s) specified` 
+                            : 'Click "Document" checkbox to specify documents'
+                          }
+                        </div>
+                        {requestedDocuments.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={handleOpenDocumentModal}
+                            className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                          >
+                            Edit Documents
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {formData.requestType.includes('supplies') && (
+                      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="text-sm text-blue-700 font-medium">
+                          {requestedItems.length > 0 
+                            ? `${requestedItems.length} item(s) specified` 
+                            : 'Click "Supplies/Materials/Equipment" checkbox to specify items'
+                          }
+                        </div>
+                        {requestedItems.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={handleOpenSuppliesModal}
+                            className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                          >
+                            Edit Items
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -362,20 +636,7 @@ export default function Create_Transaction_Page() {
                 
                 <button
                   type="button"
-                  onClick={() => {
-                    setFormData({
-                      requestType: [],
-                      description: '',
-                      dateOfActivity: '',
-                      startTime: '',
-                      endTime: '',
-                      purpose: '',
-                      requestorName: '',
-                      approvedBy: '',
-                      servedBy: '',
-                      receivedBy: ''
-                    });
-                  }}
+                  onClick={resetForm}
                   className="flex-1 md:flex-initial px-6 py-3 text-slate-600 font-semibold hover:bg-slate-100 rounded-xl transition-all flex items-center justify-center space-x-2 border-2 border-green-700"
                 >
                   <FiTrash2 className="w-4 h-4" />
@@ -514,7 +775,26 @@ export default function Create_Transaction_Page() {
         </Card>
       )}
 
-     
+      {/* Document Request Modal */}
+      <DocumentRequestModal
+        isOpen={isDocumentModalOpen}
+        onClose={handleCloseDocumentModal}
+        onSave={handleSaveDocuments}
+        onClearData={handleClearData}
+        initialDocuments={requestedDocuments.length > 0 ? requestedDocuments : []}
+        title="Specify Documents to Request"
+      />
+
+      {/* Supplies/Equipment Modal */}
+      <SuppliesEquipmentModal
+        isOpen={isSuppliesModalOpen}
+        onClose={handleCloseSuppliesModal}
+        onSave={handleSaveItems}
+        onClearData={handleClearData}
+        initialItems={requestedItems.length > 0 ? requestedItems : []}
+        title="Specify Supplies/Materials/Equipment"
+      />
+
       {/* Footer */}
       <footer className="mt-12 text-center text-slate-400 text-sm">
         <p>© 2024 Nueva Vizcaya State University. All rights reserved.</p>
