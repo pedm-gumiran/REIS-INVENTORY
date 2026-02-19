@@ -6,36 +6,33 @@ export default function RetFormPreview({ formData, onClose }) {
   useEffect(() => {
     const printStyles = `
   @page {
-    size: 13in 8.5in; /* Correct Landscape for Long Bond */
-    margin: 0.5in;
+    size: 14in 8.5in; /* Legal size - Landscape */
+    margin: 0.25in;
   }
   
   @media print {
-    /* Hide the modal background, close button, and print instructions */
-    .fixed, .sticky, .no-print, button, .bg-black {
+    html,
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 100% !important;
+      overflow: visible !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* In-app printing can be unreliable due to modal/fixed positioning.
+       The Print button uses a dedicated print window. Keep these rules minimal
+       to avoid blank pages when users trigger Ctrl+P. */
+    .sticky,
+    button,
+    .print\:hidden {
       display: none !important;
     }
 
-    /* Reset body and html for printing */
-    html, body {
-      visibility: hidden;
-      margin: 0 !important;
-      padding: 0 !important;
-      height: auto !important;
-    }
-
-    /* Force the specific form container to be visible and positioned at the top */
     .ret-form-content {
-      visibility: visible;
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100% !important;
-      display: flex !important; /* Keep the side-by-side layout */
-      flex-direction: row !important;
-      gap: 2rem !important;
       box-shadow: none !important;
-      border: none !important;
+      max-width: none !important;
     }
 
     /* Ensure background colors and borders show up */
@@ -63,12 +60,35 @@ export default function RetFormPreview({ formData, onClose }) {
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
 
+    const previousBodyStyle = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      width: document.body.style.width,
+    };
+
+    const handleBeforePrint = () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+
+    const handleAfterPrint = () => {
+      document.body.style.overflow = previousBodyStyle.overflow;
+      document.body.style.position = previousBodyStyle.position;
+      document.body.style.width = previousBodyStyle.width;
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
     // Cleanup function
     return () => {
       const styles = document.getElementById('ret-form-print-styles');
       if (styles) {
         styles.remove();
       }
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
       // Restore body scrolling when modal closes
       document.body.style.overflow = '';
       document.body.style.position = '';
@@ -77,12 +97,57 @@ export default function RetFormPreview({ formData, onClose }) {
   }, []);
 
   const handlePrint = () => {
-    // Trigger print dialog
-    window.print();
+    const formEl = document.querySelector('.ret-form-content');
+    if (!formEl) {
+      window.print();
+      return;
+    }
+
+    const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+      .map((el) => el.outerHTML)
+      .join('\n');
+
+    const printWindow = window.open('', '_blank', 'width=1200,height=800');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const printCss = `
+      @page { size: 14in 8.5in; margin: 0.2in; }
+      @media print {
+        html, body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .ret-form-content { display: flex !important; flex-direction: row !important; gap: 0.5rem !important; align-items: stretch !important; }
+        .ret-form-content > div { width: calc((100% - 0.5rem) / 2) !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+        .ret-form-content { zoom: 0.88; }
+      }
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          ${styles}
+          <style>${printCss}</style>
+          <title>RET Request Form</title>
+        </head>
+        <body>
+          ${formEl.outerHTML}
+        </body>
+      </html>`);
+    printWindow.document.close();
+
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 300);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="ret-print-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header Controls */}
         <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
