@@ -2,88 +2,92 @@ import React, { useState } from 'react';
 import Card from '../../components/cards/Card';
 import DataTable from '../../components/DataTables/DataTable';
 import SearchBar from '../../components/Input_Fields/SearchBar';
+import { FiDownload } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import * as XLSX from 'xlsx';
+
+// Sample audit data
+const auditTransactions = [
+  { 
+    id: 1, 
+    transactionId: 'TRX001', 
+    date: '2024-01-15', 
+    time: '09:30 AM',
+    type: 'Issue', 
+    product: 'Office Paper A4', 
+    quantity: 10, 
+    unit: 'Reams',
+    processedBy: 'Admin User',
+    recipient: 'IT Department',
+    purpose: 'Office supplies',
+    status: 'Completed'
+  },
+  { 
+    id: 2, 
+    transactionId: 'TRX002', 
+    date: '2024-01-15', 
+    time: '10:15 AM',
+    type: 'Return', 
+    product: 'Laptop Dell XPS', 
+    quantity: 1, 
+    unit: 'Unit',
+    processedBy: 'Admin User',
+    recipient: 'John Doe',
+    purpose: 'Equipment return',
+    status: 'Completed'
+  },
+  { 
+    id: 3, 
+    transactionId: 'TRX003', 
+    date: '2024-01-14', 
+    time: '02:45 PM',
+    type: 'Transfer', 
+    product: 'Ballpoint Pens', 
+    quantity: 5, 
+    unit: 'Boxes',
+    processedBy: 'Admin User',
+    recipient: 'HR Department',
+    purpose: 'Department transfer',
+    status: 'Completed'
+  },
+  { 
+    id: 4, 
+    transactionId: 'TRX004', 
+    date: '2024-01-14', 
+    time: '11:20 AM',
+    type: 'Issue', 
+    product: 'Printer Ink', 
+    quantity: 3, 
+    unit: 'Cartridges',
+    processedBy: 'Admin User',
+    recipient: 'Admin Office',
+    purpose: 'Printer maintenance',
+    status: 'Pending'
+  },
+  { 
+    id: 5, 
+    transactionId: 'TRX005', 
+    date: '2024-01-13', 
+    time: '03:30 PM',
+    type: 'Issue', 
+    product: 'Office Chair', 
+    quantity: 2, 
+    unit: 'Units',
+    processedBy: 'Admin User',
+    recipient: 'New Employees',
+    purpose: 'New setup',
+    status: 'Completed'
+  },
+];
 
 export default function Transaction_Audit() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [dateFilter, setDateFilter] = useState('all');
-
-  // Sample audit data
-  const auditTransactions = [
-    { 
-      id: 1, 
-      transactionId: 'TRX001', 
-      date: '2024-01-15', 
-      time: '09:30 AM',
-      type: 'Issue', 
-      product: 'Office Paper A4', 
-      quantity: 10, 
-      unit: 'Reams',
-      processedBy: 'Admin User',
-      recipient: 'IT Department',
-      purpose: 'Office supplies',
-      status: 'Completed'
-    },
-    { 
-      id: 2, 
-      transactionId: 'TRX002', 
-      date: '2024-01-15', 
-      time: '10:15 AM',
-      type: 'Return', 
-      product: 'Laptop Dell XPS', 
-      quantity: 1, 
-      unit: 'Unit',
-      processedBy: 'Admin User',
-      recipient: 'John Doe',
-      purpose: 'Equipment return',
-      status: 'Completed'
-    },
-    { 
-      id: 3, 
-      transactionId: 'TRX003', 
-      date: '2024-01-14', 
-      time: '02:45 PM',
-      type: 'Transfer', 
-      product: 'Ballpoint Pens', 
-      quantity: 5, 
-      unit: 'Boxes',
-      processedBy: 'Admin User',
-      recipient: 'HR Department',
-      purpose: 'Department transfer',
-      status: 'Completed'
-    },
-    { 
-      id: 4, 
-      transactionId: 'TRX004', 
-      date: '2024-01-14', 
-      time: '11:20 AM',
-      type: 'Issue', 
-      product: 'Printer Ink', 
-      quantity: 3, 
-      unit: 'Cartridges',
-      processedBy: 'Admin User',
-      recipient: 'Admin Office',
-      purpose: 'Printer maintenance',
-      status: 'Pending'
-    },
-    { 
-      id: 5, 
-      transactionId: 'TRX005', 
-      date: '2024-01-13', 
-      time: '03:30 PM',
-      type: 'Issue', 
-      product: 'Office Chair', 
-      quantity: 2, 
-      unit: 'Units',
-      processedBy: 'Admin User',
-      recipient: 'New Employees',
-      purpose: 'New setup',
-      status: 'Completed'
-    },
-  ];
+  const [transactions, setTransactions] = useState(auditTransactions);
 
   // Filter transactions based on search term and date
-  const filteredTransactions = auditTransactions.filter(transaction => {
+  const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = 
       transaction.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transaction.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,6 +101,44 @@ export default function Transaction_Audit() {
     
     return matchesSearch && matchesDate;
   });
+
+  // Export to Excel
+  const handleExportToExcel = () => {
+    const exportData = filteredTransactions.map(transaction => ({
+      'Transaction ID': transaction.transactionId,
+      'Date': transaction.date,
+      'Time': transaction.time,
+      'Type': transaction.type,
+      'Product': transaction.product,
+      'Quantity': transaction.quantity,
+      'Unit': transaction.unit,
+      'Processed By': transaction.processedBy,
+      'Recipient': transaction.recipient,
+      'Purpose': transaction.purpose,
+      'Status': transaction.status
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Transaction Audit');
+    
+    // Auto-size columns
+    const colWidths = Object.keys(exportData[0] || {}).map(key => {
+      const maxWidth = Math.max(
+        key.length,
+        ...exportData.map(row => String(row[key]).length)
+      );
+      return { wch: Math.min(maxWidth + 2, 50) };
+    });
+    ws['!cols'] = colWidths;
+    
+    // Generate file and download
+    XLSX.writeFile(wb, `transaction_audit_${new Date().toISOString().split('T')[0]}.xlsx`);
+    toast.success('Transaction audit exported successfully!');
+  };
 
   // Table columns
   const columns = [
@@ -163,11 +205,17 @@ export default function Transaction_Audit() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button 
+              onClick={handleExportToExcel}
+              disabled={filteredTransactions.length === 0}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                filteredTransactions.length > 0 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  : 'bg-blue-300 text-white cursor-not-allowed'
+              }`}
+            >
+              <FiDownload size={16} />
               Export Report
-            </button>
-            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-              Print
             </button>
           </div>
         </div>
@@ -178,14 +226,14 @@ export default function Transaction_Audit() {
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-blue-600 text-sm font-medium">Total Transactions</p>
-            <p className="text-2xl font-bold text-blue-900">{auditTransactions.length}</p>
+            <p className="text-2xl font-bold text-blue-900">{transactions.length}</p>
           </div>
         </Card>
         <Card className="bg-green-50 border-green-200">
           <div className="text-center">
             <p className="text-green-600 text-sm font-medium">Completed</p>
             <p className="text-2xl font-bold text-green-900">
-              {auditTransactions.filter(t => t.status === 'Completed').length}
+              {transactions.filter(t => t.status === 'Completed').length}
             </p>
           </div>
         </Card>
@@ -193,7 +241,7 @@ export default function Transaction_Audit() {
           <div className="text-center">
             <p className="text-yellow-600 text-sm font-medium">Pending</p>
             <p className="text-2xl font-bold text-yellow-900">
-              {auditTransactions.filter(t => t.status === 'Pending').length}
+              {transactions.filter(t => t.status === 'Pending').length}
             </p>
           </div>
         </Card>
@@ -201,7 +249,7 @@ export default function Transaction_Audit() {
           <div className="text-center">
             <p className="text-purple-600 text-sm font-medium">Today's Activity</p>
             <p className="text-2xl font-bold text-purple-900">
-              {auditTransactions.filter(t => t.date === '2024-01-15').length}
+              {transactions.filter(t => t.date === '2024-01-15').length}
             </p>
           </div>
         </Card>

@@ -48,12 +48,22 @@ export default function Create_Transaction_Page() {
   const [isSuppliesModalOpen, setIsSuppliesModalOpen] = useState(false);
   const [requestedItems, setRequestedItems] = useState([]);
 
+  // Helper function to convert text to uppercase
+  const toUpperCase = (str) => {
+    return str.toUpperCase();
+  };
+
   // Handle input changes for new form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Apply uppercase to name fields
+    const nameFields = ['requestorName', 'approvedBy', 'servedBy', 'receivedBy'];
+    const processedValue = nameFields.includes(name) ? toUpperCase(value) : value;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }));
   };
 
@@ -124,7 +134,7 @@ export default function Create_Transaction_Page() {
     setRequestedItems(items);
     // Append items to existing description
     const itemDetails = items.map(item => 
-      `${item.name} (Qty: ${item.quantity})`
+      `${item.name} (Qty: ${item.quantity} ${item.unit})`
     ).join(', ');
     const currentDescription = formData.description || '';
     
@@ -465,8 +475,9 @@ export default function Create_Transaction_Page() {
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 transition-all outline-none"
-                      placeholder="List documents, supplies, materials or equipment requested..."
+                      disabled
+                      className="w-full rounded-xl border-2 border-slate-300 focus:border-green-700 focus:ring-green-700 transition-all outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      placeholder="Use the checkboxes above to add items..."
                       rows="4"
                     />
                     {formData.requestType.includes('document') && (

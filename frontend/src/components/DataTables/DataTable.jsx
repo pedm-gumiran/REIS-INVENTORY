@@ -91,8 +91,9 @@ export default function DataTable({
               return (
                 <tr
                   key={rowId}
-                  className={`transition-colors ${
-                    isSelected ? 'bg-blue-100' : 'hover:bg-gray-200'
+                  onClick={() => selectable && handleRowSelect(rowId)}
+                  className={`transition-colors cursor-pointer ${
+                    isSelected ? 'bg-green-100' : 'hover:bg-gray-200'
                   }`}
                 >
                   {selectable && showCheckboxes && (

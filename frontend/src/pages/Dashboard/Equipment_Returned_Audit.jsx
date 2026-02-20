@@ -2,90 +2,94 @@ import React, { useState } from 'react';
 import Card from '../../components/cards/Card';
 import DataTable from '../../components/DataTables/DataTable';
 import SearchBar from '../../components/Input_Fields/SearchBar';
+import { FiDownload } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import * as XLSX from 'xlsx';
+
+// Sample equipment return data
+const equipmentReturnsData = [
+  { 
+    id: 1, 
+    returnId: 'RET001', 
+    date: '2024-01-15', 
+    time: '10:15 AM',
+    equipmentName: 'Laptop Dell XPS', 
+    serialNumber: 'DXS001',
+    assignedTo: 'John Doe',
+    returnCondition: 'Good',
+    issuesFound: 'None',
+    processedBy: 'Admin User',
+    department: 'IT',
+    status: 'Completed',
+    notes: 'Equipment returned in good condition'
+  },
+  { 
+    id: 2, 
+    returnId: 'RET002', 
+    date: '2024-01-14', 
+    time: '02:30 PM',
+    equipmentName: 'Projector Epson', 
+    serialNumber: 'PRJ003',
+    assignedTo: 'Jane Smith',
+    returnCondition: 'Fair',
+    issuesFound: 'Dim display',
+    processedBy: 'Admin User',
+    department: 'AV',
+    status: 'Maintenance Required',
+    notes: 'Sent for repair - display issue'
+  },
+  { 
+    id: 3, 
+    returnId: 'RET003', 
+    date: '2024-01-14', 
+    time: '09:45 AM',
+    equipmentName: 'Office Chair', 
+    serialNumber: 'CHR015',
+    assignedTo: 'Mike Johnson',
+    returnCondition: 'Excellent',
+    issuesFound: 'None',
+    processedBy: 'Admin User',
+    department: 'General',
+    status: 'Completed',
+    notes: 'No issues found'
+  },
+  { 
+    id: 4, 
+    returnId: 'RET004', 
+    date: '2024-01-13', 
+    time: '03:20 PM',
+    equipmentName: 'Printer HP LaserJet', 
+    serialNumber: 'PRN005',
+    assignedTo: 'Sarah Wilson',
+    returnCondition: 'Poor',
+    issuesFound: 'Paper jam, toner low',
+    processedBy: 'Admin User',
+    department: 'Admin',
+    status: 'Under Repair',
+    notes: 'Multiple issues identified'
+  },
+  { 
+    id: 5, 
+    returnId: 'RET005', 
+    date: '2024-01-13', 
+    time: '11:10 AM',
+    equipmentName: 'Whiteboard', 
+    serialNumber: 'WHT008',
+    assignedTo: 'Tom Brown',
+    returnCondition: 'Good',
+    issuesFound: 'Minor scratches',
+    processedBy: 'Admin User',
+    department: 'Conference',
+    status: 'Completed',
+    notes: 'Minor cosmetic damage only'
+  },
+];
 
 export default function Equipment_Returned_Audit() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
-
-  // Sample equipment return data
-  const equipmentReturns = [
-    { 
-      id: 1, 
-      returnId: 'RET001', 
-      date: '2024-01-15', 
-      time: '10:15 AM',
-      equipmentName: 'Laptop Dell XPS', 
-      serialNumber: 'DXS001',
-      assignedTo: 'John Doe',
-      returnCondition: 'Good',
-      issuesFound: 'None',
-      processedBy: 'Admin User',
-      department: 'IT',
-      status: 'Completed',
-      notes: 'Equipment returned in good condition'
-    },
-    { 
-      id: 2, 
-      returnId: 'RET002', 
-      date: '2024-01-14', 
-      time: '02:30 PM',
-      equipmentName: 'Projector Epson', 
-      serialNumber: 'PRJ003',
-      assignedTo: 'Jane Smith',
-      returnCondition: 'Fair',
-      issuesFound: 'Dim display',
-      processedBy: 'Admin User',
-      department: 'AV',
-      status: 'Maintenance Required',
-      notes: 'Sent for repair - display issue'
-    },
-    { 
-      id: 3, 
-      returnId: 'RET003', 
-      date: '2024-01-14', 
-      time: '09:45 AM',
-      equipmentName: 'Office Chair', 
-      serialNumber: 'CHR015',
-      assignedTo: 'Mike Johnson',
-      returnCondition: 'Excellent',
-      issuesFound: 'None',
-      processedBy: 'Admin User',
-      department: 'General',
-      status: 'Completed',
-      notes: 'No issues found'
-    },
-    { 
-      id: 4, 
-      returnId: 'RET004', 
-      date: '2024-01-13', 
-      time: '03:20 PM',
-      equipmentName: 'Printer HP LaserJet', 
-      serialNumber: 'PRN005',
-      assignedTo: 'Sarah Wilson',
-      returnCondition: 'Poor',
-      issuesFound: 'Paper jam, toner low',
-      processedBy: 'Admin User',
-      department: 'Admin',
-      status: 'Under Repair',
-      notes: 'Multiple issues identified'
-    },
-    { 
-      id: 5, 
-      returnId: 'RET005', 
-      date: '2024-01-13', 
-      time: '11:10 AM',
-      equipmentName: 'Whiteboard', 
-      serialNumber: 'WHT008',
-      assignedTo: 'Tom Brown',
-      returnCondition: 'Good',
-      issuesFound: 'Minor scratches',
-      processedBy: 'Admin User',
-      department: 'Conference',
-      status: 'Completed',
-      notes: 'Minor cosmetic damage only'
-    },
-  ];
+  const [equipmentReturns, setEquipmentReturns] = useState(equipmentReturnsData);
 
   // Filter returns based on search term and status
   const filteredReturns = equipmentReturns.filter(returnItem => {
@@ -99,6 +103,45 @@ export default function Equipment_Returned_Audit() {
     
     return matchesSearch && matchesStatus;
   });
+
+  // Export to Excel
+  const handleExportToExcel = () => {
+    const exportData = filteredReturns.map(returnItem => ({
+      'Return ID': returnItem.returnId,
+      'Return Date': returnItem.date,
+      'Return Time': returnItem.time,
+      'Equipment Name': returnItem.equipmentName,
+      'Serial Number': returnItem.serialNumber,
+      'Assigned To': returnItem.assignedTo,
+      'Department': returnItem.department,
+      'Condition': returnItem.returnCondition,
+      'Issues Found': returnItem.issuesFound,
+      'Processed By': returnItem.processedBy,
+      'Status': returnItem.status,
+      'Notes': returnItem.notes
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Equipment Returns');
+    
+    // Auto-size columns
+    const colWidths = Object.keys(exportData[0] || {}).map(key => {
+      const maxWidth = Math.max(
+        key.length,
+        ...exportData.map(row => String(row[key]).length)
+      );
+      return { wch: Math.min(maxWidth + 2, 50) };
+    });
+    ws['!cols'] = colWidths;
+    
+    // Generate file and download
+    XLSX.writeFile(wb, `equipment_returns_${new Date().toISOString().split('T')[0]}.xlsx`);
+    toast.success('Equipment returns exported successfully!');
+  };
 
   // Table columns
   const columns = [
@@ -183,11 +226,17 @@ export default function Equipment_Returned_Audit() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button 
+              onClick={handleExportToExcel}
+              disabled={filteredReturns.length === 0}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                filteredReturns.length > 0 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  : 'bg-blue-300 text-white cursor-not-allowed'
+              }`}
+            >
+              <FiDownload size={16} />
               Export Report
-            </button>
-            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-              Schedule Maintenance
             </button>
           </div>
         </div>

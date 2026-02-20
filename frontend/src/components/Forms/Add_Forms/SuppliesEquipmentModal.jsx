@@ -13,7 +13,18 @@ export default function SuppliesEquipmentModal({
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('consumable');
 
-  // Reset selectedItems when initialItems changes to empty
+  // Reset search term when switching tabs
+  useEffect(() => {
+    setSearchTerm('');
+  }, [activeTab]);
+
+  // Reset search term when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSearchTerm('');
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (initialItems.length === 0) {
       setSelectedItems([]);
@@ -110,7 +121,7 @@ export default function SuppliesEquipmentModal({
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search supplies, materials, or equipment..."
+                placeholder={activeTab === 'consumable' ? "Search consumable products..." : "Search non-consumable equipment..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"

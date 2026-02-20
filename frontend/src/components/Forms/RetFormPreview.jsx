@@ -186,15 +186,15 @@ export default function RetFormPreview({ formData, onClose }) {
               <div className="border-[1.5px] border-black flex flex-col h-full">
                 {/* University Header */}
                 <div className="flex border-b-[1.5px] border-black">
-                  <div className="w-16 h-16 p-1 border-r-[1.5px] border-black  border-b-[1.5px] flex items-center justify-center">
+                  <div className="w-20 p-1 border-r-[1.5px] border-black flex items-center justify-center">
                     <img
                       src="/nvsu logo.jfif"
                       alt="NVSU"
-                      className="w-12 h-12 object-cover rounded-full "
+                      className="w-16 h-16 object-cover rounded-full "
                     />
                   </div>
                   <div className="flex-1 text-center py-1">
-                    <p className="text-[~0.833rem] leading-tight font-bold uppercase">
+                    <p className="text-[~0.833rem] leading-tight font-bold ">
                       Republic of the Philippines
                     </p>
                     <p className="text-[~0.833rem] font-bold leading-tight uppercase">
@@ -203,7 +203,7 @@ export default function RetFormPreview({ formData, onClose }) {
                     <p className="text-[~0.833rem] font-bold leading-tight">
                       Bayombong, Nueva Vizcaya
                     </p>
-                    <div className=" border-t-[1.5px]  border-black text-center bg-gray-50 ">
+                    <div className=" border-t-[1.5px]  border-black text-center ">
                       <h2 className="text-[1rem] font-bold tracking-widest ">
                         RET REQUEST FORM
                       </h2>
@@ -246,15 +246,16 @@ export default function RetFormPreview({ formData, onClose }) {
                       </label>
                     </div>
                     <div className="mt-2">
-                      <p className="text-[~0.833rem]  ">
+                      <p className="text-[~0.833rem]">
                         Document/ Supplies/ Materials/ Equipment Requested:
                       </p>
-                      <div className=" w-full ">
-                        {formData.description || ''}
+                      <div className="mt-1">
+                        <div className="border-b-[1.5px] border-black w-full min-h-[20px] text-left">
+                          {formData.description || ''}
+                        </div>
+                        <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                        <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
                       </div>
-                      <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
-                      <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
-                       <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
                     </div>
                   </div>
                   <div className="w-[40%]  flex flex-col gap-3">
@@ -310,7 +311,7 @@ export default function RetFormPreview({ formData, onClose }) {
                   <div className="border-b-[1.5px] border-black">
                     <p className="text-[0.833rem] font-bold ml-2">Requested by:</p>
                     <div className="mt-4 flex flex-col items-center text-center">
-                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center font-bold">
                         {formData.requestorName || ''}
                       </div>
                       <span className="text-[0.833rem] leading-tight">
@@ -321,7 +322,7 @@ export default function RetFormPreview({ formData, onClose }) {
                   <div className="border-b-[1.5px] border-black ">
                     <p className="text-[0.833rem] font-bold ml-2">Approved by:</p>
                     <div className="mt-4 flex flex-col items-center text-center">
-                      <div className="w-2/3 border-b-[1.5px] border-black  text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black  text-center font-bold">
                         {formData.approvedBy || ''}
                       </div>
                       <span className="text-[0.833rem]  leading-tight">
@@ -334,7 +335,7 @@ export default function RetFormPreview({ formData, onClose }) {
                   <div className="border-b-[1.5px] border-black ">
                     <p className="text-[0.833rem] font-bold ml-2">Served by:</p>
                     <div className="mt-4 flex flex-col items-center">
-                      <div className="w-2/3 border-b-[1.5px] border-black text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black text-center font-bold">
                         {formData.servedBy || ''}
                       </div>
                       <span className="text-[0.833rem] mt-1 ">
@@ -348,7 +349,7 @@ export default function RetFormPreview({ formData, onClose }) {
                       <span className="font-normal">(if document)</span>
                     </p>
                      <div className="mt-1 flex flex-col items-center">
-                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[10px] text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[10px] text-center font-bold">
                         {formData.receivedBy || ''}
                       </div>
                       <span className="text-[0.833rem] mt-1 ">
@@ -372,11 +373,11 @@ export default function RetFormPreview({ formData, onClose }) {
               <div className="border-[1.5px] border-black flex flex-col h-full">
                 {/* University Header */}
                 <div className="flex border-b-[1.5px] border-black">
-                  <div className="w-16 h-16 p-1 border-r-[1.5px] border-black  border-b-[1.5px] flex items-center justify-center">
+                  <div className="w-20 p-1 border-r-[1.5px] border-black flex items-center justify-center">
                     <img
                       src="/nvsu logo.jfif"
                       alt="NVSU"
-                      className="w-12 h-12 object-cover rounded-full "
+                      className="w-16 h-16 object-cover rounded-full "
                     />
                   </div>
                   <div className="flex-1 text-center py-1">
@@ -389,7 +390,7 @@ export default function RetFormPreview({ formData, onClose }) {
                     <p className="text-[~0.833rem] font-bold leading-tight">
                       Bayombong, Nueva Vizcaya
                     </p>
-                    <div className=" border-t-[1.5px]  border-black text-center bg-gray-50 ">
+                    <div className=" border-t-[1.5px]  border-black text-center ">
                       <h2 className="text-[1rem] font-bold tracking-widest ">
                         RET REQUEST FORM
                       </h2>
@@ -432,15 +433,16 @@ export default function RetFormPreview({ formData, onClose }) {
                       </label>
                     </div>
                     <div className="mt-2">
-                      <p className="text-[~0.833rem]  ">
+                      <p className="text-[~0.833rem]">
                         Document/ Supplies/ Materials/ Equipment Requested:
                       </p>
-                      <div className=" w-full ">
-                        {formData.description || ''}
+                      <div className="mt-4">
+                        <div className="border-b-[1.5px] border-black w-full min-h-[20px] text-left">
+                          {formData.description || ''}
+                        </div>
+                        <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                        <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
                       </div>
-                      <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
-                      <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
-                       <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
                     </div>
                   </div>
                   <div className="w-[40%]  flex flex-col gap-3">
@@ -496,7 +498,7 @@ export default function RetFormPreview({ formData, onClose }) {
                   <div className="border-b-[1.5px] border-black">
                     <p className="text-[0.833rem] font-bold ml-2">Requested by:</p>
                     <div className="mt-4 flex flex-col items-center text-center">
-                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[20px] text-center font-bold">
                         {formData.requestorName || ''}
                       </div>
                       <span className="text-[0.833rem] leading-tight">
@@ -507,7 +509,7 @@ export default function RetFormPreview({ formData, onClose }) {
                   <div className="border-b-[1.5px] border-black ">
                     <p className="text-[0.833rem] font-bold ml-2">Approved by:</p>
                     <div className="mt-4 flex flex-col items-center text-center">
-                      <div className="w-2/3 border-b-[1.5px] border-black  text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black  text-center font-bold">
                         {formData.approvedBy || ''}
                       </div>
                       <span className="text-[0.833rem]  leading-tight">
@@ -520,7 +522,7 @@ export default function RetFormPreview({ formData, onClose }) {
                   <div className="border-b-[1.5px] border-black ">
                     <p className="text-[0.833rem] font-bold ml-2">Served by:</p>
                     <div className="mt-4 flex flex-col items-center">
-                      <div className="w-2/3 border-b-[1.5px] border-black text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black text-center font-bold">
                         {formData.servedBy || ''}
                       </div>
                       <span className="text-[0.833rem] mt-1 ">
@@ -534,7 +536,7 @@ export default function RetFormPreview({ formData, onClose }) {
                       <span className="font-normal">(if document)</span>
                     </p>
                     <div className="mt-1 flex flex-col items-center">
-                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[10px] text-center">
+                      <div className="w-2/3 border-b-[1.5px] border-black min-h-[10px] text-center font-bold">
                         {formData.receivedBy || ''}
                       </div>
                       <span className="text-[0.833rem] mt-1 ">
