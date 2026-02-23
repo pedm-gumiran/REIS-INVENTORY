@@ -266,14 +266,6 @@ export default function Equipment_Returned_Audit() {
             </p>
           </div>
         </Card>
-        <Card className="bg-red-50 border-red-200">
-          <div className="text-center">
-            <p className="text-red-600 text-sm font-medium">Under Repair</p>
-            <p className="text-2xl font-bold text-red-900">
-              {equipmentReturns.filter(r => r.status === 'Under Repair').length}
-            </p>
-          </div>
-        </Card>
       </div>
 
       {/* Returns Table */}
@@ -288,24 +280,6 @@ export default function Equipment_Returned_Audit() {
           showCheckboxes={false}
           emptyMessage="No equipment returns found"
         />
-      </Card>
-
-      {/* Recent Issues Summary */}
-      <Card title="Recent Issues Summary">
-        <div className="space-y-3">
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="font-medium text-red-800">Printer HP LaserJet (PRN005)</p>
-            <p className="text-sm text-red-600">Paper jam, toner low - Under Repair</p>
-          </div>
-          <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-            <p className="font-medium text-orange-800">Projector Epson (PRJ003)</p>
-            <p className="text-sm text-orange-600">Dim display - Maintenance Required</p>
-          </div>
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="font-medium text-yellow-800">Whiteboard (WHT008)</p>
-            <p className="text-sm text-yellow-600">Minor scratches - Completed</p>
-          </div>
-        </div>
       </Card>
     </div>
   );

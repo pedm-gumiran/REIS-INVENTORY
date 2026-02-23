@@ -285,17 +285,17 @@ export default function Manage_Consumable_Products() {
             name="productSearch"
             width="w-full"
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-2">
             <button 
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex-shrink-0"
             >
               Add Product
             </button>
             <button 
               onClick={handleOpenEditModal}
               disabled={selectedItems.length !== 1 || filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
                 selectedItems.length === 1 && filteredProducts.length > 0
                   ? 'bg-blue-600 text-white hover:bg-blue-700' 
                   : 'bg-blue-300 text-white cursor-not-allowed'
@@ -306,7 +306,7 @@ export default function Manage_Consumable_Products() {
             <button 
               onClick={handleOpenDeleteModal}
               disabled={selectedItems.length === 0 || filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
                 selectedItems.length > 0 && filteredProducts.length > 0
                   ? 'bg-red-600 text-white hover:bg-red-700' 
                   : 'bg-red-300 text-white cursor-not-allowed'
@@ -317,18 +317,19 @@ export default function Manage_Consumable_Products() {
             <button 
               onClick={handleExportToExcel}
               disabled={filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 flex-shrink-0 ${
                 filteredProducts.length > 0 
                   ? 'bg-orange-600 text-white hover:bg-orange-700' 
                   : 'bg-orange-300 text-white cursor-not-allowed'
               }`}
             >
               <FiDownload size={16} />
-              Export
+              Export Report
             </button>
           </div>
         </div>
-      </Card>
+     </Card>
+     
 
       {/* Products Table */}
       <Card title="Consumable Products Inventory">

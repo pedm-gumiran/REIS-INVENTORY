@@ -1,5 +1,5 @@
 import React from 'react';
-import Btn_Cancel from '../Buttons/Button';
+import Button from '../Buttons/Button';
 
 export default function ConfirmationBox({
   message,
@@ -24,10 +24,10 @@ export default function ConfirmationBox({
         <p className="text-gray-800 text-xl font-semibold">{title}</p>
         <p className="text-gray-800 text-sm">{message}</p>
         <div className="flex justify-end gap-4 mt-4">
-          <Btn_Cancel
+          <Button
             onClick={onCancel}
             label="Cancel"
-            className="border border-gray-300 hover:bg-gray-200 bg-transparent text-gray-600"
+            variant="modal-secondary"
             disabled={isLoading}
           />
           <button

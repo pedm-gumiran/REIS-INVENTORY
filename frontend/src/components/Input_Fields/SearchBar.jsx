@@ -29,7 +29,11 @@ export default function SearchBar({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full pl-10 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70 rounded-xl border border-gray-400 z-0 text-xs sm:text-sm md:text-md"
+        className={`w-full pl-10 pr-8 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-xs sm:text-sm md:text-md ${
+          disabled
+            ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300'
+            : 'bg-white text-gray-900 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500'
+        }`}
       />
 
       {/* Clear button (right side) */}

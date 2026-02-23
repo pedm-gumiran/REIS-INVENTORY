@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FiX, FiAlertTriangle, FiDownload } from 'react-icons/fi';
+import Button from '../../Buttons/Button';
 
 export default function DeleteConfirmationModal({ 
   isOpen, 
@@ -64,19 +65,17 @@ export default function DeleteConfirmationModal({
 
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
-          <button
+          <Button
+            label="Cancel"
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
+            variant="modal-secondary"
+          />
+          <Button
+            label={`Delete ${selectedItems.length} Item${selectedItems.length > 1 ? 's' : ''}`}
             onClick={handleConfirm}
-            className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-md hover:from-red-600 hover:to-red-700 transition-all"
-          >
-            Delete {selectedItems.length} Item{selectedItems.length > 1 ? 's' : ''}
-          </button>
+            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+          />
         </div>
       </div>
     </div>

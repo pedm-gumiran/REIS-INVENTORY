@@ -19,13 +19,19 @@ export default function Input_Text({
     onChange(event);
   };
 
-  // Capitalize first letter of each word
+  // Capitalize first letter of each word (exclude number inputs)
   const handleChange = (e) => {
     let inputValue = e.target.value;
 
     // send empty string as is
     if (!inputValue.trim()) {
       onChange({ target: { name, value: '' } });
+      return;
+    }
+
+    // Skip formatting for number inputs
+    if (type === 'number') {
+      onChange({ target: { name, value: inputValue } });
       return;
     }
 
@@ -55,19 +61,19 @@ export default function Input_Text({
         id={id}
         name={name}
         placeholder={placeholder}
-        className={`w-full rounded-xl border border-gray-500 px-4 py-3 text-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-green-700 focus:border-green-700 transition ${text_ClassName}  ${
+        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ${text_ClassName}  ${
           disabled
-            ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-500'
-            : 'bg-white text-gray-900 border-gray-500 focus:border-green-700 focus:ring-2 focus:ring-green-700'
+            ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300'
+            : 'bg-white text-gray-900 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500'
         }`}
         required={required}
         onChange={handleChange}
         value={value}
         disabled={disabled}
       />
-      {value && !disabled && (
+      {value && !disabled && type !== 'number' && (
         <span
-          className="absolute mt-6 right-3 transform -translate-y-1/2 cursor-pointer z-30 text-gray-500 hover:text-gray-700 bg-white p-1 rounded-sm "
+          className="absolute mt-5 right-3 transform -translate-y-1/2 cursor-pointer z-30 text-gray-500 hover:text-gray-700 bg-white p-1 rounded-sm "
           onClick={handleClear}
           title="Clear"
         >

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import Button from '../Buttons/Button';
 import Input_Password from '../Input_Fields/Input_Password';
 //import { supabase } from '../../supabaseClient';
@@ -130,16 +129,16 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
                 label="Cancel"
                 type="button"
                 onClick={onClose}
-                className="border border-gray-300 hover:bg-gray-200 bg-transparent text-gray-600"
                 disabled={loading}
+                variant="modal-secondary"
               />
               <Button
                 label={loading ? 'Saving...' : 'Save'}
                 type="submit"
                 disabled={loading || !isFormValid || error}
-                className={`btn-primary  text-white ${
-                  !isFormValid || loading ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
+                variant="modal-primary"
+                isLoading={loading}
+                loadingText="Saving..."
               />
             </div>
           </form>

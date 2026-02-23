@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiSearch, FiPackage, FiTool } from 'react-icons/fi';
+import { FiX, FiPackage, FiTool } from 'react-icons/fi';
+import SearchBar from '../../Input_Fields/SearchBar';
+import Input_Text from '../../Input_Fields/Input_Text';
+import Button from '../../Buttons/Button';
 
 export default function SuppliesEquipmentModal({ 
   isOpen, 
@@ -117,16 +120,13 @@ export default function SuppliesEquipmentModal({
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {/* Search Bar */}
           <div className="mb-6">
-            <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder={activeTab === 'consumable' ? "Search consumable products..." : "Search non-consumable equipment..."}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-            </div>
+            <SearchBar
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={activeTab === 'consumable' ? "Search consumable products..." : "Search non-consumable equipment..."}
+              name="suppliesSearch"
+              width="w-full"
+            />
           </div>
 
           {/* Tabs */}
@@ -349,27 +349,21 @@ export default function SuppliesEquipmentModal({
 
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
-          <button
+          <Button
+            label="Cancel"
             type="button"
             onClick={() => {
               if (onClearData) onClearData('supplies');
               onClose();
             }}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
+            variant="modal-secondary"
+          />
+          <Button
+            label={`Save Items (${selectedItems.length})`}
             onClick={handleSave}
             disabled={selectedItems.length === 0}
-            className={`px-4 py-2 rounded-md transition-all ${
-              selectedItems.length > 0
-                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Save Items ({selectedItems.length})
-          </button>
+            variant="modal-primary"
+          />
         </div>
       </div>
     </div>

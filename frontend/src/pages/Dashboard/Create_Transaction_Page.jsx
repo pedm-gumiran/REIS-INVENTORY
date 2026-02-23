@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../../components/cards/Card';
-import { FiPrinter, FiEye, FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiPrinter, FiEye, FiTrash2, FiSave} from 'react-icons/fi';
 import RetFormPreview from '../../components/Forms/RetFormPreview';
 import Input_Text from '../../components/Input_Fields/Input_Text';
 import DocumentRequestModal from '../../components/Forms/Add_Forms/DocumentRequestModal';
@@ -677,8 +677,8 @@ export default function Create_Transaction_Page() {
                   type="submit"
                   className="flex-1 md:flex-initial bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-10 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2"
                 >
-                  <span>➤</span>
-                  <span>Submit Request</span>
+                  <FiSave className="w-5 h-5" />
+                  <span>Save</span>
                 </button>
               </div>
             </div>

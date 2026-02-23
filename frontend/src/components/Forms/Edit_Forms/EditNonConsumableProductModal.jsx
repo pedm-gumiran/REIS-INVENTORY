@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiSave } from 'react-icons/fi';
+import Input_Text from '../../Input_Fields/Input_Text';
 
 export default function EditNonConsumableProductModal({ isOpen, onClose, onSave, product }) {
   const [formData, setFormData] = useState({
@@ -126,17 +127,11 @@ export default function EditNonConsumableProductModal({ isOpen, onClose, onSave,
           <div className="grid grid-cols-2 gap-4">
             {/* Product ID */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product ID *
-              </label>
-              <input
-                type="text"
+              <Input_Text
+                label="Product ID *"
                 name="Non_Consumable_Product_ID"
                 value={formData.Non_Consumable_Product_ID}
-                onChange={handleInputChange}
                 disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                placeholder="e.g., NCP001"
               />
               <p className="text-xs text-gray-500 mt-1">Product ID cannot be changed</p>
             </div>
@@ -167,17 +162,12 @@ export default function EditNonConsumableProductModal({ isOpen, onClose, onSave,
 
             {/* Description */}
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description *
-              </label>
-              <input
-                type="text"
+              <Input_Text
+                label="Description *"
                 name="Item_Description"
                 value={formData.Item_Description}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.Item_Description ? 'border-red-500' : 'border-gray-300'
-                }`}
+                required
                 placeholder="e.g., Laptop Dell XPS 15 inch"
               />
               {errors.Item_Description && (
@@ -187,17 +177,12 @@ export default function EditNonConsumableProductModal({ isOpen, onClose, onSave,
 
             {/* Unit */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Unit *
-              </label>
-              <input
-                type="text"
+              <Input_Text
+                label="Unit *"
                 name="Unit"
                 value={formData.Unit}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.Unit ? 'border-red-500' : 'border-gray-300'
-                }`}
+                required
                 placeholder="e.g., per piece"
               />
               {errors.Unit && (
@@ -207,18 +192,14 @@ export default function EditNonConsumableProductModal({ isOpen, onClose, onSave,
 
             {/* Quantity */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity *
-              </label>
-              <input
-                type="number"
+              <Input_Text
+                label="Quantity *"
                 name="Quantity"
                 value={formData.Quantity}
                 onChange={handleInputChange}
+                required
+                type="number"
                 min="1"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.Quantity ? 'border-red-500' : 'border-gray-300'
-                }`}
                 placeholder="0"
               />
               {errors.Quantity && (
@@ -228,19 +209,15 @@ export default function EditNonConsumableProductModal({ isOpen, onClose, onSave,
 
             {/* Unit Cost */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Unit Cost (₱) *
-              </label>
-              <input
-                type="number"
+              <Input_Text
+                label="Unit Cost (₱) *"
                 name="Unit_Cost"
                 value={formData.Unit_Cost}
                 onChange={handleInputChange}
+                required
+                type="number"
                 min="0"
                 step="0.01"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.Unit_Cost ? 'border-red-500' : 'border-gray-300'
-                }`}
                 placeholder="0.00"
               />
               {errors.Unit_Cost && (

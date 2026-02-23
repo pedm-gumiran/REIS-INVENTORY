@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiEdit2 } from 'react-icons/fi';
+import Input_Text from '../../Input_Fields/Input_Text';
 
 export default function EditConsumableProductModal({ 
   isOpen, 
@@ -88,15 +89,11 @@ export default function EditConsumableProductModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Product ID (Read-only) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product ID
-              </label>
-              <input
-                type="text"
+              <Input_Text
+                label="Product ID"
                 name="Consumable_Product_ID"
                 value={formData.Consumable_Product_ID}
                 disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
               />
               <p className="text-xs text-gray-500 mt-1">Product ID cannot be changed</p>
             </div>
@@ -104,17 +101,13 @@ export default function EditConsumableProductModal({
             <div className="grid grid-cols-2 gap-4">
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category *
-                </label>
-                <input
-                  type="text"
+                <Input_Text
+                  label="Category *"
                   name="Category_Name"
                   value={formData.Category_Name}
                   onChange={handleInputChange}
                   required
                   placeholder="e.g., Stationery"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -138,69 +131,56 @@ export default function EditConsumableProductModal({
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Item Description *
-              </label>
-              <textarea
+              <Input_Text
+                label="Item Description *"
                 name="Item_Description"
                 value={formData.Item_Description}
                 onChange={handleInputChange}
                 required
-                rows="2"
                 placeholder="Enter detailed product description..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                text_ClassName="resize-none"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               {/* Unit */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Unit *
-                </label>
-                <input
-                  type="text"
+                <Input_Text
+                  label="Unit *"
                   name="Unit"
                   value={formData.Unit}
                   onChange={handleInputChange}
                   required
                   placeholder="e.g., per ream"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {/* Quantity */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantity *
-                </label>
-                <input
-                  type="number"
+                <Input_Text
+                  label="Quantity *"
                   name="Quantity"
                   value={formData.Quantity}
                   onChange={handleInputChange}
                   required
+                  type="number"
                   min="0"
                   placeholder="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {/* Unit Cost */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Unit Cost (₱) *
-                </label>
-                <input
-                  type="number"
+                <Input_Text
+                  label="Unit Cost (₱) *"
                   name="Unit_Cost"
                   value={formData.Unit_Cost}
                   onChange={handleInputChange}
                   required
+                  type="number"
                   min="0"
                   step="0.01"
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
