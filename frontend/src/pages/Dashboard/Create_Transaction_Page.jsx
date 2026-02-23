@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Card from '../../components/cards/Card';
 import { FiPrinter, FiEye, FiTrash2, FiSave} from 'react-icons/fi';
 import RetFormPreview from '../../components/Forms/RetFormPreview';
 import Input_Text from '../../components/Input_Fields/Input_Text';
 import DocumentRequestModal from '../../components/Forms/Add_Forms/DocumentRequestModal';
 import SuppliesEquipmentModal from '../../components/Forms/Add_Forms/SuppliesEquipmentModal';
+import SearchBar from '../../components/Input_Fields/SearchBar';
+import DataTable from '../../components/DataTables/DataTable';
+import Button from '../../components/Buttons/Button';
+import Button_Clear from '../../components/Buttons/Button_Clear';
 export default function Create_Transaction_Page() {
   const [activeTab, setActiveTab] = useState('create');
   const [showPreview, setShowPreview] = useState(false);
@@ -39,6 +43,18 @@ export default function Create_Transaction_Page() {
   const [returnDate, setReturnDate] = useState('');
   const [returneeName, setReturneeName] = useState('');
   const [inspectedBy, setInspectedBy] = useState('');
+
+  // Client Search and Borrowed Items State
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [borrowedItems, setBorrowedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [showReturnForm, setShowReturnForm] = useState(false);
+  const [loadingClients, setLoadingClients] = useState(false);
+  const [loadingBorrowedItems, setLoadingBorrowedItems] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const searchContainerRef = useRef(null);
 
   // Document Request Modal State
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
@@ -221,6 +237,217 @@ export default function Create_Transaction_Page() {
     setReturneeName('');
     setInspectedBy('');
   };
+
+  // Client Search Handlers
+  const handleClientSearch = async (query) => {
+    setClientSearchQuery(query);
+    
+    // Don't search if a client is already selected and the query matches the selected client's name
+    if (selectedClient && query.trim() === selectedClient.name) {
+      setSearchResults([]);
+      setShowClientDropdown(false);
+      return;
+    }
+    
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowClientDropdown(false);
+      // Only clear client state if query is empty or very short
+      if (!query || query.length < 2) {
+        setSelectedClient(null);
+        setBorrowedItems([]);
+        setSelectedItems([]);
+        setShowReturnForm(false);
+      }
+      return;
+    }
+
+    setLoadingClients(true);
+    try {
+      // Mock API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Mock client data - replace with actual API response
+      const mockClients = [
+        { id: 1, name: 'John Doe', email: 'john@example.com', department: 'IT' },
+        { id: 2, name: 'Jane Smith', email: 'jane@example.com', department: 'HR' },
+        { id: 3, name: 'Bob Johnson', email: 'bob@example.com', department: 'Finance' },
+        { id: 4, name: 'Alice Brown', email: 'alice@example.com', department: 'Marketing' },
+        { id: 5, name: 'Charlie Wilson', email: 'charlie@example.com', department: 'Operations' },
+      ];
+      
+      const filteredClients = mockClients.filter(client => 
+        client.name.toLowerCase().includes(query.toLowerCase().trim())
+      );
+      
+      setSearchResults(filteredClients);
+      setShowClientDropdown(filteredClients.length > 0);
+    } catch (error) {
+      console.error('Error searching for client:', error);
+    } finally {
+      setLoadingClients(false);
+    }
+  };
+
+  // Handle Client Selection
+  const handleClientSelect = async (client) => {
+    setSelectedClient(client);
+    setSearchResults([]);
+    setShowClientDropdown(false);
+    setClientSearchQuery(client.name);
+    await loadBorrowedItems(client.id);
+  };
+
+  // Handle search bar clear
+  const handleSearchClear = () => {
+    setClientSearchQuery('');
+    setSearchResults([]);
+    setShowClientDropdown(false);
+    setSelectedClient(null);
+    setBorrowedItems([]);
+    setSelectedItems([]);
+    setShowReturnForm(false);
+  };
+
+  // Handle input focus to show dropdown when editing
+  const handleSearchFocus = () => {
+    // If there's a selected client and user focuses on input, don't show dropdown
+    if (selectedClient && clientSearchQuery.trim() === selectedClient.name) {
+      setShowClientDropdown(false);
+      return;
+    }
+    
+    // Show dropdown if there's a search query with results
+    if (clientSearchQuery.trim().length >= 2 && searchResults.length > 0) {
+      setShowClientDropdown(true);
+    }
+  };
+
+  // Load Borrowed Items for Selected Client
+  const loadBorrowedItems = async (clientId) => {
+    setLoadingBorrowedItems(true);
+    try {
+      // Mock API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock borrowed items data - replace with actual API response
+      const allItems = [
+        {
+          id: 1,
+          itemName: 'Laptop Dell XPS 15',
+          itemCode: 'LAP-001',
+          quantity: 1,
+          borrowDate: '2024-01-15',
+          dueDate: '2024-01-30',
+          status: 'borrowed',
+        
+        },
+        {
+          id: 2,
+          itemName: 'Projector Epson EB-X41',
+          itemCode: 'PROJ-002',
+          quantity: 1,
+          borrowDate: '2024-01-20',
+          dueDate: '2024-02-03',
+          status: 'borrowed',
+         
+        },
+        {
+          id: 3,
+          itemName: 'Office Chair Ergonomic',
+          itemCode: 'CHR-003',
+          quantity: 2,
+          borrowDate: '2024-01-10',
+          dueDate: '2024-01-24',
+          status: 'borrowed',
+          
+        },
+        {
+          id: 4,
+          itemName: 'Available Item - Not Borrowed',
+          itemCode: 'AVAIL-001',
+          quantity: 5,
+          borrowDate: '2024-01-01',
+          dueDate: '2024-02-15',
+          status: 'borrowed',
+          
+        }
+      ];
+      
+      // Only show items that are actually borrowed (status is 'borrowed')
+      const borrowedItems = allItems.filter(item => 
+        item.status === 'borrowed'
+      );
+      
+      setBorrowedItems(borrowedItems);
+    } catch (error) {
+      console.error('Error loading borrowed items:', error);
+    } finally {
+      setLoadingBorrowedItems(false);
+    }
+  };
+
+  // Handle Item Selection
+  const handleItemSelection = (itemIds) => {
+    setSelectedItems(itemIds);
+    setShowReturnForm(itemIds.length > 0);
+  };
+
+  // Handle Select All functionality
+  const handleSelectAll = (selectedIds) => {
+    setSelectedItems(selectedIds);
+    setShowReturnForm(selectedIds.length > 0);
+  };
+
+  // Handle Return Form Submission
+  const handleReturnFormSubmit = (e) => {
+    e.preventDefault();
+    
+    const returnData = {
+      client: selectedClient,
+      selectedItems: borrowedItems.filter(item => selectedItems.includes(item.id)),
+      returnDate,
+      returnCondition,
+      returnNotes,
+      returneeName,
+      inspectedBy
+    };
+    
+    console.log('Processing equipment return:', returnData);
+    
+    // Reset form after submission
+    resetReturnForm();
+  };
+
+  // Reset Return Form
+  const resetReturnForm = () => {
+    setClientSearchQuery('');
+    setSelectedClient(null);
+    setSearchResults([]);
+    setShowClientDropdown(false);
+    setBorrowedItems([]);
+    setSelectedItems([]);
+    setShowReturnForm(false);
+    setReturnDate('');
+    setReturnCondition('');
+    setReturnNotes('');
+    setReturneeName('');
+    setInspectedBy('');
+  };
+
+  // Click outside handler to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setShowClientDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Scroll lock when modals are open
   useEffect(() => {
@@ -694,151 +921,238 @@ export default function Create_Transaction_Page() {
       )}
 
       {activeTab === 'return' && (
-        <Card title="Return Equipment">
-          <form onSubmit={handleReturnEquipment} className="space-y-6">
-            {/* Equipment Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Equipment to Return
-              </label>
-              <select
-                value={returnProduct}
-                onChange={(e) => setReturnProduct(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                required
-              >
-                <option value="">Select equipment...</option>
-                <option value="laptop-001">Laptop Dell XPS - LPT001</option>
-                <option value="projector-001">Projector Epson - PRJ001</option>
-                <option value="chair-001">Office Chair - CHR001</option>
-                <option value="monitor-001">Monitor Dell 24" - MON001</option>
-              </select>
+        <div className="space-y-6">
+          <Card>
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-t-xl">
+              <h3 className="text-2xl font-bold">Return Equipment</h3>
+              <p className="text-green-100 text-sm mt-1">Search for clients and process equipment returns</p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Return Quantity */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity
+            
+            <div className="p-6 space-y-6">
+              {/* Client Search Section */}
+              <div className="relative" ref={searchContainerRef}>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Search Client Name
                 </label>
-                <input
-                  type="number"
-                  value={returnQuantity}
-                  onChange={(e) => setReturnQuantity(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                  placeholder="Enter quantity"
-                  min="1"
-                  required
+                <SearchBar
+                  value={clientSearchQuery}
+                  onChange={(e) => handleClientSearch(e.target.value)}
+                  onFocus={handleSearchFocus}
+                  onClear={handleSearchClear}
+                  placeholder="Type client name to search..."
+                  width="w-full"
+                  disabled={loadingClients}
+                />
+                
+                {/* Client Dropdown Results */}
+                {showClientDropdown && searchResults.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {searchResults.map((client) => (
+                      <div
+                        key={client.id}
+                        onClick={() => handleClientSelect(client)}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                      >
+                        <div className="font-medium text-gray-900">{client.name}</div>
+                        <div className="text-sm text-gray-500">{client.email} • {client.department}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* No Results Message */}
+                {clientSearchQuery.length >= 2 && !loadingClients && searchResults.length === 0 && !selectedClient && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                    <div className="px-4 py-3 text-gray-500 text-sm">
+                      No clients found matching "{clientSearchQuery}"
+                    </div>
+                  </div>
+                )}
+                
+                {/* Selected Client Info */}
+                {selectedClient && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h4 className="font-semibold text-green-800 mb-2">Selected Client:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-600">Name:</span>
+                        <p className="text-gray-900">{selectedClient.name}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Email:</span>
+                        <p className="text-gray-900">{selectedClient.email}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Department:</span>
+                        <p className="text-gray-900">{selectedClient.department}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Borrowed Items DataTable */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">Borrowed Items</h4>
+                <DataTable
+                  columns={[
+                    { key: 'itemCode', label: 'Item Code', className: 'font-mono text-xs' },
+                    { key: 'itemName', label: 'Item Name' },
+                    { key: 'quantity', label: 'Quantity', className: 'text-center' },
+                    { key: 'borrowDate', label: 'Borrow Date', className: 'text-center' },
+                    { 
+                      key: 'status', 
+                      label: 'Status', 
+                      className: 'text-center',
+                      render: (status) => (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Borrowed
+                        </span>
+                      )
+                    },
+                  
+                  ]}
+                  data={borrowedItems}
+                  selectable={true}
+                  selected={selectedItems}
+                  onSelect={handleItemSelection}
+                  onSelectAll={handleSelectAll}
+                  keyField="id"
+                  loading={loadingBorrowedItems}
+                  emptyMessage={selectedClient ? "No borrowed items found for this client" : "Please select a client to view borrowed items"}
+                  showCheckboxes={true}
                 />
               </div>
 
-              {/* Return Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Return Date
-                </label>
-                <input
-                  type="date"
-                  value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                  required
-                />
+              {/* Selected Items Summary */}
+              {selectedItems.length > 0 && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">
+                    Selected Items ({selectedItems.length})
+                  </h4>
+                  <div className="space-y-1 text-sm">
+                    {borrowedItems
+                      .filter(item => selectedItems.includes(item.id))
+                      .map(item => (
+                        <div key={item.id} className="flex justify-between">
+                          <span>{item.itemName} ({item.itemCode})</span>
+                          <span className="text-gray-600">Qty: {item.quantity}</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Return Form - Shows when items are selected */}
+          {showReturnForm && (
+            <Card>
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 rounded-t-xl">
+                <h3 className="text-xl font-bold">Return Details</h3>
+                <p className="text-blue-100 text-sm mt-1">Fill in the return information for selected items</p>
               </div>
-            </div>
+              
+              <form onSubmit={handleReturnFormSubmit} className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Return Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Return Date
+                    </label>
+                    <input
+                      type="date"
+                      value={returnDate}
+                      onChange={(e) => setReturnDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      required
+                    />
+                  </div>
 
-            {/* Equipment Condition */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Equipment Condition
-              </label>
-              <select
-                value={returnCondition}
-                onChange={(e) => setReturnCondition(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                required
-              >
-                <option value="">Select condition...</option>
-                <option value="excellent">Excellent</option>
-                <option value="good">Good</option>
-                <option value="fair">Fair</option>
-                <option value="damaged">Damaged</option>
-              </select>
-            </div>
+                  {/* Equipment Condition */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Equipment Condition
+                    </label>
+                    <select
+                      value={returnCondition}
+                      onChange={(e) => setReturnCondition(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      required
+                    >
+                      <option value="">Select condition...</option>
+                      <option value="excellent">Excellent</option>
+                      <option value="good">Good</option>
+                      <option value="fair">Fair</option>
+                      <option value="damaged">Damaged</option>
+                    </select>
+                  </div>
+                </div>
 
-            {/* Return Notes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Return Notes
-              </label>
-              <textarea
-                value={returnNotes}
-                onChange={(e) => setReturnNotes(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                rows="3"
-                placeholder="Enter any damage notes or observations..."
-              />
-            </div>
+                {/* Return Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Return Notes
+                  </label>
+                  <textarea
+                    value={returnNotes}
+                    onChange={(e) => setReturnNotes(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    rows="3"
+                    placeholder="Enter any damage notes or observations..."
+                  />
+                </div>
 
-            {/* Returnee and Inspector Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Returnee Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Returnee Name
-                </label>
-                <input
-                  type="text"
-                  value={returneeName}
-                  onChange={(e) => setReturneeName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                  placeholder="Enter name of person returning equipment"
-                  required
-                />
-              </div>
+                {/* Returnee and Inspector Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Returnee Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Returnee Name
+                    </label>
+                    <input
+                      type="text"
+                      value={returneeName}
+                      onChange={(e) => setReturneeName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="Enter name of person returning equipment"
+                      required
+                    />
+                  </div>
 
-              {/* Inspected By */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Inspected By
-                </label>
-                <input
-                  type="text"
-                  value={inspectedBy}
-                  onChange={(e) => setInspectedBy(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                  placeholder="Enter name of inspector"
-                  required
-                />
-              </div>
-            </div>
+                  {/* Inspected By */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Inspected By
+                    </label>
+                    <input
+                      type="text"
+                      value={inspectedBy}
+                      onChange={(e) => setInspectedBy(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="Enter name of inspector"
+                      required
+                    />
+                  </div>
+                </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Process Return
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setReturnProduct('');
-                  setReturnQuantity('');
-                  setReturnCondition('');
-                  setReturnNotes('');
-                  setReturnDate('');
-                  setReturneeName('');
-                  setInspectedBy('');
-                }}
-                className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-              >
-                Clear Form
-              </button>
-            </div>
-          </form>
-        </Card>
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-4 justify-end">
+                  <Button_Clear
+                    onClick={resetReturnForm}
+                  />
+                  <Button
+                    label="Save"
+                    icon={<FiSave />}
+                    variant="primary"
+                    size="lg"
+                    type="submit"
+                  />
+                </div>
+              </form>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Document Request Modal */}

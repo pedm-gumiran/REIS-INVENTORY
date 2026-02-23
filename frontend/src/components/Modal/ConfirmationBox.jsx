@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Button from '../Buttons/Button';
 
 export default function ConfirmationBox({
@@ -11,6 +11,20 @@ export default function ConfirmationBox({
   isLoading = false,
   loadingText,
 }) {
+  // Prevent body scrolling when modal is open
+  useEffect(() => {
+    if (message) { // Modal is open when message exists
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [message]);
+
   //  Dynamically choose loading text based on the title
   const effectiveLoadingText = loadingText
     ? loadingText
@@ -19,7 +33,7 @@ export default function ConfirmationBox({
     : 'Deleting...';
 
   return (
-    <div className="fixed inset-0 bg-black/20 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
       <div className="bg-gray-50 border border-gray-300 rounded-lg shadow-lg p-6 mx-3 w-full max-w-sm space-y-3">
         <p className="text-gray-800 text-xl font-semibold">{title}</p>
         <p className="text-gray-800 text-sm">{message}</p>

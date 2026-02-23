@@ -37,16 +37,16 @@ export default function DataTable({
         <thead className="bg-white border-b-2 border-gray-400 sticky top-0 z-10">
           <tr>
             {selectable && showCheckboxes && (
-              <th className="p-3 cursor-pointer">
+              <th className="p-3 cursor-pointer sticky left-0 bg-white shadow-[4px_0_4px_rgba(0,0,0,0.1)] z-30" onClick={() => onSelectAll(allSelected ? [] : data.map((d) => d[keyField]))}>
                 <input
                   ref={headerCheckboxRef}
                   type="checkbox"
                   title="Select All"
                   checked={allSelected}
                   onChange={(e) =>
-                    onSelectAll(
+                    { e.stopPropagation(); onSelectAll(
                       e.target.checked ? data.map((d) => d[keyField]) : [],
-                    )
+                    )}
                   }
                 />
               </th>
@@ -97,12 +97,12 @@ export default function DataTable({
                   }`}
                 >
                   {selectable && showCheckboxes && (
-                    <td className="p-3 cursor-pointer">
+                    <td className={`p-3 cursor-pointer sticky left-0 ${isSelected ? 'bg-green-100' : 'bg-white'} shadow-[4px_0_4px_rgba(0,0,0,0.1)] z-5`}>
                       <input
                         title="Select Row"
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => handleRowSelect(rowId)}
+                        onChange={(e) => { e.stopPropagation(); handleRowSelect(rowId); }}
                       />
                     </td>
                   )}

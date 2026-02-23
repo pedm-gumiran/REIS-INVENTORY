@@ -5,6 +5,8 @@ import { IoCloseCircle } from 'react-icons/io5';
 export default function SearchBar({
   value,
   onChange,
+  onFocus,
+  onClear,
   placeholder = 'Search...',
   disabled,
   id,
@@ -12,7 +14,11 @@ export default function SearchBar({
   width = 'md:w-1/2', // default width
 }) {
   const handleClear = () => {
-    onChange({ target: { name, value: '' } });
+    if (onClear) {
+      onClear();
+    } else {
+      onChange({ target: { name, value: '' } });
+    }
   };
 
   return (
@@ -28,6 +34,7 @@ export default function SearchBar({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        onFocus={onFocus}
         disabled={disabled}
         className={`w-full pl-10 pr-8 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-xs sm:text-sm md:text-md ${
           disabled

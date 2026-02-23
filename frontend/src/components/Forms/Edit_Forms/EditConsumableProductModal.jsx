@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiEdit2 } from 'react-icons/fi';
+import { FiX, FiEdit2,FiSave } from 'react-icons/fi';
 import Input_Text from '../../Input_Fields/Input_Text';
 
 export default function EditConsumableProductModal({ 
