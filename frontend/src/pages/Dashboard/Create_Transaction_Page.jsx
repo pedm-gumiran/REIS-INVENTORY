@@ -12,6 +12,7 @@ import Button_Clear from '../../components/Buttons/Button_Clear';
 export default function Create_Transaction_Page() {
   const [activeTab, setActiveTab] = useState('create');
   const [showPreview, setShowPreview] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
   
   // Create Transaction Form State
   const [transactionType, setTransactionType] = useState('issue');
@@ -43,6 +44,15 @@ export default function Create_Transaction_Page() {
   const [returnDate, setReturnDate] = useState('');
   const [returneeName, setReturneeName] = useState('');
   const [inspectedBy, setInspectedBy] = useState('');
+
+  // Update date and time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Client Search and Borrowed Items State
   const [clientSearchQuery, setClientSearchQuery] = useState('');
@@ -334,8 +344,8 @@ export default function Create_Transaction_Page() {
       const allItems = [
         {
           id: 1,
-          itemName: 'Laptop Dell XPS 15',
-          itemCode: 'LAP-001',
+          product_name: 'Laptop Dell XPS 15',
+          consumable_product_id: 'LAP-001',
           quantity: 1,
           borrowDate: '2024-01-15',
           dueDate: '2024-01-30',
@@ -344,8 +354,8 @@ export default function Create_Transaction_Page() {
         },
         {
           id: 2,
-          itemName: 'Projector Epson EB-X41',
-          itemCode: 'PROJ-002',
+          product_name: 'Projector Epson EB-X41',
+          consumable_product_id: 'PROJ-002',
           quantity: 1,
           borrowDate: '2024-01-20',
           dueDate: '2024-02-03',
@@ -354,8 +364,8 @@ export default function Create_Transaction_Page() {
         },
         {
           id: 3,
-          itemName: 'Office Chair Ergonomic',
-          itemCode: 'CHR-003',
+          product_name: 'Office Chair Ergonomic',
+          consumable_product_id: 'CHR-003',
           quantity: 2,
           borrowDate: '2024-01-10',
           dueDate: '2024-01-24',
@@ -364,8 +374,8 @@ export default function Create_Transaction_Page() {
         },
         {
           id: 4,
-          itemName: 'Available Item - Not Borrowed',
-          itemCode: 'AVAIL-001',
+          product_name: 'Available Item - Not Borrowed',
+          consumable_product_id: 'AVAIL-001',
           quantity: 5,
           borrowDate: '2024-01-01',
           dueDate: '2024-02-15',
@@ -463,15 +473,38 @@ export default function Create_Transaction_Page() {
     };
   }, [isDocumentModalOpen, isSuppliesModalOpen, showPreview]);
 
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Transaction Management</h1>
-          <p className="text-green-100">
-            Create transactions and manage equipment returns efficiently.
-          </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Transaction Management</h1>
+            <p className="text-green-100">
+              Create transactions and manage equipment returns efficiently.
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-semibold">{formatTime(currentDateTime)}</div>
+            <div className="text-green-100">{formatDate(currentDateTime)}</div>
+          </div>
         </div>
       </Card>
 
@@ -996,8 +1029,8 @@ export default function Create_Transaction_Page() {
                 <h4 className="text-lg font-semibold text-gray-800 mb-4">Borrowed Items</h4>
                 <DataTable
                   columns={[
-                    { key: 'itemCode', label: 'Item Code', className: 'font-mono text-xs' },
-                    { key: 'itemName', label: 'Item Name' },
+                    { key: 'consumable_product_id', label: 'Product ID', className: 'text-center' },
+                    { key: 'product_name', label: 'Product Name' },
                     { key: 'quantity', label: 'Quantity', className: 'text-center' },
                     { key: 'borrowDate', label: 'Borrow Date', className: 'text-center' },
                     { 
@@ -1035,7 +1068,7 @@ export default function Create_Transaction_Page() {
                       .filter(item => selectedItems.includes(item.id))
                       .map(item => (
                         <div key={item.id} className="flex justify-between">
-                          <span>{item.itemName} ({item.itemCode})</span>
+                          <span>{item.product_name} ({item.consumable_product_id})</span>
                           <span className="text-gray-600">Qty: {item.quantity}</span>
                         </div>
                       ))}

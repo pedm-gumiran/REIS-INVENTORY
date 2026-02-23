@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../../components/cards/Card';
 import DataTable from '../../components/DataTables/DataTable';
 import SearchBar from '../../components/Input_Fields/SearchBar';
@@ -111,6 +111,16 @@ export default function Manage_Consumable_Products() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  // Update date and time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Filter products based on search term
   const filteredProducts = products.filter(product =>
@@ -229,15 +239,38 @@ export default function Manage_Consumable_Products() {
     },
   ];
 
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Consumable Products</h1>
-          <p className="text-green-100">
-            Manage and track consumable inventory items that are used up over time.
-          </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Consumable Products</h1>
+            <p className="text-green-100">
+              Manage and track consumable inventory items that are used up over time.
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-semibold">{formatTime(currentDateTime)}</div>
+            <div className="text-green-100">{formatDate(currentDateTime)}</div>
+          </div>
         </div>
       </Card>
 
