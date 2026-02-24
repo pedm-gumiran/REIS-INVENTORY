@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Card from '../../components/cards/Card';
 import { FiPrinter, FiEye, FiTrash2, FiSave} from 'react-icons/fi';
 import RetFormPreview from '../../components/Forms/RetFormPreview';
 import Input_Text from '../../components/Input_Fields/Input_Text';
 import DocumentRequestModal from '../../components/Forms/Add_Forms/DocumentRequestModal';
 import SuppliesEquipmentModal from '../../components/Forms/Add_Forms/SuppliesEquipmentModal';
+import EditDocumentModal from '../../components/Forms/Edit_Forms/EditDocumentModal';
+import EditSuppliesModal from '../../components/Forms/Edit_Forms/EditSuppliesModal';
 import SearchBar from '../../components/Input_Fields/SearchBar';
 import DataTable from '../../components/DataTables/DataTable';
 import Button from '../../components/Buttons/Button';
@@ -73,6 +75,10 @@ export default function Create_Transaction_Page() {
   // Supplies/Equipment Modal State
   const [isSuppliesModalOpen, setIsSuppliesModalOpen] = useState(false);
   const [requestedItems, setRequestedItems] = useState([]);
+
+  // Edit Modals State
+  const [isEditDocumentModalOpen, setIsEditDocumentModalOpen] = useState(false);
+  const [isEditSuppliesModalOpen, setIsEditSuppliesModalOpen] = useState(false);
 
   // Helper function to convert text to uppercase
   const toUpperCase = (str) => {
@@ -169,6 +175,80 @@ export default function Create_Transaction_Page() {
       description: currentDescription 
         ? `${currentDescription}, ${itemDetails}` 
         : itemDetails
+    }));
+  };
+
+  // Edit Document Modal Handlers
+  const handleOpenEditDocumentModal = () => {
+    setIsEditDocumentModalOpen(true);
+  };
+
+  const handleCloseEditDocumentModal = () => {
+    setIsEditDocumentModalOpen(false);
+  };
+
+  const handleUpdateDocuments = (documents) => {
+    setRequestedDocuments(documents);
+    // Update description with new documents
+    const documentDetails = documents.map(doc => doc.name).join(', ');
+    const currentDescription = formData.description || '';
+    
+    // Remove existing document details from description
+    const existingDocDetails = requestedDocuments.map(doc => doc.name).join(', ');
+    let newDescription = currentDescription;
+    
+    if (existingDocDetails) {
+      const regex = new RegExp(`,?\\s*${existingDocDetails.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,?`, 'g');
+      newDescription = newDescription.replace(regex, '');
+      newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+    }
+    
+    // Add new document details
+    setFormData(prev => ({
+      ...prev,
+      description: newDescription 
+        ? `${newDescription}, ${documentDetails}` 
+        : documentDetails
+    }));
+  };
+
+  // Edit Supplies Modal Handlers
+  const handleOpenEditSuppliesModal = () => {
+    setIsEditSuppliesModalOpen(true);
+  };
+
+  const handleCloseEditSuppliesModal = () => {
+    setIsEditSuppliesModalOpen(false);
+  };
+
+  const handleUpdateItems = (items) => {
+    setRequestedItems(items);
+    
+    // Rebuild the entire description from scratch to ensure proper override
+    let newDescription = '';
+    
+    // Add documents if any exist
+    if (requestedDocuments.length > 0) {
+      const documentDetails = requestedDocuments.map(doc => doc.name).join(', ');
+      newDescription = documentDetails;
+    }
+    
+    // Add new supplies items
+    if (items.length > 0) {
+      const itemDetails = items.map(item => 
+        `${item.name} (Qty: ${item.quantity} ${item.unit})`
+      ).join(', ');
+      
+      if (newDescription) {
+        newDescription += `, ${itemDetails}`;
+      } else {
+        newDescription = itemDetails;
+      }
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      description: newDescription
     }));
   };
 
@@ -445,6 +525,12 @@ export default function Create_Transaction_Page() {
     setInspectedBy('');
   };
 
+  // Memoize initialItems to prevent unnecessary re-renders
+  const memoizedInitialItems = useMemo(() => requestedItems, [requestedItems]);
+
+  // Memoize initialDocuments to prevent unnecessary re-renders  
+  const memoizedInitialDocuments = useMemo(() => requestedDocuments, [requestedDocuments]);
+
   // Click outside handler to close dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -604,31 +690,33 @@ export default function Create_Transaction_Page() {
                         // Handle modal opening and data clearing
                         if (value === 'document') {
                           if (checked) {
-                            // Clear existing document data before opening modal
-                            const documentsToRemove = [...requestedDocuments];
-                            setRequestedDocuments([]);
-                            
-                            // Remove existing documents from description
-                            const currentDescription = formData.description || '';
-                            const documentNames = documentsToRemove.map(doc => doc.name);
-                            let newDescription = currentDescription;
-                            
-                            documentNames.forEach(docName => {
-                              const regex = new RegExp(`,?\\s*${docName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,?`, 'g');
-                              newDescription = newDescription.replace(regex, '');
-                            });
-                            
-                            // Clean up extra commas and spaces
-                            newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
-                            
-                            setFormData(prev => ({
-                              ...prev,
-                              description: newDescription
-                            }));
+                            // Only clear existing document data if there are documents and user is re-checking
+                            if (requestedDocuments.length > 0) {
+                              const documentsToRemove = [...requestedDocuments];
+                              setRequestedDocuments([]);
+                              
+                              // Remove existing documents from description
+                              const currentDescription = formData.description || '';
+                              const documentNames = documentsToRemove.map(doc => doc.name);
+                              let newDescription = currentDescription;
+                              
+                              documentNames.forEach(docName => {
+                                const regex = new RegExp(`,?\\s*${docName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,?`, 'g');
+                                newDescription = newDescription.replace(regex, '');
+                              });
+                              
+                              // Clean up extra commas and spaces
+                              newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+                              
+                              setFormData(prev => ({
+                                ...prev,
+                                description: newDescription
+                              }));
+                            }
                             
                             handleOpenDocumentModal();
                           } else {
-                            // Clear document data
+                            // Clear document data only when unchecking
                             const documentsToRemove = [...requestedDocuments];
                             setRequestedDocuments([]);
                             
@@ -652,54 +740,45 @@ export default function Create_Transaction_Page() {
                           }
                         } else if (value === 'supplies') {
                           if (checked) {
-                            // Clear existing supplies data before opening modal
-                            const itemsToRemove = [...requestedItems];
-                            setRequestedItems([]);
-                            
-                            // Remove existing supplies from description
-                            const currentDescription = formData.description || '';
-                            const itemPatterns = itemsToRemove.map(item => 
-                              `${item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\(Qty:\\s*\\d+\\)`
-                            );
-                            let newDescription = currentDescription;
-                            
-                            itemPatterns.forEach(pattern => {
-                              const regex = new RegExp(`,?\\s*${pattern}\\s*,?`, 'g');
-                              newDescription = newDescription.replace(regex, '');
-                            });
-                            
-                            // Clean up extra commas and spaces
-                            newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
-                            
-                            setFormData(prev => ({
-                              ...prev,
-                              description: newDescription
-                            }));
+                            // Only clear existing supplies data if there are items and user is re-checking
+                            if (requestedItems.length > 0) {
+                              const itemsToRemove = [...requestedItems];
+                              setRequestedItems([]);
+                              
+                              // Remove existing supplies from description
+                              const currentDescription = formData.description || '';
+                              const itemPatterns = itemsToRemove.map(item => 
+                                `${item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\(Qty:\\s*\\d+\\)`
+                              );
+                              let newDescription = currentDescription;
+                              
+                              itemPatterns.forEach(pattern => {
+                                const regex = new RegExp(`,?\\s*${pattern}\\s*,?`, 'g');
+                                newDescription = newDescription.replace(regex, '');
+                              });
+                              
+                              // Clean up extra commas and spaces
+                              newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+                              
+                              setFormData(prev => ({
+                                ...prev,
+                                description: newDescription
+                              }));
+                            }
                             
                             handleOpenSuppliesModal();
                           } else {
-                            // Clear supplies data
-                            const itemsToRemove = [...requestedItems];
-                            setRequestedItems([]);
-                            
-                            // Remove supplies from description
-                            const currentDescription = formData.description || '';
-                            const itemPatterns = itemsToRemove.map(item => 
-                              `${item.name.replace(/[.*+?^${}()[\]\\]/g, '\\$&')}\\s*\\(Qty:\\s*\\d+\\)`
-                            );
-                            let newDescription = currentDescription;
-                            
-                            itemPatterns.forEach(pattern => {
-                              const regex = new RegExp(`,?\\s*${pattern}\\s*,?`, 'g');
-                              newDescription = newDescription.replace(regex, '');
-                            });
-                            
-                            // Clean up extra commas and spaces
-                            newDescription = newDescription.replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
-                            
+                            // Clear supplies data using the centralized handleClearData function
+                            handleClearData('supplies');
+                          }
+                        } else if (value === 'conference') {
+                          if (!checked) {
+                            // Clear conference room related fields when unchecked
                             setFormData(prev => ({
                               ...prev,
-                              description: newDescription
+                              dateOfActivity: '',
+                              startTime: '',
+                              endTime: ''
                             }));
                           }
                         }
@@ -751,7 +830,7 @@ export default function Create_Transaction_Page() {
                         {requestedDocuments.length > 0 && (
                           <button
                             type="button"
-                            onClick={handleOpenDocumentModal}
+                            onClick={handleOpenEditDocumentModal}
                             className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                           >
                             Edit Documents
@@ -770,7 +849,7 @@ export default function Create_Transaction_Page() {
                         {requestedItems.length > 0 && (
                           <button
                             type="button"
-                            onClick={handleOpenSuppliesModal}
+                            onClick={handleOpenEditSuppliesModal}
                             className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                           >
                             Edit Items
@@ -1194,7 +1273,7 @@ export default function Create_Transaction_Page() {
         onClose={handleCloseDocumentModal}
         onSave={handleSaveDocuments}
         onClearData={handleClearData}
-        initialDocuments={requestedDocuments.length > 0 ? requestedDocuments : []}
+        initialDocuments={memoizedInitialDocuments}
         title="Specify Documents to Request"
       />
 
@@ -1204,8 +1283,26 @@ export default function Create_Transaction_Page() {
         onClose={handleCloseSuppliesModal}
         onSave={handleSaveItems}
         onClearData={handleClearData}
-        initialItems={requestedItems.length > 0 ? requestedItems : []}
+        initialItems={memoizedInitialItems}
         title="Specify Supplies/Materials/Equipment"
+      />
+
+      {/* Edit Document Modal */}
+      <EditDocumentModal
+        isOpen={isEditDocumentModalOpen}
+        onClose={handleCloseEditDocumentModal}
+        onSave={handleUpdateDocuments}
+        existingDocuments={requestedDocuments}
+        title="Edit Documents"
+      />
+
+      {/* Edit Supplies Modal */}
+      <EditSuppliesModal
+        isOpen={isEditSuppliesModalOpen}
+        onClose={handleCloseEditSuppliesModal}
+        onSave={handleUpdateItems}
+        existingItems={requestedItems}
+        title="Edit Supplies/Materials/Equipment"
       />
 
     

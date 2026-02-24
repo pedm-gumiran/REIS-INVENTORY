@@ -224,7 +224,15 @@ export default function Manage_Consumable_Products() {
     { 
       key: 'Status', 
       label: 'Status',
-      render: (status) => {
+      render: (cellValue, row) => {
+        // Calculate status based on quantity
+        let status;
+        if (row.Quantity <= 10) {
+          status = 'Low Stock';
+        } else {
+          status = 'In Stock';
+        }
+        
         const statusColors = {
           'In Stock': 'bg-green-100 text-green-800',
           'Low Stock': 'bg-yellow-100 text-yellow-800',
@@ -275,18 +283,18 @@ export default function Manage_Consumable_Products() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-blue-600 text-sm font-medium">Total Products</p>
-            <p className="text-2xl font-bold text-blue-900">{consumableProducts.length}</p>
+            <p className="text-2xl font-bold text-blue-900">{products.length}</p>
           </div>
         </Card>
         <Card className="bg-green-50 border-green-200">
           <div className="text-center">
             <p className="text-green-600 text-sm font-medium">In Stock</p>
             <p className="text-2xl font-bold text-green-900">
-              {consumableProducts.filter(p => p.Status === 'In Stock').length}
+              {products.filter(p => p.Quantity > 10).length}
             </p>
           </div>
         </Card>
@@ -294,15 +302,7 @@ export default function Manage_Consumable_Products() {
           <div className="text-center">
             <p className="text-yellow-600 text-sm font-medium">Low Stock</p>
             <p className="text-2xl font-bold text-yellow-900">
-              {consumableProducts.filter(p => p.Status === 'Low Stock').length}
-            </p>
-          </div>
-        </Card>
-        <Card className="bg-red-50 border-red-200">
-          <div className="text-center">
-            <p className="text-red-600 text-sm font-medium">Critical</p>
-            <p className="text-2xl font-bold text-red-900">
-              {consumableProducts.filter(p => p.Status === 'Critical').length}
+              {products.filter(p => p.Quantity <= 10).length}
             </p>
           </div>
         </Card>

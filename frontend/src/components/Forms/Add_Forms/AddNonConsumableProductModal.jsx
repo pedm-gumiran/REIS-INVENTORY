@@ -142,23 +142,14 @@ export default function AddNonConsumableProductModal({ isOpen, onClose, onSave }
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category *
-              </label>
-              <select
+              <Input_Text
+                label="Category *"
                 name="Category_Name"
                 value={formData.Category_Name}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                  errors.Category_Name ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Select Category</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Furniture">Furniture</option>
-                <option value="AV Equipment">AV Equipment</option>
-                <option value="Office Equipment">Office Equipment</option>
-              </select>
+                required
+                placeholder="e.g., Electronics, Furniture"
+              />
               {errors.Category_Name && (
                 <p className="text-red-500 text-xs mt-1">{errors.Category_Name}</p>
               )}

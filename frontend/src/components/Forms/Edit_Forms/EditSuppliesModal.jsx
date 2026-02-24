@@ -5,15 +5,14 @@ import Input_Text from '../../Input_Fields/Input_Text';
 import Button from '../../Buttons/Button';
 import DataTable from '../../DataTables/DataTable';
 
-export default function SuppliesEquipmentModal({ 
+export default function EditSuppliesModal({ 
   isOpen, 
   onClose, 
   onSave, 
-  initialItems = [],
-  title = "Specify Supplies/Materials/Equipment",
-  onClearData // New prop to handle checkbox unchecking
+  existingItems = [],
+  title = "Edit Supplies/Materials/Equipment"
 }) {
-  const [selectedItems, setSelectedItems] = useState(initialItems);
+  const [selectedItems, setSelectedItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('consumable');
 
@@ -29,13 +28,12 @@ export default function SuppliesEquipmentModal({
     }
   }, [isOpen]);
 
-  // Sync selectedItems with parent state and handle clearing
+  // Initialize with existing items when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Always sync with parent state when modal opens
-      setSelectedItems(initialItems);
+      setSelectedItems(existingItems);
     }
-  }, [initialItems, isOpen]);
+  }, [existingItems, isOpen]);
 
   // Mock data for consumable products
   const consumableProducts = [
@@ -104,13 +102,10 @@ export default function SuppliesEquipmentModal({
     <div className="fixed inset-0 w-screen h-screen bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button
-            onClick={() => {
-              if (onClearData) onClearData('supplies');
-              onClose();
-            }}
+            onClick={onClose}
             className="text-white hover:text-gray-200 transition-colors"
           >
             <FiX size={24} />
@@ -137,7 +132,7 @@ export default function SuppliesEquipmentModal({
                 onClick={() => setActiveTab('consumable')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                   activeTab === 'consumable'
-                    ? 'border-primary text-primary'
+                    ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -148,7 +143,7 @@ export default function SuppliesEquipmentModal({
                 onClick={() => setActiveTab('non-consumable')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                   activeTab === 'non-consumable'
-                    ? 'border-primary text-primary'
+                    ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -185,7 +180,7 @@ export default function SuppliesEquipmentModal({
                             max={row.stock}
                             value={selectedItem?.quantity || 1}
                             onChange={(e) => handleQuantityChange(row.id, e.target.value)}
-                            className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                             onClick={(e) => e.stopPropagation()}
                           />
                         ) : null;
@@ -247,7 +242,7 @@ export default function SuppliesEquipmentModal({
                             max={row.stock}
                             value={selectedItem?.quantity || 1}
                             onChange={(e) => handleQuantityChange(row.id, e.target.value)}
-                            className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                             onClick={(e) => e.stopPropagation()}
                           />
                         ) : null;
@@ -275,13 +270,13 @@ export default function SuppliesEquipmentModal({
 
           {/* Selected Items Summary */}
           {selectedItems.length > 0 && (
-            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="text-sm font-semibold text-green-800 mb-2">
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="text-sm font-semibold text-blue-800 mb-2">
                 Selected Items ({selectedItems.length})
               </h4>
               <div className="space-y-1">
                 {selectedItems.map((item) => (
-                  <div key={item.id} className="text-xs text-green-700">
+                  <div key={item.id} className="text-xs text-blue-700">
                     {item.name} - Quantity: {item.quantity}
                   </div>
                 ))}
@@ -295,14 +290,11 @@ export default function SuppliesEquipmentModal({
           <Button
             label="Cancel"
             type="button"
-            onClick={() => {
-              if (onClearData) onClearData('supplies');
-              onClose();
-            }}
+            onClick={onClose}
             variant="modal-secondary"
           />
           <Button
-            label={`Save Items (${selectedItems.length})`}
+            label={`Update Items (${selectedItems.length})`}
             onClick={handleSave}
             disabled={selectedItems.length === 0}
             variant="modal-primary"

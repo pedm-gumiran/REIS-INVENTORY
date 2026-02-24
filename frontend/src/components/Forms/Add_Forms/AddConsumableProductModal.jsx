@@ -15,8 +15,7 @@ export default function AddConsumableProductModal({
     Item_Description: '',
     Unit: '',
     Quantity: '',
-    Unit_Cost: '',
-    Status: 'In Stock'
+    Unit_Cost: ''
   });
 
   // Reset form when modal opens
@@ -28,8 +27,7 @@ export default function AddConsumableProductModal({
         Item_Description: '',
         Unit: '',
         Quantity: '',
-        Unit_Cost: '',
-        Status: 'In Stock'
+        Unit_Cost: ''
       });
     }
   }, [isOpen]);
@@ -167,23 +165,6 @@ export default function AddConsumableProductModal({
                   placeholder="0.00"
                 />
               </div>
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                name="Status"
-                value={formData.Status}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                <option value="In Stock">In Stock</option>
-                <option value="Low Stock">Low Stock</option>
-                <option value="Critical">Critical</option>
-              </select>
             </div>
 
             {/* Total Cost Preview */}

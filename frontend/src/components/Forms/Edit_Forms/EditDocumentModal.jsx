@@ -3,33 +3,25 @@ import { FiX, FiPlus, FiMinus } from 'react-icons/fi';
 import Input_Text from '../../Input_Fields/Input_Text';
 import Button from '../../Buttons/Button';
 
-export default function DocumentRequestModal({ 
+export default function EditDocumentModal({ 
   isOpen, 
   onClose, 
   onSave, 
-  initialDocuments = [],
-  title = "Specify Documents to Request",
-  onClearData // New prop to handle checkbox unchecking
+  existingDocuments = [],
+  title = "Edit Documents"
 }) {
-  const [documents, setDocuments] = useState(
-    initialDocuments.length > 0 
-      ? initialDocuments 
-      : [{ id: 1, name: '' }]
-  );
+  const [documents, setDocuments] = useState([]);
 
-  // Sync documents with parent state and handle clearing
+  // Initialize with existing documents when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Always sync with parent state when modal opens
-      if (initialDocuments.length === 0) {
-        // Parent cleared the data, so reset to single empty document
-        setDocuments([{ id: 1, name: '' }]);
+      if (existingDocuments.length > 0) {
+        setDocuments(existingDocuments);
       } else {
-        // Parent has data, sync with it
-        setDocuments(initialDocuments);
+        setDocuments([{ id: 1, name: '' }]);
       }
     }
-  }, [initialDocuments, isOpen]);
+  }, [existingDocuments, isOpen]);
 
   const addDocument = () => {
     const newId = Math.max(...documents.map(d => d.id), 0) + 1;
@@ -61,13 +53,10 @@ export default function DocumentRequestModal({
     <div className="fixed inset-0 w-screen h-screen bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button
-            onClick={() => {
-              if (onClearData) onClearData('document');
-              onClose();
-            }}
+            onClick={onClose}
             className="text-white hover:text-gray-200 transition-colors"
           >
             <FiX size={24} />
@@ -114,7 +103,7 @@ export default function DocumentRequestModal({
             <button
               type="button"
               onClick={addDocument}
-              className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
             >
               <FiPlus size={20} />
               Add Another Document
@@ -127,14 +116,11 @@ export default function DocumentRequestModal({
           <Button
             label="Cancel"
             type="button"
-            onClick={() => {
-              if (onClearData) onClearData('document');
-              onClose();
-            }}
+            onClick={onClose}
             variant="modal-secondary"
           />
           <Button
-            label="Save Documents"
+            label="Update Documents"
             type="submit"
             onClick={handleSubmit}
             disabled={!documents.some(doc => doc.name.trim() !== '')}
