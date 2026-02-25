@@ -41,6 +41,8 @@ export default function Input_Text({
       formattedValue = inputValue; // keep as-is for email
     } else if (name === 'rrfNumber') {
       formattedValue = inputValue.toUpperCase(); // ALL CAPS for RRF number
+    } else if (name === 'Unit' || name === 'Item_Description') {
+      formattedValue = inputValue; // keep as-is for Unit and Item_Description fields (no auto-capitalization)
     } else {
       formattedValue = inputValue.replace(/\b\w/g, (char) => char.toUpperCase()); // capitalize first letter of each word
     }

@@ -30,6 +30,30 @@ export default function AddNonConsumableProductModal({ isOpen, onClose, onSave }
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      
+      return () => {
+        // Restore body scroll when modal is closed
+        const scrollY = document.body.style.top;
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      };
+    }
+  }, [isOpen]);
+
+
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -223,18 +247,18 @@ export default function AddNonConsumableProductModal({ isOpen, onClose, onSave }
             {/* Status */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
+                Status *
               </label>
               <select
                 name="Status"
                 value={formData.Status}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                required
               >
                 <option value="Available">Available</option>
-                <option value="In Use">In Use</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Retired">Retired</option>
+                <option value="Not Available">Not Available</option>
+                <option value="Under Maintenance">Under Maintenance</option>
               </select>
             </div>
           </div>

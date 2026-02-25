@@ -2,82 +2,149 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/cards/Card';
 import DataTable from '../../components/DataTables/DataTable';
 import SearchBar from '../../components/Input_Fields/SearchBar';
+import Dropdown from '../../components/Input_Fields/Dropdown';
 import { FiDownload } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
 
 // Sample audit data
 const auditTransactions = [
-  { 
-    id: 1, 
-    transactionId: 'TRX001', 
-    date: '2024-01-15', 
-    time: '09:30 AM',
-    type: 'Issue', 
-    product: 'Office Paper A4', 
-    quantity: 10, 
-    unit: 'Reams',
-    processedBy: 'Admin User',
-    recipient: 'IT Department',
-    purpose: 'Office supplies',
+  {
+    id: 1,
+    transactionId: 'TRX001',
+    rf_no: 'RRF-2024-001',
+    type_of_request: 'Issue',
+    document_supplies_materials_equipment_requested: 'Bond Paper (A4) (Qty: 5 reams), Inkjet Printer Cartridge (Qty: 2 pieces), Ballpoint Pens (Qty: 1 box)',
+    date_of_activity: '2024-01-15',
+    start_time: '09:30 AM',
+    end_time: '09:45 AM',
+    purpose: 'Office supplies for Q1 2024 operations',
+    requested_by: 'IT Department',
+    approved_by: 'Dr. Maria Santos',
+    served_by: 'Juan Dela Cruz',
+    recieved_by: 'Michael Reyes',
+    transaction_date: '2024-01-15',
     status: 'Completed'
   },
-  { 
-    id: 2, 
-    transactionId: 'TRX002', 
-    date: '2024-01-15', 
-    time: '10:15 AM',
-    type: 'Return', 
-    product: 'Laptop Dell XPS', 
-    quantity: 1, 
-    unit: 'Unit',
-    processedBy: 'Admin User',
-    recipient: 'John Doe',
-    purpose: 'Equipment return',
+  {
+    id: 2,
+    transactionId: 'TRX002',
+    rf_no: 'RRF-2024-002',
+    type_of_request: 'Return',
+    document_supplies_materials_equipment_requested: 'Laptop Dell Latitude 5420 (Qty: 1 unit), Laptop Bag (Qty: 1 unit)',
+    date_of_activity: '2024-01-15',
+    start_time: '10:15 AM',
+    end_time: '10:30 AM',
+    purpose: 'Equipment return after project completion',
+    requested_by: 'John Smith',
+    approved_by: 'Dr. Maria Santos',
+    served_by: 'Juan Dela Cruz',
+    recieved_by: 'Juan Dela Cruz',
+    transaction_date: '2024-01-15',
     status: 'Completed'
   },
-  { 
-    id: 3, 
-    transactionId: 'TRX003', 
-    date: '2024-01-14', 
-    time: '02:45 PM',
-    type: 'Transfer', 
-    product: 'Ballpoint Pens', 
-    quantity: 5, 
-    unit: 'Boxes',
-    processedBy: 'Admin User',
-    recipient: 'HR Department',
-    purpose: 'Department transfer',
+  {
+    id: 3,
+    transactionId: 'TRX003',
+    rf_no: 'RRF-2024-003',
+    type_of_request: 'Transfer',
+    document_supplies_materials_equipment_requested: 'Whiteboard Markers (Qty: 10 pieces), Eraser Board (Qty: 2 pieces)',
+    date_of_activity: '2024-01-14',
+    start_time: '02:45 PM',
+    end_time: '03:00 PM',
+    purpose: 'Transfer from IT to HR Department for training materials',
+    requested_by: 'HR Department',
+    approved_by: 'Prof. James Wilson',
+    served_by: 'Ana Rodriguez',
+    recieved_by: 'Sarah Johnson',
+    transaction_date: '2024-01-14',
     status: 'Completed'
   },
-  { 
-    id: 4, 
-    transactionId: 'TRX004', 
-    date: '2024-01-14', 
-    time: '11:20 AM',
-    type: 'Issue', 
-    product: 'Printer Ink', 
-    quantity: 3, 
-    unit: 'Cartridges',
-    processedBy: 'Admin User',
-    recipient: 'Admin Office',
-    purpose: 'Printer maintenance',
+  {
+    id: 4,
+    transactionId: 'TRX004',
+    rf_no: 'RRF-2024-004',
+    type_of_request: 'Issue',
+    document_supplies_materials_equipment_requested: 'Printer Toner HP Black (Qty: 3 cartridges), USB Flash Drives 32GB (Qty: 5 pieces)',
+    date_of_activity: '2024-01-14',
+    start_time: '11:20 AM',
+    end_time: '11:35 AM',
+    purpose: 'Printer maintenance and file storage for admin office',
+    requested_by: 'Administrative Office',
+    approved_by: 'Dr. Maria Santos',
+    served_by: 'Juan Dela Cruz',
+    recieved_by: 'Robert Chen',
+    transaction_date: '2024-01-14',
     status: 'Pending'
   },
-  { 
-    id: 5, 
-    transactionId: 'TRX005', 
-    date: '2024-01-13', 
-    time: '03:30 PM',
-    type: 'Issue', 
-    product: 'Office Chair', 
-    quantity: 2, 
-    unit: 'Units',
-    processedBy: 'Admin User',
-    recipient: 'New Employees',
-    purpose: 'New setup',
+  {
+    id: 5,
+    transactionId: 'TRX005',
+    rf_no: 'RRF-2024-005',
+    type_of_request: 'Issue',
+    document_supplies_materials_equipment_requested: 'Office Chair Ergonomic (Qty: 2 units), Desk Lamp LED (Qty: 2 units)',
+    date_of_activity: '2024-01-13',
+    start_time: '03:30 PM',
+    end_time: '03:45 PM',
+    purpose: 'New workstation setup for newly hired employees',
+    requested_by: 'New Employees Orientation',
+    approved_by: 'Prof. James Wilson',
+    served_by: 'Ana Rodriguez',
+    recieved_by: 'Emily Davis',
+    transaction_date: '2024-01-13',
     status: 'Completed'
   },
+  {
+    id: 6,
+    transactionId: 'TRX006',
+    rf_no: 'RRF-2024-006',
+    type_of_request: 'Issue',
+    document_supplies_materials_equipment_requested: 'Projector Epson PowerLite (Qty: 1 unit), Extension Cord (Qty: 2 pieces)',
+    date_of_activity: '2024-01-12',
+    start_time: '08:00 AM',
+    end_time: '08:15 AM',
+    purpose: 'Equipment for departmental meeting presentation',
+    requested_by: 'Research Department',
+    approved_by: 'Dr. Maria Santos',
+    served_by: 'Juan Dela Cruz',
+    recieved_by: 'Dr. Robert Lee',
+    transaction_date: '2024-01-12',
+    status: 'Completed'
+  },
+  {
+    id: 7,
+    transactionId: 'TRX007',
+    rf_no: 'RRF-2024-007',
+    type_of_request: 'Return',
+    document_supplies_materials_equipment_requested: 'Conference Room Key (Qty: 1 piece), Microphone Wireless (Qty: 1 unit)',
+    date_of_activity: '2024-01-11',
+    start_time: '04:00 PM',
+    end_time: '04:10 PM',
+    purpose: 'Return after conference event completion',
+    requested_by: 'Events Committee',
+    approved_by: 'Prof. James Wilson',
+    served_by: 'Ana Rodriguez',
+    recieved_by: 'Ana Rodriguez',
+    transaction_date: '2024-01-11',
+    status: 'Completed'
+  },
+  {
+    id: 8,
+    transactionId: 'TRX008',
+    rf_no: 'RRF-2024-008',
+    type_of_request: 'Issue',
+    document_supplies_materials_equipment_requested: 'Binding Clips Metal 2 inch (Qty: 1 box), Manila Folders Letter Size (Qty: 50 pieces)',
+    date_of_activity: '2024-01-10',
+    start_time: '01:30 PM',
+    end_time: '01:40 PM',
+    purpose: 'Document preparation for accreditation visit',
+    requested_by: 'Quality Assurance Office',
+    approved_by: 'Dr. Maria Santos',
+    served_by: 'Juan Dela Cruz',
+    recieved_by: 'Lisa Martinez',
+    transaction_date: '2024-01-10',
+    status: 'Pending'
+  }
 ];
 
 export default function Transaction_Audit() {
@@ -86,6 +153,31 @@ export default function Transaction_Audit() {
   const [dateFilter, setDateFilter] = useState('all');
   const [transactions, setTransactions] = useState(auditTransactions);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  // Calculate month with most transactions
+  const getMonthWithMostTransactions = () => {
+    const monthCounts = {};
+    
+    transactions.forEach(transaction => {
+      const date = new Date(transaction.date_of_activity);
+      const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      monthCounts[monthYear] = (monthCounts[monthYear] || 0) + 1;
+    });
+    
+    let maxMonth = '';
+    let maxCount = 0;
+    
+    Object.entries(monthCounts).forEach(([month, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        maxMonth = month;
+      }
+    });
+    
+    return { month: maxMonth, count: maxCount };
+  };
+
+  const { month: topMonth, count: topMonthCount } = getMonthWithMostTransactions();
 
   // Update date and time every second
   useEffect(() => {
@@ -100,14 +192,19 @@ export default function Transaction_Audit() {
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = 
       transaction.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.processedBy.toLowerCase().includes(searchTerm.toLowerCase());
+      transaction.rf_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.transaction_date.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.date_of_activity.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.document_supplies_materials_equipment_requested.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.requested_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.approved_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.served_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.recieved_by.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesDate = dateFilter === 'all' || 
-      (dateFilter === 'today' && transaction.date === '2024-01-15') ||
-      (dateFilter === 'week' && transaction.date >= '2024-01-09') ||
-      (dateFilter === 'month' && transaction.date >= '2024-01-01');
+      (dateFilter === 'today' && transaction.date_of_activity === '2024-01-15') ||
+      (dateFilter === 'week' && transaction.date_of_activity >= '2024-01-09') ||
+      (dateFilter === 'month' && transaction.date_of_activity >= '2024-01-01');
     
     return matchesSearch && matchesDate;
   });
@@ -116,16 +213,18 @@ export default function Transaction_Audit() {
   const handleExportToExcel = () => {
     const exportData = filteredTransactions.map(transaction => ({
       'Transaction ID': transaction.transactionId,
-      'Date': transaction.date,
-      'Time': transaction.time,
-      'Type': transaction.type,
-      'Product': transaction.product,
-      'Quantity': transaction.quantity,
-      'Unit': transaction.unit,
-      'Processed By': transaction.processedBy,
-      'Recipient': transaction.recipient,
+      'RF No': transaction.rf_no,
+      'Type of Request': transaction.type_of_request,
+      'Document/Supplies/Materials/Equipment Requested': transaction.document_supplies_materials_equipment_requested,
+      'Date of Activity': transaction.date_of_activity,
+      'Start Time': transaction.start_time,
+      'End Time': transaction.end_time,
       'Purpose': transaction.purpose,
-      'Status': transaction.status
+      'Requested By': transaction.requested_by,
+      'Approved By': transaction.approved_by,
+      'Served By': transaction.served_by,
+      'Received By': transaction.recieved_by,
+      'Transaction Date': transaction.transaction_date
     }));
 
     // Create worksheet
@@ -153,31 +252,18 @@ export default function Transaction_Audit() {
   // Table columns
   const columns = [
     { key: 'transactionId', label: 'Transaction ID' },
-    { key: 'date', label: 'Date' },
-    { key: 'time', label: 'Time' },
-    { key: 'type', label: 'Type' },
-    { key: 'product', label: 'Product' },
-    { key: 'quantity', label: 'Quantity' },
-    { key: 'unit', label: 'Unit' },
-    { key: 'processedBy', label: 'Processed By' },
-    { key: 'recipient', label: 'Recipient' },
+    { key: 'rf_no', label: 'RF No' },
+    { key: 'type_of_request', label: 'Type of Request' },
+    { key: 'document_supplies_materials_equipment_requested', label: 'Document/Supplies/Materials/Equipment Requested' },
+    { key: 'date_of_activity', label: 'Date of Activity' },
+    { key: 'start_time', label: 'Start Time' },
+    { key: 'end_time', label: 'End Time' },
     { key: 'purpose', label: 'Purpose' },
-    { 
-      key: 'status', 
-      label: 'Status',
-      render: (status) => {
-        const statusColors = {
-          'Completed': 'bg-green-100 text-green-800',
-          'Pending': 'bg-yellow-100 text-yellow-800',
-          'Cancelled': 'bg-red-100 text-red-800'
-        };
-        return (
-          <span className={`px-2 py-1 text-xs rounded-full ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
-            {status}
-          </span>
-        );
-      }
-    },
+    { key: 'requested_by', label: 'Requested By' },
+    { key: 'approved_by', label: 'Approved By' },
+    { key: 'served_by', label: 'Served By' },
+    { key: 'recieved_by', label: 'Received By' },
+    { key: 'transaction_date', label: 'Transaction Date' },
   ];
 
   const formatDate = (date) => {
@@ -226,16 +312,18 @@ export default function Transaction_Audit() {
               name="transactionSearch"
               width="w-full sm:w-64"
             />
-            <select
+            <Dropdown
+              id="dateFilter"
+              name="dateFilter"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="all">All Dates</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-            </select>
+              options={[
+                { value: 'all', label: 'All Dates' },
+                { value: 'today', label: 'Today' },
+                { value: 'week', label: 'This Week' },
+                { value: 'month', label: 'This Month' }
+              ]}
+            />
           </div>
           <div className="flex gap-2">
             <button 
@@ -255,35 +343,18 @@ export default function Transaction_Audit() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-blue-600 text-sm font-medium">Total Transactions</p>
             <p className="text-2xl font-bold text-blue-900">{transactions.length}</p>
           </div>
         </Card>
-        <Card className="bg-green-50 border-green-200">
-          <div className="text-center">
-            <p className="text-green-600 text-sm font-medium">Completed</p>
-            <p className="text-2xl font-bold text-green-900">
-              {transactions.filter(t => t.status === 'Completed').length}
-            </p>
-          </div>
-        </Card>
-        <Card className="bg-yellow-50 border-yellow-200">
-          <div className="text-center">
-            <p className="text-yellow-600 text-sm font-medium">Pending</p>
-            <p className="text-2xl font-bold text-yellow-900">
-              {transactions.filter(t => t.status === 'Pending').length}
-            </p>
-          </div>
-        </Card>
         <Card className="bg-purple-50 border-purple-200">
           <div className="text-center">
-            <p className="text-purple-600 text-sm font-medium">Today's Activity</p>
-            <p className="text-2xl font-bold text-purple-900">
-              {transactions.filter(t => t.date === '2024-01-15').length}
-            </p>
+            <p className="text-purple-600 text-sm font-medium">Busiest Month</p>
+            <p className="text-2xl font-bold text-purple-900">{topMonth}</p>
+            <p className="text-purple-500 text-xs">{topMonthCount} transactions</p>
           </div>
         </Card>
       </div>

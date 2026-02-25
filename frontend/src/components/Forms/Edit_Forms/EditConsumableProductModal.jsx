@@ -15,8 +15,7 @@ export default function EditConsumableProductModal({
     Item_Description: '',
     Unit: '',
     Quantity: '',
-    Unit_Cost: '',
-    Status: 'In Stock'
+    Unit_Cost: ''
   });
 
   // Populate form when product data is provided
@@ -28,11 +27,32 @@ export default function EditConsumableProductModal({
         Item_Description: product.Item_Description || '',
         Unit: product.Unit || '',
         Quantity: product.Quantity?.toString() || '',
-        Unit_Cost: product.Unit_Cost?.toString() || '',
-        Status: product.Status || 'In Stock'
+        Unit_Cost: product.Unit_Cost?.toString() || ''
       });
     }
   }, [product, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      
+      return () => {
+        // Restore body scroll when modal is closed
+        const scrollY = document.body.style.top;
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      };
+    }
+  }, [isOpen]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -109,23 +129,6 @@ export default function EditConsumableProductModal({
                   required
                   placeholder="e.g., Stationery"
                 />
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  name="Status"
-                  value={formData.Status}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="In Stock">In Stock</option>
-                  <option value="Low Stock">Low Stock</option>
-                  <option value="Critical">Critical</option>
-                </select>
               </div>
             </div>
 

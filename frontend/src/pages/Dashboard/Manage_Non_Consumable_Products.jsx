@@ -276,7 +276,7 @@ export default function Manage_Non_Consumable_Products() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-blue-600 text-sm font-medium">Total Products</p>
@@ -296,14 +296,6 @@ export default function Manage_Non_Consumable_Products() {
             <p className="text-blue-600 text-sm font-medium">In Use</p>
             <p className="text-2xl font-bold text-blue-900">
               {products.filter(p => p.Status === 'In Use').length}
-            </p>
-          </div>
-        </Card>
-        <Card className="bg-yellow-50 border-yellow-200">
-          <div className="text-center">
-            <p className="text-yellow-600 text-sm font-medium">Maintenance</p>
-            <p className="text-2xl font-bold text-yellow-900">
-              {products.filter(p => p.Status === 'Maintenance').length}
             </p>
           </div>
         </Card>

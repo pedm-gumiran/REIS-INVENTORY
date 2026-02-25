@@ -108,11 +108,78 @@ export default function Home_Page() {
 
   // Sample data for equipment
   const equipmentData = [
-    { id: 1, equipmentName: 'Printer HP LaserJet', type: 'Office Equipment', quantity: 3, condition: 'Good', location: 'Office A' },
-    { id: 2, equipmentName: 'Projector Epson', type: 'AV Equipment', quantity: 2, condition: 'Excellent', location: 'Conference Room' },
-    { id: 3, equipmentName: 'Scanner Canon', type: 'Office Equipment', quantity: 1, condition: 'Fair', location: 'Office B' },
-    { id: 4, equipmentName: 'Whiteboard', type: 'Office Equipment', quantity: 5, condition: 'Good', location: 'Various Rooms' },
-    { id: 5, equipmentName: 'Coffee Machine', type: 'Kitchen Equipment', quantity: 1, condition: 'Good', location: 'Pantry' },
+    { 
+      Consumable_Product_ID: 'EQ001', 
+      Category_Name: 'Office Equipment', 
+      Item_Description: 'Printer HP LaserJet Pro M404n', 
+      Unit: 'per unit', 
+      Quantity: 3, 
+      Unit_Cost: 15000.00, 
+      Status: 'Available'
+    },
+    { 
+      Consumable_Product_ID: 'EQ002', 
+      Category_Name: 'AV Equipment', 
+      Item_Description: 'Projector Epson PowerLite X41', 
+      Unit: 'per unit', 
+      Quantity: 2, 
+      Unit_Cost: 35000.00, 
+      Status: 'Available'
+    },
+    { 
+      Consumable_Product_ID: 'EQ003', 
+      Category_Name: 'Office Equipment', 
+      Item_Description: 'Scanner Canon CanoScan LiDE 400', 
+      Unit: 'per unit', 
+      Quantity: 1, 
+      Unit_Cost: 8500.00, 
+      Status: 'In Use'
+    },
+    { 
+      Consumable_Product_ID: 'EQ004', 
+      Category_Name: 'Office Equipment', 
+      Item_Description: 'Whiteboard Magnetic 4x8 feet', 
+      Unit: 'per unit', 
+      Quantity: 5, 
+      Unit_Cost: 2500.00, 
+      Status: 'Available'
+    },
+    { 
+      Consumable_Product_ID: 'EQ005', 
+      Category_Name: 'Kitchen Equipment', 
+      Item_Description: 'Coffee Machine DeLonghi Magnifica', 
+      Unit: 'per unit', 
+      Quantity: 1, 
+      Unit_Cost: 12000.00, 
+      Status: 'Available'
+    },
+    { 
+      Consumable_Product_ID: 'EQ006', 
+      Category_Name: 'Computing Equipment', 
+      Item_Description: 'Laptop Dell Latitude 5420', 
+      Unit: 'per unit', 
+      Quantity: 8, 
+      Unit_Cost: 45000.00, 
+      Status: 'Available'
+    },
+    { 
+      Consumable_Product_ID: 'EQ007', 
+      Category_Name: 'Office Equipment', 
+      Item_Description: 'Paper Shredder Fellowes Powershred', 
+      Unit: 'per unit', 
+      Quantity: 2, 
+      Unit_Cost: 6500.00, 
+      Status: 'Available'
+    },
+    { 
+      Consumable_Product_ID: 'EQ008', 
+      Category_Name: 'AV Equipment', 
+      Item_Description: 'Sound System Bose L1 Compact', 
+      Unit: 'per set', 
+      Quantity: 1, 
+      Unit_Cost: 28000.00, 
+      Status: 'In Use'
+    },
   ];
 
   // Update date and time every second
@@ -135,13 +202,16 @@ export default function Home_Page() {
 
   // Filter equipment based on equipment search term
   const filteredEquipment = equipmentData.filter(equipment =>
-    equipment.equipmentName.toLowerCase().includes(equipmentSearchTerm.toLowerCase()) ||
-    equipment.type.toLowerCase().includes(equipmentSearchTerm.toLowerCase())
+    equipment.Consumable_Product_ID.toLowerCase().includes(equipmentSearchTerm.toLowerCase()) ||
+    equipment.Category_Name.toLowerCase().includes(equipmentSearchTerm.toLowerCase()) ||
+    equipment.Item_Description.toLowerCase().includes(equipmentSearchTerm.toLowerCase()) ||
+    equipment.Unit.toLowerCase().includes(equipmentSearchTerm.toLowerCase()) ||
+    equipment.Status.toLowerCase().includes(equipmentSearchTerm.toLowerCase())
   );
 
   // Calculate totals
   const totalStockQuantity = stocksData.reduce((sum, stock) => sum + stock.Quantity, 0);
-  const totalEquipmentQuantity = equipmentData.reduce((sum, equipment) => sum + equipment.quantity, 0);
+  const totalEquipmentQuantity = equipmentData.reduce((sum, equipment) => sum + equipment.Quantity, 0);
 
   // Search handlers
   const handleStockSearch = (e) => {
@@ -180,11 +250,30 @@ export default function Home_Page() {
 
   // Table columns for equipment
   const equipmentColumns = [
-    { key: 'equipmentName', label: 'Equipment Name' },
-    { key: 'type', label: 'Type' },
-    { key: 'quantity', label: 'Quantity' },
-    { key: 'condition', label: 'Condition' },
-    { key: 'location', label: 'Location' },
+    { key: 'Consumable_Product_ID', label: 'Product ID' },
+    { key: 'Category_Name', label: 'Category' },
+    { key: 'Item_Description', label: 'Description' },
+    { key: 'Unit', label: 'Unit' },
+    { key: 'Quantity', label: 'Quantity' },
+    { key: 'Unit_Cost', label: 'Unit Cost (₱)' },
+    { 
+      key: 'Total_Cost', 
+      label: 'Total Cost (₱)',
+      render: (cellValue, row) => (row.Quantity * row.Unit_Cost).toFixed(2)
+    },
+    { 
+      key: 'Status', 
+      label: 'Status',
+      render: (status) => (
+        <span className={`px-2 py-1 text-xs rounded-full ${
+          status === 'Available' ? 'bg-green-100 text-green-800' : 
+          status === 'In Use' ? 'bg-blue-100 text-blue-800' : 
+          'bg-yellow-100 text-yellow-800'
+        }`}>
+          {status}
+        </span>
+      )
+    },
   ];
 
   const formatDate = (date) => {

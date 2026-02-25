@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/cards/Card';
 import DataTable from '../../components/DataTables/DataTable';
 import SearchBar from '../../components/Input_Fields/SearchBar';
+import Dropdown from '../../components/Input_Fields/Dropdown';
 import { FiDownload } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
@@ -246,17 +247,19 @@ export default function Equipment_Returned_Audit() {
               name="returnSearch"
               width="w-full sm:w-64"
             />
-            <select
+            <Dropdown
+              id="statusFilter"
+              name="statusFilter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="all">All Status</option>
-              <option value="Completed">Completed</option>
-              <option value="Maintenance Required">Maintenance Required</option>
-              <option value="Under Repair">Under Repair</option>
-              <option value="Pending">Pending</option>
-            </select>
+              options={[
+                { value: 'all', label: 'All Status' },
+                { value: 'Completed', label: 'Completed' },
+                { value: 'Maintenance Required', label: 'Maintenance Required' },
+                { value: 'Under Repair', label: 'Under Repair' },
+                { value: 'Pending', label: 'Pending' }
+              ]}
+            />
           </div>
           <div className="flex gap-2">
             <button 

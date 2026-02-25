@@ -41,11 +41,11 @@ export default function Create_Transaction_Page() {
   // Return Equipment Form State
   const [returnProduct, setReturnProduct] = useState('');
   const [returnQuantity, setReturnQuantity] = useState('');
-  const [returnCondition, setReturnCondition] = useState('');
   const [returnNotes, setReturnNotes] = useState('');
   const [returnDate, setReturnDate] = useState('');
   const [returneeName, setReturneeName] = useState('');
   const [inspectedBy, setInspectedBy] = useState('');
+  const [itemReturnQuantities, setItemReturnQuantities] = useState({});
 
   // Update date and time every second
   useEffect(() => {
@@ -481,12 +481,38 @@ export default function Create_Transaction_Page() {
   const handleItemSelection = (itemIds) => {
     setSelectedItems(itemIds);
     setShowReturnForm(itemIds.length > 0);
+    
+    // Initialize return quantities for newly selected items
+    const newQuantities = { ...itemReturnQuantities };
+    borrowedItems.forEach(item => {
+      if (itemIds.includes(item.id) && !newQuantities[item.id]) {
+        newQuantities[item.id] = item.quantity.toString(); // Default to full quantity
+      }
+    });
+    setItemReturnQuantities(newQuantities);
   };
 
   // Handle Select All functionality
   const handleSelectAll = (selectedIds) => {
     setSelectedItems(selectedIds);
     setShowReturnForm(selectedIds.length > 0);
+    
+    // Initialize return quantities for all selected items
+    const newQuantities = {};
+    borrowedItems.forEach(item => {
+      if (selectedIds.includes(item.id)) {
+        newQuantities[item.id] = item.quantity.toString(); // Default to full quantity
+      }
+    });
+    setItemReturnQuantities(newQuantities);
+  };
+
+  // Handle return quantity change for individual items
+  const handleReturnQuantityChange = (itemId, value) => {
+    setItemReturnQuantities(prev => ({
+      ...prev,
+      [itemId]: value
+    }));
   };
 
   // Handle Return Form Submission
@@ -495,9 +521,11 @@ export default function Create_Transaction_Page() {
     
     const returnData = {
       client: selectedClient,
-      selectedItems: borrowedItems.filter(item => selectedItems.includes(item.id)),
+      selectedItems: borrowedItems.filter(item => selectedItems.includes(item.id)).map(item => ({
+        ...item,
+        returnQuantity: parseInt(itemReturnQuantities[item.id]) || 0
+      })),
       returnDate,
-      returnCondition,
       returnNotes,
       returneeName,
       inspectedBy
@@ -519,10 +547,10 @@ export default function Create_Transaction_Page() {
     setSelectedItems([]);
     setShowReturnForm(false);
     setReturnDate('');
-    setReturnCondition('');
     setReturnNotes('');
     setReturneeName('');
     setInspectedBy('');
+    setItemReturnQuantities({});
   };
 
   // Memoize initialItems to prevent unnecessary re-renders
@@ -1136,25 +1164,7 @@ export default function Create_Transaction_Page() {
                 />
               </div>
 
-              {/* Selected Items Summary */}
-              {selectedItems.length > 0 && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 mb-2">
-                    Selected Items ({selectedItems.length})
-                  </h4>
-                  <div className="space-y-1 text-sm">
-                    {borrowedItems
-                      .filter(item => selectedItems.includes(item.id))
-                      .map(item => (
-                        <div key={item.id} className="flex justify-between">
-                          <span>{item.product_name} ({item.consumable_product_id})</span>
-                          <span className="text-gray-600">Qty: {item.quantity}</span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </div>
+                          </div>
           </Card>
 
           {/* Return Form - Shows when items are selected */}
@@ -1166,7 +1176,52 @@ export default function Create_Transaction_Page() {
               </div>
               
               <form onSubmit={handleReturnFormSubmit} className="p-6 space-y-6">
+                {/* Selected Items with Return Quantities */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-4">Selected Items ({selectedItems.length})</h4>
+                  <div className="space-y-3">
+                    {borrowedItems
+                      .filter(item => selectedItems.includes(item.id))
+                      .map(item => (
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-800">{item.product_name}</div>
+                            <div className="text-sm text-gray-600">{item.consumable_product_id}</div>
+                            <div className="text-xs text-gray-500">Borrowed: {item.quantity}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">Return Qty:</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max={item.quantity}
+                              value={itemReturnQuantities[item.id] || ''}
+                              onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
+                              className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center"
+                              required
+                            />
+                            <span className="text-sm text-gray-600">/ {item.quantity}</span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Returnee Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Returnee Name
+                    </label>
+                    <input
+                      type="text"
+                      value={returneeName}
+                      onChange={(e) => setReturneeName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="Enter name of person returning equipment"
+                      required
+                    />
+                  </div>
+
                   {/* Return Date */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1179,25 +1234,6 @@ export default function Create_Transaction_Page() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       required
                     />
-                  </div>
-
-                  {/* Equipment Condition */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Equipment Condition
-                    </label>
-                    <select
-                      value={returnCondition}
-                      onChange={(e) => setReturnCondition(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      required
-                    >
-                      <option value="">Select condition...</option>
-                      <option value="excellent">Excellent</option>
-                      <option value="good">Good</option>
-                      <option value="fair">Fair</option>
-                      <option value="damaged">Damaged</option>
-                    </select>
                   </div>
                 </div>
 
@@ -1215,37 +1251,19 @@ export default function Create_Transaction_Page() {
                   />
                 </div>
 
-                {/* Returnee and Inspector Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Returnee Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Returnee Name
-                    </label>
-                    <input
-                      type="text"
-                      value={returneeName}
-                      onChange={(e) => setReturneeName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      placeholder="Enter name of person returning equipment"
-                      required
-                    />
-                  </div>
-
-                  {/* Inspected By */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Inspected By
-                    </label>
-                    <input
-                      type="text"
-                      value={inspectedBy}
-                      onChange={(e) => setInspectedBy(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      placeholder="Enter name of inspector"
-                      required
-                    />
-                  </div>
+                {/* Inspected By */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Inspected By
+                  </label>
+                  <input
+                    type="text"
+                    value={inspectedBy}
+                    onChange={(e) => setInspectedBy(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    placeholder="Enter name of inspector"
+                    required
+                  />
                 </div>
 
                 {/* Action Buttons */}
