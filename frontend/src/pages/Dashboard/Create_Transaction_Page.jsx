@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Card from '../../components/cards/Card';
-import { FiPrinter, FiEye, FiTrash2, FiSave} from 'react-icons/fi';
+import { FiPrinter, FiEye, FiTrash2, FiSave, FiX } from 'react-icons/fi';
 import RetFormPreview from '../../components/Forms/RetFormPreview';
 import Input_Text from '../../components/Input_Fields/Input_Text';
 import DocumentRequestModal from '../../components/Forms/Add_Forms/DocumentRequestModal';
@@ -66,6 +66,7 @@ export default function Create_Transaction_Page() {
   const [loadingBorrowedItems, setLoadingBorrowedItems] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [showReturnModal, setShowReturnModal] = useState(false);
   const searchContainerRef = useRef(null);
 
   // Document Request Modal State
@@ -481,6 +482,7 @@ export default function Create_Transaction_Page() {
   const handleItemSelection = (itemIds) => {
     setSelectedItems(itemIds);
     setShowReturnForm(itemIds.length > 0);
+    setShowReturnModal(itemIds.length > 0);
     
     // Initialize return quantities for newly selected items
     const newQuantities = { ...itemReturnQuantities };
@@ -496,6 +498,7 @@ export default function Create_Transaction_Page() {
   const handleSelectAll = (selectedIds) => {
     setSelectedItems(selectedIds);
     setShowReturnForm(selectedIds.length > 0);
+    setShowReturnModal(selectedIds.length > 0);
     
     // Initialize return quantities for all selected items
     const newQuantities = {};
@@ -546,6 +549,7 @@ export default function Create_Transaction_Page() {
     setBorrowedItems([]);
     setSelectedItems([]);
     setShowReturnForm(false);
+    setShowReturnModal(false);
     setReturnDate('');
     setReturnNotes('');
     setReturneeName('');
@@ -1167,122 +1171,7 @@ export default function Create_Transaction_Page() {
                           </div>
           </Card>
 
-          {/* Return Form - Shows when items are selected */}
-          {showReturnForm && (
-            <Card>
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 rounded-t-xl">
-                <h3 className="text-xl font-bold">Return Details</h3>
-                <p className="text-blue-100 text-sm mt-1">Fill in the return information for selected items</p>
-              </div>
-              
-              <form onSubmit={handleReturnFormSubmit} className="p-6 space-y-6">
-                {/* Selected Items with Return Quantities */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-4">Selected Items ({selectedItems.length})</h4>
-                  <div className="space-y-3">
-                    {borrowedItems
-                      .filter(item => selectedItems.includes(item.id))
-                      .map(item => (
-                        <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-800">{item.product_name}</div>
-                            <div className="text-sm text-gray-600">{item.consumable_product_id}</div>
-                            <div className="text-xs text-gray-500">Borrowed: {item.quantity}</div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Return Qty:</label>
-                            <input
-                              type="number"
-                              min="0"
-                              max={item.quantity}
-                              value={itemReturnQuantities[item.id] || ''}
-                              onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
-                              className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center"
-                              required
-                            />
-                            <span className="text-sm text-gray-600">/ {item.quantity}</span>
-                          </div>
-                        </div>
-                      ))}
                   </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Returnee Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Returnee Name
-                    </label>
-                    <input
-                      type="text"
-                      value={returneeName}
-                      onChange={(e) => setReturneeName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      placeholder="Enter name of person returning equipment"
-                      required
-                    />
-                  </div>
-
-                  {/* Return Date */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Return Date
-                    </label>
-                    <input
-                      type="date"
-                      value={returnDate}
-                      onChange={(e) => setReturnDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Return Notes */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Return Notes
-                  </label>
-                  <textarea
-                    value={returnNotes}
-                    onChange={(e) => setReturnNotes(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    rows="3"
-                    placeholder="Enter any damage notes or observations..."
-                  />
-                </div>
-
-                {/* Inspected By */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Inspected By
-                  </label>
-                  <input
-                    type="text"
-                    value={inspectedBy}
-                    onChange={(e) => setInspectedBy(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    placeholder="Enter name of inspector"
-                    required
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-4 pt-4 justify-end">
-                  <Button_Clear
-                    onClick={resetReturnForm}
-                  />
-                  <Button
-                    label="Save"
-                    icon={<FiSave />}
-                    variant="primary"
-                    size="lg"
-                    type="submit"
-                  />
-                </div>
-              </form>
-            </Card>
-          )}
-        </div>
       )}
 
       {/* Document Request Modal */}
@@ -1322,6 +1211,148 @@ export default function Create_Transaction_Page() {
         existingItems={requestedItems}
         title="Edit Supplies/Materials/Equipment"
       />
+
+      {/* Return Equipment Modal */}
+      {showReturnModal && (
+        <div className="fixed inset-0 w-screen h-screen bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className={`bg-white rounded-lg shadow-xl w-full overflow-hidden transition-all duration-300 ${
+            selectedItems.length > 5 ? 'max-w-6xl' : 
+            selectedItems.length > 3 ? 'max-w-5xl' : 
+            selectedItems.length > 1 ? 'max-w-4xl' : 'max-w-3xl'
+          } max-h-[90vh]`}>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold">Return Equipment</h2>
+                <p className="text-blue-100 text-sm mt-1">Fill in the return information for selected items</p>
+              </div>
+              <button
+                onClick={() => setShowReturnModal(false)}
+                className="text-white hover:text-gray-200 transition-colors"
+              >
+                <FiX size={24} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleReturnFormSubmit} className="p-6 space-y-6 h-full flex flex-col">
+              <div className="flex-1 overflow-hidden flex flex-col">
+                {/* Selected Items with Return Quantities */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-4">Selected Items ({selectedItems.length})</h4>
+                  <div className={`space-y-3 overflow-y-auto ${
+                    selectedItems.length > 8 ? 'max-h-40' : 
+                    selectedItems.length > 5 ? 'max-h-48' : 
+                    selectedItems.length > 3 ? 'max-h-56' : 'max-h-64'
+                  }`}>
+                    {borrowedItems
+                      .filter(item => selectedItems.includes(item.id))
+                      .map(item => (
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-800 truncate">{item.product_name}</div>
+                            <div className="text-sm text-gray-600">{item.consumable_product_id}</div>
+                            <div className="text-xs text-gray-500">Borrowed: {item.quantity}</div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Return Qty:</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max={item.quantity}
+                              value={itemReturnQuantities[item.id] || ''}
+                              onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
+                              className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center flex-shrink-0"
+                              required
+                            />
+                            <span className="text-sm text-gray-600 whitespace-nowrap">/ {item.quantity}</span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+                
+                {/* Form Fields */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-auto">
+                  {/* Returnee Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Returnee Name
+                    </label>
+                    <input
+                      type="text"
+                      value={returneeName}
+                      onChange={(e) => setReturneeName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="Enter name of person returning equipment"
+                      required
+                    />
+                  </div>
+
+                  {/* Return Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Return Date
+                    </label>
+                    <input
+                      type="date"
+                      value={returnDate}
+                      onChange={(e) => setReturnDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      required
+                    />
+                  </div>
+
+                  {/* Return Notes */}
+                  <div className="lg:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Return Notes
+                    </label>
+                    <textarea
+                      value={returnNotes}
+                      onChange={(e) => setReturnNotes(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      rows="3"
+                      placeholder="Enter any damage notes or observations..."
+                    />
+                  </div>
+
+                  {/* Inspected By */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Inspected By
+                    </label>
+                    <input
+                      type="text"
+                      value={inspectedBy}
+                      onChange={(e) => setInspectedBy(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="Enter name of inspector"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-4 justify-end mt-auto">
+                  <Button_Clear
+                    onClick={resetReturnForm}
+                    label="Clear Form"
+                  />
+                  <Button
+                    label="Save"
+                    icon={<FiSave />}
+                    variant="primary"
+                    size="lg"
+                    type="submit"
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     
     </div>

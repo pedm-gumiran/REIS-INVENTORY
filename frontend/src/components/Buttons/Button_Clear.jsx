@@ -13,7 +13,7 @@ export default function Button_Clear({
       icon={<FiTrash2 />}
       variant="secondary"
       size="lg"
-      className="border-2 border-blue-500 hover:border-blue-600 text-slate-600 bg-white hover:bg-slate-100 rounded-xl"
+      className="border-2 border-green-500 hover:border-green-600 text-green-600 bg-white hover:bg-green-50 rounded-xl"
       onClick={onClick}
       {...props}
     />
