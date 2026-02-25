@@ -116,12 +116,52 @@ export default function RetFormPreview({ formData, onClose }) {
     }
 
     const printCss = `
-      @page { size: 14in 8.5in; margin: 0.2in; }
+      @page { 
+        size: 14in 8.5in; 
+        margin: 0.2in;
+        margin-top: 0.2in;
+        margin-bottom: 0.2in;
+        @top-center { content: none; }
+        @bottom-center { content: none; }
+        @top-right { content: none; }
+        @bottom-right { content: none; }
+        @top-left { content: none; }
+        @bottom-left { content: none; }
+      }
       @media print {
-        html, body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .ret-form-content { display: flex !important; flex-direction: row !important; gap: 0.5rem !important; align-items: stretch !important; }
-        .ret-form-content > div { width: calc((100% - 0.5rem) / 2) !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+        html, body { 
+          margin: 0; 
+          padding: 0; 
+          -webkit-print-color-adjust: exact; 
+          print-color-adjust: exact; 
+        }
+        .ret-form-content { 
+          display: flex !important; 
+          flex-direction: row !important; 
+          gap: 0.5rem !important; 
+          align-items: stretch !important; 
+        }
+        .ret-form-content > div { 
+          width: calc((100% - 0.5rem) / 2) !important; 
+          page-break-inside: avoid !important; 
+          break-inside: avoid !important; 
+        }
         .ret-form-content { zoom: 0.88; }
+        
+        /* Hide browser print headers and footers */
+        header, footer, nav, aside {
+          display: none !important;
+        }
+        
+        /* Hide any potential print overlays */
+        ::before, ::after {
+          content: none !important;
+        }
+        
+        /* Remove any generated content */
+        .print-header, .print-footer, .page-header, .page-footer {
+          display: none !important;
+        }
       }
     `;
 
@@ -227,7 +267,7 @@ export default function RetFormPreview({ formData, onClose }) {
                 {/* Request Type Selection */}
                 <div className="flex border-b-[1.5px] border-black h-45 ">
                   <div className="w-[60%] border-r-[1.5px] border-black  flex flex-col ">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 ml-2">
                       <label className="flex items-center font-bold">
                         <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
                           {formData.requestType?.includes('document')
@@ -250,15 +290,99 @@ export default function RetFormPreview({ formData, onClose }) {
                         Document/ Supplies/ Materials/ Equipment Requested:
                       </p>
                       <div className="mt-1">
-                        <div className="border-b-[1.5px] border-black w-full min-h-[20px] text-left">
-                          {formData.description || ''}
+                        <div className="border-b-[1.5px] border-black w-full h-[20px] text-left break-words whitespace-pre-wrap overflow-wrap-anywhere leading-[18px] overflow-hidden">
+                          {(() => {
+                            const text = formData.description || '';
+                            const words = text.split(' ');
+                            let line1 = '';
+                            let currentLength = 0;
+                            const maxCharsPerLine = 60;
+                            
+                            for (let i = 0; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line1 += (line1 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                              } else {
+                                break;
+                              }
+                            }
+                            return line1;
+                          })()}
                         </div>
-                        <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
-                        <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                        <div className="border-b-[1.5px] border-black w-full h-[20px] text-left break-words whitespace-pre-wrap overflow-wrap-anywhere leading-[18px] overflow-hidden">
+                          {(() => {
+                            const text = formData.description || '';
+                            const words = text.split(' ');
+                            let line1 = '';
+                            let currentLength = 0;
+                            const maxCharsPerLine = 60;
+                            let wordsUsed = 0;
+                            
+                            for (let i = 0; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line1 += (line1 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                                wordsUsed++;
+                              } else {
+                                break;
+                              }
+                            }
+                            
+                            let line2 = '';
+                            currentLength = 0;
+                            for (let i = wordsUsed; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line2 += (line2 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                              } else {
+                                break;
+                              }
+                            }
+                            return line2;
+                          })()}
+                        </div>
+                        <div className="border-b-[1.5px] border-black w-full h-[20px] text-left break-words whitespace-pre-wrap overflow-wrap-anywhere leading-[18px] overflow-hidden">
+                          {(() => {
+                            const text = formData.description || '';
+                            const words = text.split(' ');
+                            let line1 = '';
+                            let currentLength = 0;
+                            const maxCharsPerLine = 60;
+                            let wordsUsed = 0;
+                            
+                            for (let i = 0; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line1 += (line1 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                                wordsUsed++;
+                              } else {
+                                break;
+                              }
+                            }
+                            
+                            let line2 = '';
+                            currentLength = 0;
+                            for (let i = wordsUsed; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line2 += (line2 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                                wordsUsed++;
+                              } else {
+                                break;
+                              }
+                            }
+                            
+                            let line3 = '';
+                            for (let i = wordsUsed; i < words.length; i++) {
+                              line3 += (line3 ? ' ' : '') + words[i];
+                            }
+                            return line3;
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="w-[40%]  flex flex-col gap-3">
+                  <div className="w-[40%]  flex flex-col gap-3 ml-2">
                     <label className="flex items-center font-bold ">
                       <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
                         {formData.requestType?.includes('conference')
@@ -414,7 +538,7 @@ export default function RetFormPreview({ formData, onClose }) {
                 {/* Request Type Selection */}
                 <div className="flex border-b-[1.5px] border-black h-45 ">
                   <div className="w-[60%] border-r-[1.5px] border-black  flex flex-col ">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 ml-2">
                       <label className="flex items-center font-bold">
                         <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
                           {formData.requestType?.includes('document')
@@ -436,16 +560,100 @@ export default function RetFormPreview({ formData, onClose }) {
                       <p className="text-[~0.833rem]">
                         Document/ Supplies/ Materials/ Equipment Requested:
                       </p>
-                      <div className="mt-4">
-                        <div className="border-b-[1.5px] border-black w-full min-h-[20px] text-left">
-                          {formData.description || ''}
+                      <div className="mt-1">
+                        <div className="border-b-[1.5px] border-black w-full h-[20px] text-left break-words whitespace-pre-wrap overflow-wrap-anywhere leading-[18px] overflow-hidden">
+                          {(() => {
+                            const text = formData.description || '';
+                            const words = text.split(' ');
+                            let line1 = '';
+                            let currentLength = 0;
+                            const maxCharsPerLine = 60;
+                            
+                            for (let i = 0; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line1 += (line1 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                              } else {
+                                break;
+                              }
+                            }
+                            return line1;
+                          })()}
                         </div>
-                        <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
-                        <div className="border-b-[1.5px] border-black w-full min-h-[20px]"></div>
+                        <div className="border-b-[1.5px] border-black w-full h-[20px] text-left break-words whitespace-pre-wrap overflow-wrap-anywhere leading-[18px] overflow-hidden">
+                          {(() => {
+                            const text = formData.description || '';
+                            const words = text.split(' ');
+                            let line1 = '';
+                            let currentLength = 0;
+                            const maxCharsPerLine = 60;
+                            let wordsUsed = 0;
+                            
+                            for (let i = 0; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line1 += (line1 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                                wordsUsed++;
+                              } else {
+                                break;
+                              }
+                            }
+                            
+                            let line2 = '';
+                            currentLength = 0;
+                            for (let i = wordsUsed; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line2 += (line2 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                              } else {
+                                break;
+                              }
+                            }
+                            return line2;
+                          })()}
+                        </div>
+                        <div className="border-b-[1.5px] border-black w-full h-[20px] text-left break-words whitespace-pre-wrap overflow-wrap-anywhere leading-[18px] overflow-hidden">
+                          {(() => {
+                            const text = formData.description || '';
+                            const words = text.split(' ');
+                            let line1 = '';
+                            let currentLength = 0;
+                            const maxCharsPerLine = 60;
+                            let wordsUsed = 0;
+                            
+                            for (let i = 0; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line1 += (line1 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                                wordsUsed++;
+                              } else {
+                                break;
+                              }
+                            }
+                            
+                            let line2 = '';
+                            currentLength = 0;
+                            for (let i = wordsUsed; i < words.length; i++) {
+                              if (currentLength + words[i].length + 1 <= maxCharsPerLine) {
+                                line2 += (line2 ? ' ' : '') + words[i];
+                                currentLength += words[i].length + 1;
+                                wordsUsed++;
+                              } else {
+                                break;
+                              }
+                            }
+                            
+                            let line3 = '';
+                            for (let i = wordsUsed; i < words.length; i++) {
+                              line3 += (line3 ? ' ' : '') + words[i];
+                            }
+                            return line3;
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="w-[40%]  flex flex-col gap-3">
+                  <div className="w-[40%]  flex flex-col gap-3 ml-2">
                     <label className="flex items-center font-bold ">
                       <span className="w-[18px] h-[18px] border-[1.5px] border-black mr-1 flex items-center justify-center text-[~0.833rem] ">
                         {formData.requestType?.includes('conference')
