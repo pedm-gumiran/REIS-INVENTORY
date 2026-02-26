@@ -7,7 +7,9 @@ export default function DeleteConfirmationModal({
   onClose, 
   onConfirm, 
   selectedItems = [],
-  title = "Delete Confirmation"
+  title = "Delete Confirmation",
+  confirmButtonText,
+  isLoading = false
 }) {
   const handleConfirm = () => {
     onConfirm(selectedItems);
@@ -20,7 +22,11 @@ export default function DeleteConfirmationModal({
     <div className="fixed inset-0 w-screen h-screen bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 flex justify-between items-center">
+        <div className={`px-6 py-4 flex justify-between items-center ${
+          title.includes('Reset') 
+            ? 'bg-gradient-to-r from-red-800 to-red-900 text-white' 
+            : 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+        }`}>
           <div className="flex items-center gap-2">
             <FiAlertTriangle size={20} />
             <h2 className="text-xl font-semibold">{title}</h2>
@@ -72,9 +78,15 @@ export default function DeleteConfirmationModal({
             variant="modal-secondary"
           />
           <Button
-            label={`Delete ${selectedItems.length} Item${selectedItems.length > 1 ? 's' : ''}`}
+            label={confirmButtonText || `Delete ${selectedItems.length} Item${selectedItems.length > 1 ? 's' : ''}`}
             onClick={handleConfirm}
-            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+            isLoading={isLoading}
+            loadingText={confirmButtonText || `Deleting...`}
+            className={`bg-gradient-to-r ${
+              title.includes('Reset')
+                ? 'from-red-800 to-red-900 hover:from-red-900 hover:to-red-950'
+                : 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+            }`}
           />
         </div>
       </div>

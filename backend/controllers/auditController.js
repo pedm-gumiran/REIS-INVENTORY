@@ -139,3 +139,68 @@ exports.createTransactionAudit = async (req, res) => {
     });
   }
 };
+
+// DELETE transaction audit
+exports.deleteTransactionAudit = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await Audit.deleteTransactionAudit(id);
+    
+    if (result === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Transaction deleted successfully'
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete transaction'
+    });
+  }
+};
+
+// DELETE all transaction audits
+exports.deleteAllTransactionAudits = async (req, res) => {
+  try {
+    const result = await Audit.deleteAllTransactionAudits();
+    
+    res.status(200).json({
+      success: true,
+      message: 'All transactions deleted successfully',
+      deletedCount: result
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete all transactions'
+    });
+  }
+};
+
+// DELETE all equipment returns
+exports.deleteAllEquipmentReturns = async (req, res) => {
+  try {
+    const result = await Audit.deleteAllEquipmentReturns();
+    
+    res.status(200).json({
+      success: true,
+      message: 'All equipment returns deleted successfully',
+      deletedCount: result
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete all equipment returns'
+    });
+  }
+};

@@ -3,10 +3,12 @@ import Card from '../../components/cards/Card';
 import DataTable from '../../components/DataTables/DataTable';
 import SearchBar from '../../components/Input_Fields/SearchBar';
 import Dropdown from '../../components/Input_Fields/Dropdown';
-import { FiDownload } from 'react-icons/fi';
+import Button from '../../components/Buttons/Button';
+import { FiDownload, FiTrash2, FiRefreshCw } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
-import axiosInstance from '../../utils/axiosInstance';
+import axiosInstance from '../../api/axios';
+import DeleteConfirmationModal from '../../components/Forms/Edit_Forms/DeleteConfirmationModal';
 
 
 export default function Transaction_Audit() {
@@ -17,47 +19,64 @@ export default function Transaction_Audit() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch transaction audit data
+  const fetchTransactionAudits = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/audits/transaction-audits');
+      if (response.data.success) {
+        // Transform API data to match frontend structure
+        const transformedData = response.data.data.map(item => ({
+          id: item.transaction_id,
+          transactionId: `TRX${String(item.transaction_id).padStart(3, '0')}`,
+          rf_no: item.rrf_no || `RRF-${new Date().getFullYear()}-${String(item.transaction_id).padStart(3, '0')}`,
+          type_of_request: item.type_of_request || 'Issue',
+          document_supplies_materials_equipment_requested: item.items_requested || 'N/A',
+          date_of_activity: item.date_of_activity ? new Date(item.date_of_activity).toLocaleDateString() : (item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString()),
+          start_time: item.start_time ? new Date(`2000-01-01 ${item.start_time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : (item.transaction_date ? new Date(item.transaction_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })),
+          end_time: item.end_time ? new Date(`2000-01-01 ${item.end_time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '',
+          purpose: item.purpose || 'N/A',
+          requested_by: item.requested_by || 'Unknown',
+          approved_by: item.approved_by || 'N/A',
+          served_by: item.served_by || 'N/A',
+          recieved_by: item.received_by || 'N/A',
+          transaction_date: item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString(),
+          status: 'Completed'
+        }));
+        setTransactions(transformedData);
+      }
+    } catch (err) {
+      console.error('Error fetching transaction audits:', err);
+      setError('Failed to load transaction audits');
+      toast.error('Failed to load transaction audits');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Refresh data
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      await fetchTransactionAudits();
+      toast.success('Data refreshed successfully!');
+    } catch (err) {
+      toast.error('Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Fetch transaction audit data
   useEffect(() => {
-    const fetchTransactionAudits = async () => {
-      try {
-        setLoading(true);
-        const response = await axiosInstance.get('/audits/transaction-audits');
-        if (response.data.success) {
-          // Transform API data to match frontend structure
-          const transformedData = response.data.data.map(item => ({
-            id: item.transaction_id,
-            transactionId: `TRX${String(item.transaction_id).padStart(3, '0')}`,
-            rf_no: item.rrf_no || `RRF-${new Date().getFullYear()}-${String(item.transaction_id).padStart(3, '0')}`,
-            type_of_request: item.type_of_request || 'Issue',
-            document_supplies_materials_equipment_requested: item.items_requested || 'N/A',
-            date_of_activity: item.date_of_activity || (item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString()),
-            start_time: item.start_time || (item.transaction_date ? new Date(item.transaction_date).toLocaleTimeString() : new Date().toLocaleTimeString()),
-            end_time: item.end_time || '',
-            purpose: item.purpose || 'N/A',
-            requested_by: item.requested_by || 'Unknown',
-            approved_by: item.approved_by || 'N/A',
-            served_by: item.served_by || 'N/A',
-            recieved_by: item.received_by || 'N/A',
-            transaction_date: item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString(),
-            status: 'Completed'
-          }));
-          setTransactions(transformedData);
-        }
-      } catch (err) {
-        console.error('Error fetching transaction audits:', err);
-        setError('Failed to load transaction audits');
-        toast.error('Failed to load transaction audits');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTransactionAudits();
   }, []);
-
-  // Calculate month with most transactions
   const getMonthWithMostTransactions = () => {
     const monthCounts = {};
     
@@ -127,7 +146,8 @@ export default function Transaction_Audit() {
       'Approved By': transaction.approved_by,
       'Served By': transaction.served_by,
       'Received By': transaction.recieved_by,
-      'Transaction Date': transaction.transaction_date
+      'Transaction Date': transaction.transaction_date,
+      'Status': transaction.status
     }));
 
     // Create worksheet
@@ -150,6 +170,92 @@ export default function Transaction_Audit() {
     // Generate file and download
     XLSX.writeFile(wb, `transaction_audit_${new Date().toISOString().split('T')[0]}.xlsx`);
     toast.success('Transaction audit exported successfully!');
+  };
+
+  // Open delete modal with selected transactions
+  const handleOpenDeleteModal = () => {
+    if (selectedItems.length > 0) {
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  // Open reset modal
+  const handleOpenResetModal = () => {
+    if (transactions.length > 0) {
+      setIsResetModalOpen(true);
+    }
+  };
+
+  // Delete selected transactions
+  const handleDeleteTransaction = async (selectedTransactions) => {
+    try {
+      setIsDeleting(true);
+      
+      // Export to Excel before deleting
+      handleExportToExcel();
+      
+      // Delete selected transactions
+      const deletePromises = selectedTransactions.map(transactionId => {
+        const transaction = transactions.find(t => t.transactionId === transactionId);
+        return transaction ? axiosInstance.delete(`/audits/transaction-audits/${transaction.id}`) : Promise.resolve();
+      });
+      
+      await Promise.all(deletePromises);
+      
+      // Refresh data
+      const response = await axiosInstance.get('/audits/transaction-audits');
+      if (response.data.success) {
+        const transformedData = response.data.data.map(item => ({
+          id: item.transaction_id,
+          transactionId: `TRX${String(item.transaction_id).padStart(3, '0')}`,
+          rf_no: item.rrf_no || `RRF-${new Date().getFullYear()}-${String(item.transaction_id).padStart(3, '0')}`,
+          type_of_request: item.type_of_request || 'Issue',
+          document_supplies_materials_equipment_requested: item.items_requested || 'N/A',
+          date_of_activity: item.date_of_activity ? new Date(item.date_of_activity).toLocaleDateString() : (item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString()),
+          start_time: item.start_time ? new Date(`2000-01-01 ${item.start_time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : (item.transaction_date ? new Date(item.transaction_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })),
+          end_time: item.end_time ? new Date(`2000-01-01 ${item.end_time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '',
+          purpose: item.purpose || 'N/A',
+          requested_by: item.requested_by || 'Unknown',
+          approved_by: item.approved_by || 'N/A',
+          served_by: item.served_by || 'N/A',
+          recieved_by: item.received_by || 'N/A',
+          transaction_date: item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString(),
+          status: 'Completed'
+        }));
+        setTransactions(transformedData);
+      }
+      
+      setSelectedItems([]);
+      toast.success('Selected transactions deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting transactions:', err);
+      toast.error('Failed to delete transactions');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Reset all transactions
+  const handleResetTransactions = async () => {
+    try {
+      setIsResetting(true);
+      
+      // Export to Excel before resetting
+      handleExportToExcel();
+      
+      // Delete all transactions
+      await axiosInstance.delete('/audits/transaction-audits');
+      
+      // Clear data
+      setTransactions([]);
+      setSelectedItems([]);
+      toast.success('All transactions reset successfully!');
+    } catch (err) {
+      console.error('Error resetting transactions:', err);
+      toast.error('Failed to reset transactions');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   // Table columns
@@ -206,14 +312,14 @@ export default function Transaction_Audit() {
 
       {/* Filters and Search */}
       <Card>
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <SearchBar
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search transactions..."
               name="transactionSearch"
-              width="w-full sm:w-64"
+              width="w-full"
             />
             <Dropdown
               id="dateFilter"
@@ -228,19 +334,55 @@ export default function Transaction_Audit() {
               ]}
             />
           </div>
-          <div className="flex gap-2">
-            <button 
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <Button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              isLoading={isRefreshing}
+              loadingText="Refreshing..."
+              icon={<FiRefreshCw size={16} />}
+              label="Refresh"
+              className={`flex-shrink-0 ${
+                isRefreshing 
+                    ? 'bg-blue-300 hover:bg-blue-700 text-white' 
+                  : 'bg-blue-600 text-white '
+              }`}
+            />
+            <Button
               onClick={handleExportToExcel}
               disabled={filteredTransactions.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              icon={<FiDownload size={16} />}
+              label="Export to Excel"
+              className={`flex items-center gap-2 flex-shrink-0 ${
                 filteredTransactions.length > 0 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-blue-300 text-white cursor-not-allowed'
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+                  : 'bg-orange-300 text-white cursor-not-allowed'
               }`}
-            >
-              <FiDownload size={16} />
-              Export Report
-            </button>
+            />
+            <Button
+              onClick={handleOpenDeleteModal}
+              disabled={selectedItems.length === 0}
+              icon={<FiTrash2 size={16} />}
+              label="Delete "
+              className={`flex items-center gap-2 flex-shrink-0 ${
+                selectedItems.length > 0 
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : 'bg-red-300 text-white cursor-not-allowed'
+              }`}
+            />
+            <Button
+              onClick={handleOpenResetModal}
+              disabled={transactions.length === 0}
+              isLoading={isResetting}
+              loadingText="Resetting..."
+              icon={<FiRefreshCw size={16} />}
+              label="Reset All"
+              className={`flex items-center gap-2 flex-shrink-0 ${
+                transactions.length > 0 
+                  ? 'bg-red-800 text-white hover:bg-orange-700' 
+                  : 'bg-red-700 text-white cursor-not-allowed'
+              }`}
+            />
           </div>
         </div>
       </Card>
@@ -275,6 +417,34 @@ export default function Transaction_Audit() {
           emptyMessage="No transactions found"
         />
       </Card>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteTransaction}
+        selectedItems={selectedItems.map(id => {
+          const transaction = transactions.find(t => t.id === id);
+          return transaction ? {
+            Item_Description: `Transaction ID: ${transaction.transactionId}`,
+            Consumable_Product_ID: transaction.rf_no
+          } : {
+            Item_Description: id,
+            Consumable_Product_ID: id
+          };
+        })}
+        isLoading={isDeleting}
+        title="Delete Transaction Confirmation"
+      />
+
+      <DeleteConfirmationModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={handleResetTransactions}
+        selectedItems={transactions.map(t => t.transactionId)}
+        isLoading={isResetting}
+        title="Reset All Transactions Confirmation"
+        confirmButtonText="Proceed Reset"
+      />
     </div>
   );
 }

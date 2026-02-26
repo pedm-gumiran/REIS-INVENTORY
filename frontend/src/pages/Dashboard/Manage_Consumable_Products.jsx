@@ -421,7 +421,7 @@ export default function Manage_Consumable_Products() {
               onClick={handleExportToExcel}
               disabled={filteredProducts.length === 0}
               icon={<FiDownload size={16} />}
-              label="Export Report"
+              label="Export to Excel"
               className={`flex items-center gap-2 flex-shrink-0 ${
                 filteredProducts.length > 0 
                   ? 'bg-orange-600 hover:bg-orange-700 text-white' 

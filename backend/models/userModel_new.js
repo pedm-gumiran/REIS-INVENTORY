@@ -19,10 +19,10 @@ exports.getUserByEmail = async (email) => {
 };
 
 /* CREATE */
-exports.createUser = async ({ first_name, last_name, email, password, pin_code }) => {
+exports.createUser = async ({ user_id, first_name, last_name, email, password, pin_code }) => {
   const [result] = await db.execute(
-    'INSERT INTO users (first_name, last_name, email, password, pin_code) VALUES (?, ?, ?, ?, ?)',
-    [first_name, last_name, email, password, pin_code],
+    'INSERT INTO users (user_id, first_name, last_name, email, password, pin_code) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [user_id, first_name, last_name, email, password, pin_code],
   );
   return result.insertId;
 };

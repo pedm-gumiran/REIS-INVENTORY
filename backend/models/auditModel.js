@@ -21,7 +21,7 @@ exports.createEquipmentReturn = async (returnId, clientName, productId, itemDesc
 
 /* Transaction Audit */
 exports.getAllTransactionAudits = async () => {
-  const [rows] = await db.execute('SELECT * FROM transaction_trail ORDER BY transaction_date DESC');
+  const [rows] = await db.execute('SELECT * FROM transaction_trail ORDER BY transaction_id DESC');
   return rows;
 };
 
@@ -36,4 +36,22 @@ exports.createTransactionAudit = async (transactionId, rrfNo, typeOfRequest, ite
     [rrfNo, typeOfRequest, itemsRequested, dateOfActivity, startTime, endTime, purpose, requestedBy, approvedBy, servedBy, receivedBy, transactionDate]
   );
   return result.insertId;
+};
+
+/* Delete transaction audit */
+exports.deleteTransactionAudit = async (id) => {
+  const [result] = await db.execute('DELETE FROM transaction_trail WHERE transaction_id = ?', [id]);
+  return result.affectedRows;
+};
+
+/* Delete all transaction audits */
+exports.deleteAllTransactionAudits = async () => {
+  const [result] = await db.execute('DELETE FROM transaction_trail');
+  return result.affectedRows;
+};
+
+/* Delete all equipment returns */
+exports.deleteAllEquipmentReturns = async () => {
+  const [result] = await db.execute('DELETE FROM equipment_trail');
+  return result.affectedRows;
 };

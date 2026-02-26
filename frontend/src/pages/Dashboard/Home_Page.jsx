@@ -5,6 +5,26 @@ import { useUser } from '../../components/context/UserContext';
 import SearchBar from '../../components/Input_Fields/SearchBar';
 import axiosInstance from '../../api/axios';
 
+// Add custom styles for waving hand animation
+const styles = `
+  @keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(-20deg); }
+    20%, 40% { transform: rotate(20deg); }
+    50% { transform: rotate(-10deg); }
+    60% { transform: rotate(10deg); }
+    70% { transform: rotate(-5deg); }
+    80% { transform: rotate(5deg); }
+    90% { transform: rotate(0deg); }
+  }
+  
+  .wave-hand {
+    display: inline-block;
+    animation: wave 2s ease-in-out infinite;
+    transform-origin: 70% 70%;
+  }
+`;
+
 export default function Home_Page() {
   const { user } = useUser();
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -19,6 +39,11 @@ export default function Home_Page() {
 
   // Fetch data from API
   useEffect(() => {
+    // Inject custom styles
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -99,6 +124,14 @@ export default function Home_Page() {
   const totalConsumableQuantity = stocksData.reduce((sum, stock) => sum + (stock.Quantity || 0), 0);
   const totalNonConsumableQuantity = equipmentData.reduce((sum, equipment) => sum + (equipment.Quantity || 0), 0);
   const totalStockQuantity = totalConsumableQuantity + totalNonConsumableQuantity;
+
+  // Calculate consumable stock status
+  const inStockConsumables = stocksData.filter(stock => stock.Status === 'In Stock').length;
+  const outOfStockConsumables = stocksData.filter(stock => stock.Status === 'Low Stock' || stock.Status === 'Out of Stock').length;
+
+  // Calculate non-consumable status
+  const availableEquipment = equipmentData.filter(equipment => equipment.Status === 'Available').length;
+  const borrowedEquipment = equipmentData.filter(equipment => equipment.Status === 'In Use' || equipment.Status === 'Borrowed').length;
 
   // Search handlers
   const handleStockSearch = (e) => {
@@ -187,7 +220,7 @@ export default function Home_Page() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              Welcome back, {user?.name || 'User'}! 👋
+              Welcome back, {user?.name || 'User'}! <span className="wave-hand">👋</span>
             </h1>
             <p className="text-green-100">
               Here's what's happening with your inventory today.
@@ -207,6 +240,16 @@ export default function Home_Page() {
             <div>
               <p className="text-blue-600 text-sm font-medium">Total Consumable Products</p>
               <p className="text-2xl font-bold text-blue-900">{loading ? '...' : stocksData.length}</p>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-xs text-green-700">In Stock: {inStockConsumables}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <span className="text-xs text-yellow-700">Low Stock: {outOfStockConsumables}</span>
+                </div>
+              </div>
             </div>
             <div className="bg-blue-100 p-3 rounded-full">
               <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,6 +264,16 @@ export default function Home_Page() {
             <div>
               <p className="text-purple-600 text-sm font-medium">Total Non-Consumable Products</p>
               <p className="text-2xl font-bold text-purple-900">{loading ? '...' : equipmentData.length}</p>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-xs text-green-700">Available: {availableEquipment}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-xs text-blue-700">Borrowed: {borrowedEquipment}</span>
+                </div>
+              </div>
             </div>
             <div className="bg-purple-100 p-3 rounded-full">
               <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +288,16 @@ export default function Home_Page() {
             <div>
               <p className="text-green-600 text-sm font-medium">Total Stock Quantity</p>
               <p className="text-2xl font-bold text-green-900">{loading ? '...' : totalStockQuantity}</p>
-              <p className="text-green-500 text-xs">Consumables: {totalConsumableQuantity} + Non-Consumables: {totalNonConsumableQuantity}</p>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-xs text-blue-700">Consumables: {totalConsumableQuantity}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span className="text-xs text-purple-700">Non-Consumables: {totalNonConsumableQuantity}</span>
+                </div>
+              </div>
             </div>
             <div className="bg-green-100 p-3 rounded-full">
               <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

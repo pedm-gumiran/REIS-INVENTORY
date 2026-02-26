@@ -470,7 +470,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                   <div className="flex-1 text-center py-1">
 
-                    <p className="text-[~0.833rem] leading-tight font-bold uppercase">
+                    <p className="text-[~0.833rem] leading-tight font-bold">
 
                       Republic of the Philippines
 
@@ -1012,7 +1012,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                   <div className="flex-1 text-center py-1">
 
-                    <p className="text-[~0.833rem] leading-tight font-bold uppercase">
+                    <p className="text-[~0.833rem] leading-tight font-bold ">
 
                       Republic of the Philippines
 
