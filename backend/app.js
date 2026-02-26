@@ -4,6 +4,9 @@ const morgan = require('morgan');
 const errorHandler = require('./middlewares/errorHandler');
 // const { authenticate } = require('./middleware/authMiddleware');
 const userRoutes = require('./routes/userRoutes.js');
+const consumableRoutes = require('./routes/consumableRoutes.js');
+const nonConsumableRoutes = require('./routes/nonConsumableRoutes.js');
+const auditRoutes = require('./routes/auditRoutes.js');
 
 const app = express();
 
@@ -21,9 +24,11 @@ app.use(morgan('dev'));
 // Routes (protected)
 // app.use('/api/users', authenticate, userRoutes);
 // app.use('/api/backup_restore', authenticate, backupRestoreRoutes);
-// app.use('/api/audits', authenticate, auditRoutes);
 // app.use('/api/grades', authenticate, gradesRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/consumables', consumableRoutes);
+app.use('/api/non-consumables', nonConsumableRoutes);
+app.use('/api/audits', auditRoutes);
 
 app.get('/', (req, res) => res.send('Server is Ready!'));
 

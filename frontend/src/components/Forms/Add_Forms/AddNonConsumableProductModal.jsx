@@ -9,8 +9,7 @@ export default function AddNonConsumableProductModal({ isOpen, onClose, onSave }
     Item_Description: '',
     Unit: '',
     Quantity: '',
-    Unit_Cost: '',
-    Status: 'Available'
+    Unit_Cost: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -23,8 +22,7 @@ export default function AddNonConsumableProductModal({ isOpen, onClose, onSave }
         Item_Description: '',
         Unit: '',
         Quantity: '',
-        Unit_Cost: '',
-        Status: 'Available'
+        Unit_Cost: ''
       });
       setErrors({});
     }
@@ -91,6 +89,7 @@ export default function AddNonConsumableProductModal({ isOpen, onClose, onSave }
     if (validateForm()) {
       const newProduct = {
         ...formData,
+        Status: 'Available', // Set status to Available by default
         Quantity: parseInt(formData.Quantity),
         Unit_Cost: parseFloat(formData.Unit_Cost),
         Total_Cost: (parseInt(formData.Quantity) * parseFloat(formData.Unit_Cost)).toFixed(2)
@@ -103,6 +102,15 @@ export default function AddNonConsumableProductModal({ isOpen, onClose, onSave }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Prevent negative values for quantity and unit cost
+    if (name === 'Quantity' || name === 'Unit_Cost') {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue < 0) {
+        return; // Don't update if negative
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -242,24 +250,6 @@ export default function AddNonConsumableProductModal({ isOpen, onClose, onSave }
               {errors.Unit_Cost && (
                 <p className="text-red-500 text-xs mt-1">{errors.Unit_Cost}</p>
               )}
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status *
-              </label>
-              <select
-                name="Status"
-                value={formData.Status}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              >
-                <option value="Available">Available</option>
-                <option value="Not Available">Not Available</option>
-                <option value="Under Maintenance">Under Maintenance</option>
-              </select>
             </div>
           </div>
 

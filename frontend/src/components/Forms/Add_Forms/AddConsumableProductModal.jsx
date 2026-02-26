@@ -56,6 +56,15 @@ export default function AddConsumableProductModal({
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Prevent negative values for quantity and unit cost
+    if (name === 'Quantity' || name === 'Unit_Cost') {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue < 0) {
+        return; // Don't update if negative
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value

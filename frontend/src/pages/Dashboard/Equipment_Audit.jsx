@@ -6,91 +6,16 @@ import Dropdown from '../../components/Input_Fields/Dropdown';
 import { FiDownload } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
+import axiosInstance from '../../utils/axiosInstance';
 
-// Sample equipment return data
-const equipmentReturnsData = [
-  { 
-    id: 1, 
-    returnId: 'RET001', 
-    date: '2024-01-15', 
-    time: '10:15 AM',
-    equipmentName: 'Laptop Dell XPS', 
-    serialNumber: 'DXS001',
-    assignedTo: 'John Doe',
-    returnCondition: 'Good',
-    issuesFound: 'None',
-    processedBy: 'Admin User',
-    department: 'IT',
-    status: 'Completed',
-    notes: 'Equipment returned in good condition'
-  },
-  { 
-    id: 2, 
-    returnId: 'RET002', 
-    date: '2024-01-14', 
-    time: '02:30 PM',
-    equipmentName: 'Projector Epson', 
-    serialNumber: 'PRJ003',
-    assignedTo: 'Jane Smith',
-    returnCondition: 'Fair',
-    issuesFound: 'Dim display',
-    processedBy: 'Admin User',
-    department: 'AV',
-    status: 'Maintenance Required',
-    notes: 'Sent for repair - display issue'
-  },
-  { 
-    id: 3, 
-    returnId: 'RET003', 
-    date: '2024-01-14', 
-    time: '09:45 AM',
-    equipmentName: 'Office Chair', 
-    serialNumber: 'CHR015',
-    assignedTo: 'Mike Johnson',
-    returnCondition: 'Excellent',
-    issuesFound: 'None',
-    processedBy: 'Admin User',
-    department: 'General',
-    status: 'Completed',
-    notes: 'No issues found'
-  },
-  { 
-    id: 4, 
-    returnId: 'RET004', 
-    date: '2024-01-13', 
-    time: '03:20 PM',
-    equipmentName: 'Printer HP LaserJet', 
-    serialNumber: 'PRN005',
-    assignedTo: 'Sarah Wilson',
-    returnCondition: 'Poor',
-    issuesFound: 'Paper jam, toner low',
-    processedBy: 'Admin User',
-    department: 'Admin',
-    status: 'Under Repair',
-    notes: 'Multiple issues identified'
-  },
-  { 
-    id: 5, 
-    returnId: 'RET005', 
-    date: '2024-01-13', 
-    time: '11:10 AM',
-    equipmentName: 'Whiteboard', 
-    serialNumber: 'WHT008',
-    assignedTo: 'Tom Brown',
-    returnCondition: 'Good',
-    issuesFound: 'Minor scratches',
-    processedBy: 'Admin User',
-    department: 'Conference',
-    status: 'Completed',
-    notes: 'Minor cosmetic damage only'
-  },
-];
 
 export default function Equipment_Returned_Audit() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [equipmentReturns, setEquipmentReturns] = useState(equipmentReturnsData);
+  const [equipmentReturns, setEquipmentReturns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   // Update date and time every second
@@ -100,6 +25,43 @@ export default function Equipment_Returned_Audit() {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch equipment returns data
+  useEffect(() => {
+    const fetchEquipmentReturns = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get('/audits/equipment-returns');
+        if (response.data.success) {
+          // Transform API data to match frontend structure
+          const transformedData = response.data.data.map(item => ({
+            id: item.et_id,
+            returnId: `RET${String(item.et_id).padStart(3, '0')}`,
+            date: item.borrowed_date ? new Date(item.borrowed_date).toLocaleDateString() : new Date().toLocaleDateString(),
+            time: item.borrowed_date ? new Date(item.borrowed_date).toLocaleTimeString() : new Date().toLocaleTimeString(),
+            equipmentName: item.item_description || 'Unknown Equipment',
+            serialNumber: item.product_id || 'N/A',
+            assignedTo: item.client_name || 'Unknown',
+            returnCondition: item.returned_quantity > 0 ? 'Returned' : 'Borrowed',
+            issuesFound: item.returned_notes || 'None',
+            processedBy: item.inspected_by || 'System',
+            department: 'General',
+            status: item.returned_quantity > 0 ? 'Completed' : 'Active',
+            notes: item.returned_notes || ''
+          }));
+          setEquipmentReturns(transformedData);
+        }
+      } catch (err) {
+        console.error('Error fetching equipment returns:', err);
+        setError('Failed to load equipment returns');
+        toast.error('Failed to load equipment returns');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEquipmentReturns();
   }, []);
 
   // Filter returns based on search term and status

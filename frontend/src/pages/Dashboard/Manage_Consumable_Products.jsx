@@ -8,110 +8,56 @@ import DeleteConfirmationModal from '../../components/Forms/Edit_Forms/DeleteCon
 import { FiDownload } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
-
-// Sample data for consumable products
-const consumableProducts = [
-  { 
-    Consumable_Product_ID: 'CP001', 
-    Category_Name: 'Stationery', 
-    Item_Description: 'Office Paper A4 Premium Quality', 
-    Unit: 'per ream', 
-    Quantity: 500, 
-    Unit_Cost: 25.00, 
-    Status: 'In Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP002', 
-    Category_Name: 'Stationery', 
-    Item_Description: 'Ballpoint Pens Blue Ink', 
-    Unit: 'per piece', 
-    Quantity: 1200, 
-    Unit_Cost: 2.50, 
-    Status: 'In Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP003', 
-    Category_Name: 'Office Supplies', 
-    Item_Description: 'Printer Toner HP Black', 
-    Unit: 'per cartridge', 
-    Quantity: 45, 
-    Unit_Cost: 85.00, 
-    Status: 'Low Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP004', 
-    Category_Name: 'Stationery', 
-    Item_Description: 'Manila Folders Letter Size', 
-    Unit: 'per piece', 
-    Quantity: 800, 
-    Unit_Cost: 3.75, 
-    Status: 'In Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP005', 
-    Category_Name: 'Electronics', 
-    Item_Description: 'USB Flash Drives 32GB', 
-    Unit: 'per piece', 
-    Quantity: 75, 
-    Unit_Cost: 12.00, 
-    Status: 'In Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP006', 
-    Category_Name: 'Stationery', 
-    Item_Description: 'Whiteboard Markers Assorted Colors', 
-    Unit: 'per set', 
-    Quantity: 150, 
-    Unit_Cost: 4.25, 
-    Status: 'In Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP007', 
-    Category_Name: 'Stationery', 
-    Item_Description: 'Binding Clips Metal 2 inch', 
-    Unit: 'per box (100pcs)', 
-    Quantity: 2000, 
-    Unit_Cost: 0.50, 
-    Status: 'In Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP008', 
-    Category_Name: 'Accessories', 
-    Item_Description: 'Laptop Stands Adjustable', 
-    Unit: 'per piece', 
-    Quantity: 30, 
-    Unit_Cost: 35.00, 
-    Status: 'Low Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP009', 
-    Category_Name: 'Stationery', 
-    Item_Description: 'Desk Calendars 2024', 
-    Unit: 'per piece', 
-    Quantity: 25, 
-    Unit_Cost: 15.00, 
-    Status: 'In Stock' 
-  },
-  { 
-    Consumable_Product_ID: 'CP010', 
-    Category_Name: 'Accessories', 
-    Item_Description: 'Mouse Pads Gel Wrist Rest', 
-    Unit: 'per piece', 
-    Quantity: 60, 
-    Unit_Cost: 8.50, 
-    Status: 'In Stock' 
-  },
-];
+import axiosInstance from '../../api/axios';
+import Button from '../../components/Buttons/Button';
 
 export default function Manage_Consumable_Products() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
-  const [products, setProducts] = useState(consumableProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get('/consumables');
+        
+        // Transform data to match table structure
+        const transformedProducts = response.data.data.map((item, index) => ({
+          id: item.product_id || index + 1,
+          Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+          Category_Name: item.category || 'Uncategorized',
+          Item_Description: item.item_description || 'No description',
+          Unit: item.unit || 'per piece',
+          Quantity: item.quantity || 0,
+          Unit_Cost: parseFloat(item.unit_cost) || 0,
+          Status: item.status || ((item.quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
+        }));
+        
+        setProducts(transformedProducts);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching consumable products:', err);
+        setError('Failed to load products. Please try again.');
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   // Update date and time every second
   useEffect(() => {
@@ -132,28 +78,145 @@ export default function Manage_Consumable_Products() {
   );
 
   // Handle add product
-  const handleAddProduct = (newProduct) => {
-    setProducts(prev => [newProduct, ...prev]);
-    toast.success('Consumable product added successfully!');
+  const handleAddProduct = async (newProduct) => {
+    setIsAdding(true);
+    try {
+      // Transform data for API - match database schema
+      const apiData = {
+        item_description: newProduct.Item_Description,
+        category: newProduct.Category_Name,
+        unit: newProduct.Unit,
+        quantity: newProduct.Quantity,
+        unit_cost: newProduct.Unit_Cost,
+        status: newProduct.Status || ((newProduct.Quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
+      };
+
+      const response = await axiosInstance.post('/consumables', apiData);
+      
+      // Simulate processing delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh data from server
+      const refreshResponse = await axiosInstance.get('/consumables');
+      const transformedProducts = refreshResponse.data.data.map((item, index) => ({
+        id: item.product_id || index + 1,
+        Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Category_Name: item.category || 'Uncategorized',
+        Item_Description: item.item_description || 'No description',
+        Unit: item.unit || 'per piece',
+        Quantity: item.quantity || 0,
+        Unit_Cost: parseFloat(item.unit_cost) || 0,
+        Status: item.status || ((item.quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
+      }));
+      
+      setProducts(transformedProducts);
+      toast.success('Consumable product added successfully!');
+      setIsAddModalOpen(false); // Only close on success
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast.error('Failed to add product. Please try again.');
+      // Don't close modal on failure - let user try again
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   // Handle edit product
-  const handleEditProduct = (updatedProduct) => {
-    setProducts(prev => prev.map(p => 
-      p.Consumable_Product_ID === updatedProduct.Consumable_Product_ID ? updatedProduct : p
-    ));
-    setSelectedItems([]);
-    toast.success('Consumable product updated successfully!');
+  const handleEditProduct = async (updatedProduct) => {
+    setIsUpdating(true);
+    try {
+      // Find the original product to get its ID
+      const originalProduct = products.find(p => p.Consumable_Product_ID === updatedProduct.Consumable_Product_ID);
+      if (!originalProduct) {
+        toast.error('Product not found');
+        setIsUpdating(false);
+        return; // Don't close modal on error
+      }
+
+      // Transform data for API - match database schema
+      const apiData = {
+        item_description: updatedProduct.Item_Description,
+        category: updatedProduct.Category_Name,
+        unit: updatedProduct.Unit,
+        quantity: updatedProduct.Quantity,
+        unit_cost: updatedProduct.Unit_Cost,
+        status: updatedProduct.Status || ((updatedProduct.Quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
+      };
+
+      await axiosInstance.put(`/consumables/${originalProduct.id}`, apiData);
+      
+      // Simulate processing delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh data from server
+      const refreshResponse = await axiosInstance.get('/consumables');
+      const transformedProducts = refreshResponse.data.data.map((item, index) => ({
+        id: item.product_id || index + 1,
+        Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Category_Name: item.category || 'Uncategorized',
+        Item_Description: item.item_description || 'No description',
+        Unit: item.unit || 'per piece',
+        Quantity: item.quantity || 0,
+        Unit_Cost: parseFloat(item.unit_cost) || 0,
+        Status: item.status || ((item.quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
+      }));
+      
+      setProducts(transformedProducts);
+      setSelectedItems([]);
+      toast.success('Consumable product updated successfully!');
+      setIsEditModalOpen(false); // Only close on success
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast.error('Failed to update product. Please try again.');
+      // Don't close modal on failure - let user try again
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // Handle delete product
-  const handleDeleteProduct = (itemsToDelete) => {
-    const idsToDelete = itemsToDelete.map(item => 
-      typeof item === 'string' ? item : item.Consumable_Product_ID
-    );
-    setProducts(prev => prev.filter(p => !idsToDelete.includes(p.Consumable_Product_ID)));
-    setSelectedItems([]);
-    toast.success(`${itemsToDelete.length} consumable product(s) deleted successfully!`);
+  const handleDeleteProduct = async (itemsToDelete) => {
+    setIsDeleting(true);
+    try {
+      const deletePromises = itemsToDelete.map(async (item) => {
+        const productId = typeof item === 'string' 
+          ? products.find(p => p.Consumable_Product_ID === item)?.id
+          : products.find(p => p.Consumable_Product_ID === item.Consumable_Product_ID)?.id;
+        
+        if (productId) {
+          return axiosInstance.delete(`/consumables/${productId}`);
+        }
+        throw new Error('Product not found');
+      });
+
+      await Promise.all(deletePromises);
+      
+      // Simulate processing delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh data from server
+      const refreshResponse = await axiosInstance.get('/consumables');
+      const transformedProducts = refreshResponse.data.data.map((item, index) => ({
+        id: item.product_id || index + 1,
+        Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Category_Name: item.category || 'Uncategorized',
+        Item_Description: item.item_description || 'No description',
+        Unit: item.unit || 'per piece',
+        Quantity: item.quantity || 0,
+        Unit_Cost: parseFloat(item.unit_cost) || 0,
+        Status: item.status || ((item.quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
+      }));
+      
+      setProducts(transformedProducts);
+      setSelectedItems([]);
+      toast.success(`${itemsToDelete.length} consumable product(s) deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting products:', error);
+      toast.error('Failed to delete products. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Open delete modal with selected products
@@ -319,46 +382,53 @@ export default function Manage_Consumable_Products() {
             width="w-full"
           />
           <div className="flex gap-2 overflow-x-auto pb-2">
-            <button 
+            <Button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex-shrink-0"
-            >
-              Add Product
-            </button>
-            <button 
+              disabled={isAdding}
+              isLoading={isAdding}
+              loadingText="Adding..."
+              label="Add Product"
+              className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0"
+              variant="primary"
+            />
+            <Button
               onClick={handleOpenEditModal}
-              disabled={selectedItems.length !== 1 || filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
-                selectedItems.length === 1 && filteredProducts.length > 0
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              disabled={selectedItems.length !== 1 || filteredProducts.length === 0 || isUpdating}
+              isLoading={isUpdating}
+              loadingText="Updating..."
+              label="Edit"
+              className={`flex-shrink-0 ${
+                selectedItems.length === 1 && filteredProducts.length > 0 && !isUpdating
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                   : 'bg-blue-300 text-white cursor-not-allowed'
               }`}
-            >
-              Edit
-            </button>
-            <button 
+              variant="primary"
+            />
+            <Button
               onClick={handleOpenDeleteModal}
-              disabled={selectedItems.length === 0 || filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
-                selectedItems.length > 0 && filteredProducts.length > 0
-                  ? 'bg-red-600 text-white hover:bg-red-700' 
+              disabled={selectedItems.length === 0 || filteredProducts.length === 0 || isDeleting}
+              isLoading={isDeleting}
+              loadingText="Deleting..."
+              label="Delete"
+              className={`flex-shrink-0 ${
+                selectedItems.length > 0 && filteredProducts.length > 0 && !isDeleting
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
                   : 'bg-red-300 text-white cursor-not-allowed'
               }`}
-            >
-              Delete
-            </button>
-            <button 
+              variant="primary"
+            />
+            <Button
               onClick={handleExportToExcel}
               disabled={filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 flex-shrink-0 ${
+              icon={<FiDownload size={16} />}
+              label="Export Report"
+              className={`flex items-center gap-2 flex-shrink-0 ${
                 filteredProducts.length > 0 
-                  ? 'bg-orange-600 text-white hover:bg-orange-700' 
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white' 
                   : 'bg-orange-300 text-white cursor-not-allowed'
               }`}
-            >
-              <FiDownload size={16} />
-              Export Report
-            </button>
+              variant="primary"
+            />
           </div>
         </div>
      </Card>
@@ -366,6 +436,11 @@ export default function Manage_Consumable_Products() {
 
       {/* Products Table */}
       <Card title="Consumable Products Inventory">
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
         <DataTable
           columns={columns}
           data={filteredProducts}
@@ -374,7 +449,7 @@ export default function Manage_Consumable_Products() {
           selected={selectedItems}
           onSelect={setSelectedItems}
           showCheckboxes={false}
-          emptyMessage="No consumable products found"
+          emptyMessage={loading ? "Loading products..." : "No consumable products found"}
         />
       </Card>
       {/* Add Product Modal */}
@@ -382,6 +457,7 @@ export default function Manage_Consumable_Products() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleAddProduct}
+        isLoading={isAdding}
       />
 
       {/* Edit Product Modal */}
@@ -393,6 +469,7 @@ export default function Manage_Consumable_Products() {
         }}
         onSave={handleEditProduct}
         product={editingProduct}
+        isLoading={isUpdating}
       />
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
@@ -400,6 +477,7 @@ export default function Manage_Consumable_Products() {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteProduct}
         selectedItems={selectedItems.map(id => products.find(p => p.Consumable_Product_ID === id))}
+        isLoading={isDeleting}
       />
     </div>
   );

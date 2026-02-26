@@ -8,110 +8,56 @@ import DeleteConfirmationModal from '../../components/Forms/Edit_Forms/DeleteCon
 import { FiDownload } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
-
-// Sample data for non-consumable products
-const nonConsumableProducts = [
-  { 
-    Non_Consumable_Product_ID: 'NCP001', 
-    Category_Name: 'Electronics', 
-    Item_Description: 'Laptop Dell XPS 15 inch', 
-    Unit: 'per piece', 
-    Quantity: 15, 
-    Unit_Cost: 45000.00, 
-    Status: 'Available' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP002', 
-    Category_Name: 'Furniture', 
-    Item_Description: 'Office Chair Ergonomic', 
-    Unit: 'per piece', 
-    Quantity: 25, 
-    Unit_Cost: 3500.00, 
-    Status: 'Available' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP003', 
-    Category_Name: 'AV Equipment', 
-    Item_Description: 'Projector Epson Full HD', 
-    Unit: 'per piece', 
-    Quantity: 5, 
-    Unit_Cost: 25000.00, 
-    Status: 'In Use' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP004', 
-    Category_Name: 'Office Equipment', 
-    Item_Description: 'Printer HP LaserJet Pro', 
-    Unit: 'per piece', 
-    Quantity: 8, 
-    Unit_Cost: 12000.00, 
-    Status: 'Available' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP005', 
-    Category_Name: 'Furniture', 
-    Item_Description: 'Whiteboard Magnetic 4x6', 
-    Unit: 'per piece', 
-    Quantity: 12, 
-    Unit_Cost: 2500.00, 
-    Status: 'Available' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP006', 
-    Category_Name: 'Electronics', 
-    Item_Description: 'Monitor Dell 24 inch', 
-    Unit: 'per piece', 
-    Quantity: 30, 
-    Unit_Cost: 8500.00, 
-    Status: 'Available' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP007', 
-    Category_Name: 'Furniture', 
-    Item_Description: 'Office Desk Executive', 
-    Unit: 'per piece', 
-    Quantity: 18, 
-    Unit_Cost: 7500.00, 
-    Status: 'Available' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP008', 
-    Category_Name: 'AV Equipment', 
-    Item_Description: 'Conference Phone Polycom', 
-    Unit: 'per piece', 
-    Quantity: 3, 
-    Unit_Cost: 15000.00, 
-    Status: 'In Use' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP009', 
-    Category_Name: 'Electronics', 
-    Item_Description: 'Desktop Computer Dell OptiPlex', 
-    Unit: 'per piece', 
-    Quantity: 20, 
-    Unit_Cost: 28000.00, 
-    Status: 'Available' 
-  },
-  { 
-    Non_Consumable_Product_ID: 'NCP010', 
-    Category_Name: 'Furniture', 
-    Item_Description: 'Filing Cabinet 4 Drawer', 
-    Unit: 'per piece', 
-    Quantity: 10, 
-    Unit_Cost: 4500.00, 
-    Status: 'Available' 
-  },
-];
+import axiosInstance from '../../api/axios';
+import Button from '../../components/Buttons/Button';
 
 export default function Manage_Non_Consumable_Products() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
-  const [products, setProducts] = useState(nonConsumableProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get('/non-consumables');
+        
+        // Transform data to match table structure
+        const transformedProducts = response.data.data.map((item, index) => ({
+          id: item.product_id || index + 1,
+          Non_Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+          Category_Name: item.category || 'Equipment',
+          Item_Description: item.item_description || 'No description',
+          Unit: item.unit || 'per unit',
+          Quantity: item.quantity || 1,
+          Unit_Cost: parseFloat(item.unit_cost) || 0,
+          Status: item.status || 'Available'
+        }));
+        
+        setProducts(transformedProducts);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching non-consumable products:', err);
+        setError('Failed to load products. Please try again.');
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   // Update date and time every second
   useEffect(() => {
@@ -132,28 +78,143 @@ export default function Manage_Non_Consumable_Products() {
   );
 
   // Handle add product
-  const handleAddProduct = (newProduct) => {
-    setProducts(prev => [newProduct, ...prev]);
-    toast.success('Non-consumable product added successfully!');
+  const handleAddProduct = async (newProduct) => {
+    setIsAdding(true);
+    try {
+      // Transform data for API
+      const apiData = {
+        item_description: newProduct.Item_Description,
+        category: newProduct.Category_Name,
+        unit: newProduct.Unit,
+        quantity: newProduct.Quantity,
+        unit_cost: newProduct.Unit_Cost
+      };
+
+      const response = await axiosInstance.post('/non-consumables', apiData);
+      
+      // Simulate processing delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh data from server
+      const refreshResponse = await axiosInstance.get('/non-consumables');
+      const transformedProducts = refreshResponse.data.data.map((item, index) => ({
+        id: item.product_id || index + 1,
+        Non_Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Category_Name: item.category || 'Equipment',
+        Item_Description: item.item_description || 'No description',
+        Unit: item.unit || 'per unit',
+        Quantity: item.quantity || 1,
+        Unit_Cost: parseFloat(item.unit_cost) || 0,
+        Status: item.status || 'Available'
+      }));
+      
+      setProducts(transformedProducts);
+      toast.success('Non-consumable product added successfully!');
+      setIsAddModalOpen(false); // Only close on success
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast.error('Failed to add product. Please try again.');
+      // Don't close modal on failure - let user try again
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   // Handle edit product
-  const handleEditProduct = (updatedProduct) => {
-    setProducts(prev => prev.map(p => 
-      p.Non_Consumable_Product_ID === updatedProduct.Non_Consumable_Product_ID ? updatedProduct : p
-    ));
-    setSelectedItems([]);
-    toast.success('Non-consumable product updated successfully!');
+  const handleEditProduct = async (updatedProduct) => {
+    setIsUpdating(true);
+    try {
+      // Find the original product to get its ID
+      const originalProduct = products.find(p => p.Non_Consumable_Product_ID === updatedProduct.Non_Consumable_Product_ID);
+      if (!originalProduct) {
+        toast.error('Product not found');
+        setIsUpdating(false);
+        return; // Don't close modal on error
+      }
+
+      // Transform data for API
+      const apiData = {
+        item_description: updatedProduct.Item_Description,
+        category: updatedProduct.Category_Name,
+        unit: updatedProduct.Unit,
+        quantity: updatedProduct.Quantity,
+        unit_cost: updatedProduct.Unit_Cost
+      };
+
+      await axiosInstance.put(`/non-consumables/${originalProduct.id}`, apiData);
+      
+      // Simulate processing delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh data from server
+      const refreshResponse = await axiosInstance.get('/non-consumables');
+      const transformedProducts = refreshResponse.data.data.map((item, index) => ({
+        id: item.product_id || index + 1,
+        Non_Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Category_Name: item.category || 'Equipment',
+        Item_Description: item.item_description || 'No description',
+        Unit: item.unit || 'per unit',
+        Quantity: item.quantity || 1,
+        Unit_Cost: parseFloat(item.unit_cost) || 0,
+        Status: item.status || 'Available'
+      }));
+      
+      setProducts(transformedProducts);
+      setSelectedItems([]);
+      toast.success('Non-consumable product updated successfully!');
+      setIsEditModalOpen(false); // Only close on success
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast.error('Failed to update product. Please try again.');
+      // Don't close modal on failure - let user try again
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // Handle delete product
-  const handleDeleteProduct = (itemsToDelete) => {
-    const idsToDelete = itemsToDelete.map(item => 
-      typeof item === 'string' ? item : item.Non_Consumable_Product_ID
-    );
-    setProducts(prev => prev.filter(p => !idsToDelete.includes(p.Non_Consumable_Product_ID)));
-    setSelectedItems([]);
-    toast.success(`${itemsToDelete.length} non-consumable product(s) deleted successfully!`);
+  const handleDeleteProduct = async (itemsToDelete) => {
+    setIsDeleting(true);
+    try {
+      const deletePromises = itemsToDelete.map(async (item) => {
+        const productId = typeof item === 'string' 
+          ? products.find(p => p.Non_Consumable_Product_ID === item)?.id
+          : products.find(p => p.Non_Consumable_Product_ID === item.Non_Consumable_Product_ID)?.id;
+        
+        if (productId) {
+          return axiosInstance.delete(`/non-consumables/${productId}`);
+        }
+        throw new Error('Product not found');
+      });
+
+      await Promise.all(deletePromises);
+      
+      // Simulate processing delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh data from server
+      const refreshResponse = await axiosInstance.get('/non-consumables');
+      const transformedProducts = refreshResponse.data.data.map((item, index) => ({
+        id: item.product_id || index + 1,
+        Non_Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Category_Name: item.category || 'Equipment',
+        Item_Description: item.item_description || 'No description',
+        Unit: item.unit || 'per unit',
+        Quantity: item.quantity || 1,
+        Unit_Cost: parseFloat(item.unit_cost) || 0,
+        Status: item.status || 'Available'
+      }));
+      
+      setProducts(transformedProducts);
+      setSelectedItems([]);
+      toast.success(`${itemsToDelete.length} non-consumable product(s) deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting products:', error);
+      toast.error('Failed to delete products. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Open delete modal with selected products
@@ -229,6 +290,7 @@ export default function Manage_Non_Consumable_Products() {
           'Available': 'bg-green-100 text-green-800',
           'In Use': 'bg-blue-100 text-blue-800',
           'Maintenance': 'bg-yellow-100 text-yellow-800',
+          'Borrowed': 'bg-yellow-100 text-yellow-800',
           'Retired': 'bg-red-100 text-red-800'
         };
         return (
@@ -312,52 +374,64 @@ export default function Manage_Non_Consumable_Products() {
                 width="w-full"
           />
           <div className="flex gap-2 overflow-x-auto pb-2">
-            <button 
+            <Button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex-shrink-0 overflow-x-auto"
-            >
-              Add Product
-            </button>
-            <button 
+              disabled={isAdding}
+              isLoading={isAdding}
+              loadingText="Adding..."
+              label="Add Product"
+              className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0"
+              variant="primary"
+            />
+            <Button
               onClick={handleOpenEditModal}
-              disabled={selectedItems.length !== 1 || filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex-shrink-0 overflow-x-auto ${
-                selectedItems.length === 1 && filteredProducts.length > 0
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              disabled={selectedItems.length !== 1 || filteredProducts.length === 0 || isUpdating}
+              isLoading={isUpdating}
+              loadingText="Updating..."
+              label="Edit"
+              className={`flex-shrink-0 ${
+                selectedItems.length === 1 && filteredProducts.length > 0 && !isUpdating
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                   : 'bg-blue-300 text-white cursor-not-allowed'
               }`}
-            >
-              Edit
-            </button>
-            <button 
+              variant="primary"
+            />
+            <Button
               onClick={handleOpenDeleteModal}
-              disabled={selectedItems.length === 0 || filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex-shrink-0 overflow-x-auto ${
-                selectedItems.length > 0 && filteredProducts.length > 0
-                  ? 'bg-red-600 text-white hover:bg-red-700' 
+              disabled={selectedItems.length === 0 || filteredProducts.length === 0 || isDeleting}
+              isLoading={isDeleting}
+              loadingText="Deleting..."
+              label="Delete"
+              className={`flex-shrink-0 ${
+                selectedItems.length > 0 && filteredProducts.length > 0 && !isDeleting
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
                   : 'bg-red-300 text-white cursor-not-allowed'
               }`}
-            >
-              Delete
-            </button>
-            <button 
+              variant="primary"
+            />
+            <Button
               onClick={handleExportToExcel}
               disabled={filteredProducts.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 flex-shrink-0 overflow-x-auto ${
+              icon={<FiDownload size={16} />}
+              label="Export"
+              className={`flex items-center gap-2 flex-shrink-0 ${
                 filteredProducts.length > 0 
-                  ? 'bg-orange-600 text-white hover:bg-orange-700' 
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white' 
                   : 'bg-orange-300 text-white cursor-not-allowed'
               }`}
-            >
-              <FiDownload size={16} />
-              Export
-            </button>
+              variant="primary"
+            />
           </div>
         </div>
       </Card>
 
       {/* Products Table */}
       <Card title="Non-Consumable Products Inventory">
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
         <DataTable
           columns={columns}
           data={filteredProducts}
@@ -366,7 +440,7 @@ export default function Manage_Non_Consumable_Products() {
           selected={selectedItems}
           onSelect={setSelectedItems}
           showCheckboxes={false}
-          emptyMessage="No non-consumable products found"
+          emptyMessage={loading ? "Loading products..." : "No non-consumable products found"}
         />
       </Card>
       {/* Add Product Modal */}
@@ -374,6 +448,7 @@ export default function Manage_Non_Consumable_Products() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleAddProduct}
+        isLoading={isAdding}
       />
 
       {/* Edit Product Modal */}
@@ -385,6 +460,7 @@ export default function Manage_Non_Consumable_Products() {
         }}
         onSave={handleEditProduct}
         product={editingProduct}
+        isLoading={isUpdating}
       />
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
@@ -392,6 +468,7 @@ export default function Manage_Non_Consumable_Products() {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteProduct}
         selectedItems={selectedItems.map(id => products.find(p => p.Non_Consumable_Product_ID === id))}
+        isLoading={isDeleting}
       />
     </div>
   );

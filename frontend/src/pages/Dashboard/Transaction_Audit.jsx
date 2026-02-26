@@ -6,153 +6,56 @@ import Dropdown from '../../components/Input_Fields/Dropdown';
 import { FiDownload } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
+import axiosInstance from '../../utils/axiosInstance';
 
-// Sample audit data
-const auditTransactions = [
-  {
-    id: 1,
-    transactionId: 'TRX001',
-    rf_no: 'RRF-2024-001',
-    type_of_request: 'Issue',
-    document_supplies_materials_equipment_requested: 'Bond Paper (A4) (Qty: 5 reams), Inkjet Printer Cartridge (Qty: 2 pieces), Ballpoint Pens (Qty: 1 box)',
-    date_of_activity: '2024-01-15',
-    start_time: '09:30 AM',
-    end_time: '09:45 AM',
-    purpose: 'Office supplies for Q1 2024 operations',
-    requested_by: 'IT Department',
-    approved_by: 'Dr. Maria Santos',
-    served_by: 'Juan Dela Cruz',
-    recieved_by: 'Michael Reyes',
-    transaction_date: '2024-01-15',
-    status: 'Completed'
-  },
-  {
-    id: 2,
-    transactionId: 'TRX002',
-    rf_no: 'RRF-2024-002',
-    type_of_request: 'Return',
-    document_supplies_materials_equipment_requested: 'Laptop Dell Latitude 5420 (Qty: 1 unit), Laptop Bag (Qty: 1 unit)',
-    date_of_activity: '2024-01-15',
-    start_time: '10:15 AM',
-    end_time: '10:30 AM',
-    purpose: 'Equipment return after project completion',
-    requested_by: 'John Smith',
-    approved_by: 'Dr. Maria Santos',
-    served_by: 'Juan Dela Cruz',
-    recieved_by: 'Juan Dela Cruz',
-    transaction_date: '2024-01-15',
-    status: 'Completed'
-  },
-  {
-    id: 3,
-    transactionId: 'TRX003',
-    rf_no: 'RRF-2024-003',
-    type_of_request: 'Transfer',
-    document_supplies_materials_equipment_requested: 'Whiteboard Markers (Qty: 10 pieces), Eraser Board (Qty: 2 pieces)',
-    date_of_activity: '2024-01-14',
-    start_time: '02:45 PM',
-    end_time: '03:00 PM',
-    purpose: 'Transfer from IT to HR Department for training materials',
-    requested_by: 'HR Department',
-    approved_by: 'Prof. James Wilson',
-    served_by: 'Ana Rodriguez',
-    recieved_by: 'Sarah Johnson',
-    transaction_date: '2024-01-14',
-    status: 'Completed'
-  },
-  {
-    id: 4,
-    transactionId: 'TRX004',
-    rf_no: 'RRF-2024-004',
-    type_of_request: 'Issue',
-    document_supplies_materials_equipment_requested: 'Printer Toner HP Black (Qty: 3 cartridges), USB Flash Drives 32GB (Qty: 5 pieces)',
-    date_of_activity: '2024-01-14',
-    start_time: '11:20 AM',
-    end_time: '11:35 AM',
-    purpose: 'Printer maintenance and file storage for admin office',
-    requested_by: 'Administrative Office',
-    approved_by: 'Dr. Maria Santos',
-    served_by: 'Juan Dela Cruz',
-    recieved_by: 'Robert Chen',
-    transaction_date: '2024-01-14',
-    status: 'Pending'
-  },
-  {
-    id: 5,
-    transactionId: 'TRX005',
-    rf_no: 'RRF-2024-005',
-    type_of_request: 'Issue',
-    document_supplies_materials_equipment_requested: 'Office Chair Ergonomic (Qty: 2 units), Desk Lamp LED (Qty: 2 units)',
-    date_of_activity: '2024-01-13',
-    start_time: '03:30 PM',
-    end_time: '03:45 PM',
-    purpose: 'New workstation setup for newly hired employees',
-    requested_by: 'New Employees Orientation',
-    approved_by: 'Prof. James Wilson',
-    served_by: 'Ana Rodriguez',
-    recieved_by: 'Emily Davis',
-    transaction_date: '2024-01-13',
-    status: 'Completed'
-  },
-  {
-    id: 6,
-    transactionId: 'TRX006',
-    rf_no: 'RRF-2024-006',
-    type_of_request: 'Issue',
-    document_supplies_materials_equipment_requested: 'Projector Epson PowerLite (Qty: 1 unit), Extension Cord (Qty: 2 pieces)',
-    date_of_activity: '2024-01-12',
-    start_time: '08:00 AM',
-    end_time: '08:15 AM',
-    purpose: 'Equipment for departmental meeting presentation',
-    requested_by: 'Research Department',
-    approved_by: 'Dr. Maria Santos',
-    served_by: 'Juan Dela Cruz',
-    recieved_by: 'Dr. Robert Lee',
-    transaction_date: '2024-01-12',
-    status: 'Completed'
-  },
-  {
-    id: 7,
-    transactionId: 'TRX007',
-    rf_no: 'RRF-2024-007',
-    type_of_request: 'Return',
-    document_supplies_materials_equipment_requested: 'Conference Room Key (Qty: 1 piece), Microphone Wireless (Qty: 1 unit)',
-    date_of_activity: '2024-01-11',
-    start_time: '04:00 PM',
-    end_time: '04:10 PM',
-    purpose: 'Return after conference event completion',
-    requested_by: 'Events Committee',
-    approved_by: 'Prof. James Wilson',
-    served_by: 'Ana Rodriguez',
-    recieved_by: 'Ana Rodriguez',
-    transaction_date: '2024-01-11',
-    status: 'Completed'
-  },
-  {
-    id: 8,
-    transactionId: 'TRX008',
-    rf_no: 'RRF-2024-008',
-    type_of_request: 'Issue',
-    document_supplies_materials_equipment_requested: 'Binding Clips Metal 2 inch (Qty: 1 box), Manila Folders Letter Size (Qty: 50 pieces)',
-    date_of_activity: '2024-01-10',
-    start_time: '01:30 PM',
-    end_time: '01:40 PM',
-    purpose: 'Document preparation for accreditation visit',
-    requested_by: 'Quality Assurance Office',
-    approved_by: 'Dr. Maria Santos',
-    served_by: 'Juan Dela Cruz',
-    recieved_by: 'Lisa Martinez',
-    transaction_date: '2024-01-10',
-    status: 'Pending'
-  }
-];
 
 export default function Transaction_Audit() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [dateFilter, setDateFilter] = useState('all');
-  const [transactions, setTransactions] = useState(auditTransactions);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  // Fetch transaction audit data
+  useEffect(() => {
+    const fetchTransactionAudits = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get('/audits/transaction-audits');
+        if (response.data.success) {
+          // Transform API data to match frontend structure
+          const transformedData = response.data.data.map(item => ({
+            id: item.transaction_id,
+            transactionId: `TRX${String(item.transaction_id).padStart(3, '0')}`,
+            rf_no: item.rrf_no || `RRF-${new Date().getFullYear()}-${String(item.transaction_id).padStart(3, '0')}`,
+            type_of_request: item.type_of_request || 'Issue',
+            document_supplies_materials_equipment_requested: item.items_requested || 'N/A',
+            date_of_activity: item.date_of_activity || (item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString()),
+            start_time: item.start_time || (item.transaction_date ? new Date(item.transaction_date).toLocaleTimeString() : new Date().toLocaleTimeString()),
+            end_time: item.end_time || '',
+            purpose: item.purpose || 'N/A',
+            requested_by: item.requested_by || 'Unknown',
+            approved_by: item.approved_by || 'N/A',
+            served_by: item.served_by || 'N/A',
+            recieved_by: item.received_by || 'N/A',
+            transaction_date: item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString(),
+            status: 'Completed'
+          }));
+          setTransactions(transformedData);
+        }
+      } catch (err) {
+        console.error('Error fetching transaction audits:', err);
+        setError('Failed to load transaction audits');
+        toast.error('Failed to load transaction audits');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactionAudits();
+  }, []);
 
   // Calculate month with most transactions
   const getMonthWithMostTransactions = () => {
