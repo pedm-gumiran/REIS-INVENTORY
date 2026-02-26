@@ -446,7 +446,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
             {/* First Form */}
 
-            <div className="flex-1 flex flex-col border border-gray-300 p-1">
+              <div className="flex-1 flex flex-col border border-gray-300 p-1">
 
               <div className="border-[1.5px] border-black flex flex-col h-full">
 
@@ -470,7 +470,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                   <div className="flex-1 text-center py-1">
 
-                    <p className="text-[~0.833rem] leading-tight font-bold ">
+                    <p className="text-[~0.833rem] leading-tight font-bold uppercase">
 
                       Republic of the Philippines
 
@@ -524,7 +524,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                 <div className="text-center  border-b-[1.5px] border-black">
 
-                 <h2 className="font-bold  text-[~0.916rem]">Type of Request</h2>
+                 <h2 className="font-bold  text-[~S0.916rem]">Type of Request</h2>
 
                 </div>
 
@@ -574,7 +574,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                     <div className="mt-2">
 
-                      <p className="text-[~0.833rem]">
+                      <p className="text-[~0.833rem] pl-2">
 
                         Document/ Supplies/ Materials/ Equipment Requested:
 
@@ -852,7 +852,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                 {/* Certification */}
 
-                <div className="border-t-[1.5px] border-black  text-[0.833rem] ml-1">
+                <div className="border-t-[1.5px] border-black  text-[~0.833rem] ml-1">
 
                   I hereby certify that the request will be used exclusively for
 
@@ -864,9 +864,9 @@ export default function RetFormPreview({ formData, onClose }) {
 
                 {/* Signatures */}
 
-                <div className="flex flex-col  ">
+                <div className="flex flex-col   ">
 
-                  <div className="border-b-[1.5px] border-black">
+                  <div className="border-b-[1.5px] border-black pt-4">
 
                     <p className="text-[~0.833rem] font-bold ml-2">Requested by:</p>
 
@@ -936,9 +936,9 @@ export default function RetFormPreview({ formData, onClose }) {
 
                   </div>
 
-                  <div className="p-2 flex-1">
+                  <div className=" flex-1">
 
-                    <p className="text-[~0.833rem] font-bold">
+                    <p className="text-[~0.833rem] font-bold pl-2">
 
                       Received by:{' '}
 
@@ -946,7 +946,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                     </p>
 
-                     <div className="mt-1 flex flex-col items-center">
+                    <div className="mt-1 flex flex-col items-center">
 
                       <div className="w-2/3 border-b-[1.5px] border-black min-h-[10px] text-center font-bold">
 
@@ -968,7 +968,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
               </div>
 
-              <div className="mt-4 flex flex-col px-1">
+                <div className="mt-4 flex flex-col px-1">
 
                 <p className=" text-[~0.833rem] ">
 
@@ -978,7 +978,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                 </p>
 
-                <p className="text-[~0.6688rem] mt-4">NVSU-FR-RET-20-00 (080723)</p>
+                <p className="text-[0.6688rem] mt-4">NVSU-FR-RET-20-00 (080723)</p>
 
               </div>
 
@@ -1394,7 +1394,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                 {/* Certification */}
 
-                <div className="border-t-[1.5px] border-black  text-[0.833rem] ml-1">
+                <div className="border-t-[1.5px] border-black  text-[~0.833rem] ml-1">
 
                   I hereby certify that the request will be used exclusively for
 
@@ -1406,9 +1406,9 @@ export default function RetFormPreview({ formData, onClose }) {
 
                 {/* Signatures */}
 
-                <div className="flex flex-col  ">
+                <div className="flex flex-col   ">
 
-                  <div className="border-b-[1.5px] border-black">
+                  <div className="border-b-[1.5px] border-black pt-4">
 
                     <p className="text-[~0.833rem] font-bold ml-2">Requested by:</p>
 
@@ -1480,7 +1480,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                   <div className=" flex-1">
 
-                    <p className="text-[~0.833rem] font-bold">
+                    <p className="text-[~0.833rem] font-bold pl-2">
 
                       Received by:{' '}
 
@@ -1520,7 +1520,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                 </p>
 
-                <p className="text-[~0.6688rem] mt-4">NVSU-FR-RET-20-00 (080723)</p>
+                <p className="text-[0.6688rem] mt-4">NVSU-FR-RET-20-00 (080723)</p>
 
               </div>
 

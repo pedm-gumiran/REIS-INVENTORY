@@ -1221,7 +1221,7 @@ export default function Create_Transaction_Page() {
             selectedItems.length > 1 ? 'max-w-4xl' : 'max-w-3xl'
           } max-h-[90vh]`}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4 flex justify-between items-center">
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold">Return Equipment</h2>
                 <p className="text-blue-100 text-sm mt-1">Fill in the return information for selected items</p>
