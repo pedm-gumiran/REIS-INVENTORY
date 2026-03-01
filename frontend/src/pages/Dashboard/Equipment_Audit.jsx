@@ -43,7 +43,7 @@ export default function Equipment_Returned_Audit() {
         // Transform API data to match frontend structure
         const transformedData = response.data.data.map(item => ({
           id: item.et_id,
-          et_id: `ET${String(item.et_id).padStart(3, '0')}`,
+          et_id: item.et_id,
           client_name: item.client_name || 'Unknown',
           product_id: item.product_id || 'N/A',
           item_description: item.item_description || 'Unknown Equipment',
@@ -111,7 +111,7 @@ export default function Equipment_Returned_Audit() {
   // Filter returns based on search term and status
   const filteredReturns = equipmentReturns.filter(returnItem => {
     const matchesSearch = 
-      returnItem.et_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(returnItem.et_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
       returnItem.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       returnItem.product_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       returnItem.item_description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -134,29 +134,22 @@ export default function Equipment_Returned_Audit() {
   };
 
   // Delete selected returns
-  const handleDeleteReturn = async (selectedReturns) => {
+  const handleDeleteReturn = async (itemsToDelete) => {
+    setIsDeleting(true);
     try {
-      setIsDeleting(true);
-      
-      // Export to Excel before deleting
-      handleExportToExcel();
-      
-      // Delete selected returns
-      const deletePromises = selectedReturns.map(returnId => {
-        const returnItem = equipmentReturns.find(r => r.et_id === returnId);
-        return returnItem ? axiosInstance.delete(`/audits/equipment-returns/${returnItem.id}`) : Promise.resolve();
+      const deletePromises = itemsToDelete.map(async (item) => {
+        return axiosInstance.delete(`/audits/equipment-returns/${item.id}`);
       });
-      
+
       await Promise.all(deletePromises);
       
-      // Refresh data
+      // Refresh data from server
       await fetchEquipmentReturns();
-      
       setSelectedItems([]);
-      toast.success('Selected equipment returns deleted successfully!');
-    } catch (err) {
-      console.error('Error deleting equipment returns:', err);
-      toast.error('Failed to delete equipment returns');
+      toast.success(`${itemsToDelete.length} equipment return(s) deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting equipment returns:', error);
+      toast.error('Failed to delete equipment returns. Please try again.');
     } finally {
       setIsDeleting(false);
     }
@@ -320,12 +313,14 @@ export default function Equipment_Returned_Audit() {
             />
             <Button
               onClick={handleOpenDeleteModal}
-              disabled={selectedItems.length === 0}
+              disabled={selectedItems.length === 0 || isDeleting}
+              isLoading={isDeleting}
+              loadingText="Deleting..."
               icon={<FiTrash2 size={16} />}
               label="Delete "
               className={`flex items-center gap-2 flex-shrink-0 ${
-                selectedItems.length > 0 
-                  ? 'bg-red-600 text-white hover:bg-red-700' 
+                selectedItems.length > 0 && !isDeleting
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
                   : 'bg-red-300 text-white cursor-not-allowed'
               }`}
             />
@@ -382,6 +377,7 @@ export default function Equipment_Returned_Audit() {
           onSelect={setSelectedItems}
           showCheckboxes={false}
           emptyMessage="No equipment returns found"
+          loading={loading}
         />
       </Card>
 
@@ -392,9 +388,11 @@ export default function Equipment_Returned_Audit() {
         selectedItems={selectedItems.map(id => {
           const returnItem = equipmentReturns.find(r => r.id === id);
           return returnItem ? {
+            id: returnItem.id,
             Item_Description: `Equipment Transaction ID: ${returnItem.et_id}`,
             Consumable_Product_ID: returnItem.product_id
           } : {
+            id: id,
             Item_Description: id,
             Consumable_Product_ID: id
           };

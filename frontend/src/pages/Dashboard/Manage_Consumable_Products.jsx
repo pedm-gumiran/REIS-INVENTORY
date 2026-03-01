@@ -11,6 +11,14 @@ import * as XLSX from 'xlsx';
 import axiosInstance from '../../api/axios';
 import Button from '../../components/Buttons/Button';
 
+const getConsumableId = (item, index) => {
+  if (item.product_id) {
+    if (typeof item.product_id === 'string') return item.product_id;
+    return `CP${String(item.product_id).padStart(3, '0')}`;
+  }
+  return `CP${String(index + 1).padStart(3, '0')}`;
+};
+
 export default function Manage_Consumable_Products() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
@@ -36,7 +44,7 @@ export default function Manage_Consumable_Products() {
         // Transform data to match table structure
         const transformedProducts = response.data.data.map((item, index) => ({
           id: item.product_id || index + 1,
-          Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+          Consumable_Product_ID: getConsumableId(item, index),
           Category_Name: item.category || 'Uncategorized',
           Item_Description: item.item_description || 'No description',
           Unit: item.unit || 'per piece',
@@ -83,6 +91,7 @@ export default function Manage_Consumable_Products() {
     try {
       // Transform data for API - match database schema
       const apiData = {
+        product_id: newProduct.Consumable_Product_ID,
         item_description: newProduct.Item_Description,
         category: newProduct.Category_Name,
         unit: newProduct.Unit,
@@ -100,7 +109,7 @@ export default function Manage_Consumable_Products() {
       const refreshResponse = await axiosInstance.get('/consumables');
       const transformedProducts = refreshResponse.data.data.map((item, index) => ({
         id: item.product_id || index + 1,
-        Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Consumable_Product_ID: getConsumableId(item, index),
         Category_Name: item.category || 'Uncategorized',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per piece',
@@ -152,7 +161,7 @@ export default function Manage_Consumable_Products() {
       const refreshResponse = await axiosInstance.get('/consumables');
       const transformedProducts = refreshResponse.data.data.map((item, index) => ({
         id: item.product_id || index + 1,
-        Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Consumable_Product_ID: getConsumableId(item, index),
         Category_Name: item.category || 'Uncategorized',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per piece',
@@ -199,7 +208,7 @@ export default function Manage_Consumable_Products() {
       const refreshResponse = await axiosInstance.get('/consumables');
       const transformedProducts = refreshResponse.data.data.map((item, index) => ({
         id: item.product_id || index + 1,
-        Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Consumable_Product_ID: getConsumableId(item, index),
         Category_Name: item.category || 'Uncategorized',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per piece',
@@ -450,6 +459,7 @@ export default function Manage_Consumable_Products() {
           onSelect={setSelectedItems}
           showCheckboxes={false}
           emptyMessage={loading ? "Loading products..." : "No consumable products found"}
+          loading={loading}
         />
       </Card>
       {/* Add Product Modal */}

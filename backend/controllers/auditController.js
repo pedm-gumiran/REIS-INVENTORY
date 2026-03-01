@@ -186,6 +186,33 @@ exports.deleteAllTransactionAudits = async (req, res) => {
   }
 };
 
+// DELETE equipment return
+exports.deleteEquipmentReturn = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await Audit.deleteEquipmentReturn(id);
+    
+    if (result === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Equipment return not found'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Equipment return deleted successfully'
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete equipment return'
+    });
+  }
+};
+
 // DELETE all equipment returns
 exports.deleteAllEquipmentReturns = async (req, res) => {
   try {

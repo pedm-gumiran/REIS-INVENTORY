@@ -8,7 +8,7 @@ import axiosInstance from '../../../api/axios';
 export default function Reset_Password_Form() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const resetToken = searchParams.get('token');
+  const email = searchParams.get('email');
 
   const [formData, setFormData] = useState({
     newPassword: '',
@@ -16,7 +16,7 @@ export default function Reset_Password_Form() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [tokenValid, setTokenValid] = useState(null);
+  const [emailValid, setEmailValid] = useState(null);
 
   // Password Strength State
   const [strength, setStrength] = useState(0);
@@ -31,15 +31,15 @@ export default function Reset_Password_Form() {
     return score;
   };
 
-  // Validate token on component mount
+  // Validate email on component mount
   useEffect(() => {
-    if (!resetToken) {
-      setError('No reset token provided');
-      setTokenValid(false);
+    if (!email) {
+      setError('No email provided');
+      setEmailValid(false);
       return;
     }
-    setTokenValid(true); // In production, you would validate token with backend
-  }, [resetToken]);
+    setEmailValid(true); // In production, you could validate email format
+  }, [email]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,7 +67,7 @@ export default function Reset_Password_Form() {
     formData.newPassword.trim() && 
     formData.confirmPassword.trim() && 
     !error && 
-    tokenValid;
+    emailValid;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,7 +82,7 @@ export default function Reset_Password_Form() {
       
       // Send reset password request to backend
       const response = await axiosInstance.post('/users/reset-password', {
-        resetToken: resetToken,
+        email: email,
         newPassword: formData.newPassword
       });
 
@@ -117,10 +117,10 @@ export default function Reset_Password_Form() {
           </div>
         </header>
 
-        {tokenValid === false && (
+        {emailValid === false && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-800">
-              Invalid or missing reset token. Please request a new password reset.
+              Invalid or missing email. Please request a new password reset.
             </p>
             <button
               type="button"
@@ -132,7 +132,7 @@ export default function Reset_Password_Form() {
           </div>
         )}
 
-        {tokenValid === true && (
+        {emailValid === true && (
           <form className="space-y-5" onSubmit={handleSubmit}>
             <Input_Password
               label="New Password"

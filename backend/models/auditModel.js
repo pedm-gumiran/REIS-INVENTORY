@@ -32,7 +32,7 @@ exports.getTransactionAuditById = async (id) => {
 
 exports.createTransactionAudit = async (transactionId, rrfNo, typeOfRequest, itemsRequested, dateOfActivity, startTime, endTime, purpose, requestedBy, approvedBy, servedBy, receivedBy, transactionDate) => {
   const [result] = await db.execute(
-    'INSERT INTO transaction_trail (rrf_no, type_of_request, items_requested, date_of_activity, start_time, end_time, purpose, requested_by, approved_by, served_by, received_by, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO transaction_trail (rrf_no, type_of_request, items_requested, date_of_activity, start_time, end_time, purpose, requested_by, approved_by, served_by, received_by, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [rrfNo, typeOfRequest, itemsRequested, dateOfActivity, startTime, endTime, purpose, requestedBy, approvedBy, servedBy, receivedBy, transactionDate]
   );
   return result.insertId;
@@ -47,6 +47,12 @@ exports.deleteTransactionAudit = async (id) => {
 /* Delete all transaction audits */
 exports.deleteAllTransactionAudits = async () => {
   const [result] = await db.execute('DELETE FROM transaction_trail');
+  return result.affectedRows;
+};
+
+/* Delete equipment return */
+exports.deleteEquipmentReturn = async (id) => {
+  const [result] = await db.execute('DELETE FROM equipment_trail WHERE et_id = ?', [id]);
   return result.affectedRows;
 };
 

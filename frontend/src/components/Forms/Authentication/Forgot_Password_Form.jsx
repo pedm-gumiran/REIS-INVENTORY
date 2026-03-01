@@ -41,14 +41,11 @@ export default function Forgot_Password_Form() {
       });
 
       if (response.data.success) {
-        toast.success('Password reset instructions sent to your email!');
-        // Store the reset token for development (in production, this would come from email)
-        if (response.data.resetToken) {
-          // Navigate to reset page with token only on success
-          setTimeout(() => {
-            navigate(`/reset_password?token=${response.data.resetToken}`);
-          }, 2000);
-        }
+        toast.success('Account Successfully Verified!');
+        // Navigate to reset page with email only on success
+        setTimeout(() => {
+          navigate(`/reset_password?email=${formData.email}`);
+        }, 2000);
       } else {
         // Show specific error message and stay on forgot password form
         toast.error(response.data.message || 'Failed to process request');

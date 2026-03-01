@@ -13,12 +13,12 @@ exports.getConsumableById = async (id) => {
 };
 
 /* CREATE */
-exports.createConsumable = async (item_description, category, unit, quantity, unit_cost, status) => {
+exports.createConsumable = async (product_id, item_description, category, unit, quantity, unit_cost, status) => {
   const [result] = await db.execute(
     'INSERT INTO consumable_products (product_id, item_description, category, unit, quantity, unit_cost, total_cost, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [generateProductId(), item_description, category, unit, quantity, unit_cost, quantity * unit_cost, status || 'In Stock']
+    [product_id, item_description, category, unit, quantity, unit_cost, quantity * unit_cost, status || 'In Stock']
   );
-  return result.insertId;
+  return product_id;
 };
 
 /* UPDATE / EDIT */

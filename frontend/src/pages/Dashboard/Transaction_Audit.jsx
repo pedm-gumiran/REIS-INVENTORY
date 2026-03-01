@@ -34,7 +34,7 @@ export default function Transaction_Audit() {
         // Transform API data to match frontend structure
         const transformedData = response.data.data.map(item => ({
           id: item.transaction_id,
-          transactionId: `TRX${String(item.transaction_id).padStart(3, '0')}`,
+          transactionId: String(item.transaction_id),
           rf_no: item.rrf_no || `RRF-${new Date().getFullYear()}-${String(item.transaction_id).padStart(3, '0')}`,
           type_of_request: item.type_of_request || 'Issue',
           document_supplies_materials_equipment_requested: item.items_requested || 'N/A',
@@ -187,49 +187,22 @@ export default function Transaction_Audit() {
   };
 
   // Delete selected transactions
-  const handleDeleteTransaction = async (selectedTransactions) => {
+  const handleDeleteTransaction = async (itemsToDelete) => {
+    setIsDeleting(true);
     try {
-      setIsDeleting(true);
-      
-      // Export to Excel before deleting
-      handleExportToExcel();
-      
-      // Delete selected transactions
-      const deletePromises = selectedTransactions.map(transactionId => {
-        const transaction = transactions.find(t => t.transactionId === transactionId);
-        return transaction ? axiosInstance.delete(`/audits/transaction-audits/${transaction.id}`) : Promise.resolve();
+      const deletePromises = itemsToDelete.map(async (item) => {
+        return axiosInstance.delete(`/audits/transaction-audits/${item.id}`);
       });
-      
+
       await Promise.all(deletePromises);
       
-      // Refresh data
-      const response = await axiosInstance.get('/audits/transaction-audits');
-      if (response.data.success) {
-        const transformedData = response.data.data.map(item => ({
-          id: item.transaction_id,
-          transactionId: `TRX${String(item.transaction_id).padStart(3, '0')}`,
-          rf_no: item.rrf_no || `RRF-${new Date().getFullYear()}-${String(item.transaction_id).padStart(3, '0')}`,
-          type_of_request: item.type_of_request || 'Issue',
-          document_supplies_materials_equipment_requested: item.items_requested || 'N/A',
-          date_of_activity: item.date_of_activity ? new Date(item.date_of_activity).toLocaleDateString() : (item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString()),
-          start_time: item.start_time ? new Date(`2000-01-01 ${item.start_time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : (item.transaction_date ? new Date(item.transaction_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })),
-          end_time: item.end_time ? new Date(`2000-01-01 ${item.end_time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '',
-          purpose: item.purpose || 'N/A',
-          requested_by: item.requested_by || 'Unknown',
-          approved_by: item.approved_by || 'N/A',
-          served_by: item.served_by || 'N/A',
-          recieved_by: item.received_by || 'N/A',
-          transaction_date: item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString(),
-          status: 'Completed'
-        }));
-        setTransactions(transformedData);
-      }
-      
+      // Refresh data from server
+      await fetchTransactionAudits();
       setSelectedItems([]);
-      toast.success('Selected transactions deleted successfully!');
-    } catch (err) {
-      console.error('Error deleting transactions:', err);
-      toast.error('Failed to delete transactions');
+      toast.success(`${itemsToDelete.length} transaction(s) deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting transactions:', error);
+      toast.error('Failed to delete transactions. Please try again.');
     } finally {
       setIsDeleting(false);
     }
@@ -255,6 +228,19 @@ export default function Transaction_Audit() {
       toast.error('Failed to reset transactions');
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  // Delete single transaction
+  const handleDeleteSingle = async (id) => {
+    try {
+      await axiosInstance.delete(`/audits/transaction-audits/${id}`);
+      toast.success('Transaction deleted successfully');
+      // Remove from local state
+      setTransactions(prev => prev.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      toast.error('Failed to delete transaction');
     }
   };
 
@@ -361,11 +347,13 @@ export default function Transaction_Audit() {
             />
             <Button
               onClick={handleOpenDeleteModal}
-              disabled={selectedItems.length === 0}
+              disabled={selectedItems.length === 0 || isDeleting}
+              isLoading={isDeleting}
+              loadingText="Deleting..."
               icon={<FiTrash2 size={16} />}
               label="Delete "
               className={`flex items-center gap-2 flex-shrink-0 ${
-                selectedItems.length > 0 
+                selectedItems.length > 0 && !isDeleting
                   ? 'bg-red-600 hover:bg-red-700 text-white' 
                   : 'bg-red-300 text-white cursor-not-allowed'
               }`}
@@ -415,6 +403,7 @@ export default function Transaction_Audit() {
           onSelect={setSelectedItems}
           showCheckboxes={false}
           emptyMessage="No transactions found"
+          loading={loading}
         />
       </Card>
 
@@ -425,13 +414,11 @@ export default function Transaction_Audit() {
         selectedItems={selectedItems.map(id => {
           const transaction = transactions.find(t => t.id === id);
           return transaction ? {
+            id: transaction.id,
             Item_Description: `Transaction ID: ${transaction.transactionId}`,
             Consumable_Product_ID: transaction.rf_no
-          } : {
-            Item_Description: id,
-            Consumable_Product_ID: id
-          };
-        })}
+          } : null;
+        }).filter(Boolean)}
         isLoading={isDeleting}
         title="Delete Transaction Confirmation"
       />

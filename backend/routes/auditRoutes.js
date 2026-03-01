@@ -7,12 +7,14 @@ const {
   createTransactionAudit,
   deleteTransactionAudit,
   deleteAllTransactionAudits,
+  deleteEquipmentReturn,
   deleteAllEquipmentReturns
 } = require('../controllers/auditController');
 
 // Equipment Returns routes
 router.get('/equipment-returns', getEquipmentReturns);
 router.post('/equipment-returns', createEquipmentReturn);
+router.delete('/equipment-returns/:id', deleteEquipmentReturn);
 router.delete('/equipment-returns', deleteAllEquipmentReturns);
 
 // Transaction Audit routes

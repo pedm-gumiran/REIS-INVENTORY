@@ -55,7 +55,7 @@ export default function Home_Page() {
         // Transform consumable data to match table structure
         const transformedConsumables = consumablesResponse.data.data.map((item, index) => ({
           id: item.product_id || index + 1,
-          Consumable_Product_ID: `CP${String(item.product_id || index + 1).padStart(3, '0')}`,
+          Consumable_Product_ID: `${String(item.product_id || index + 1).padStart(3, '0')}`,
           Category_Name: item.category || 'Uncategorized',
           Item_Description: item.item_description || 'No description',
           Unit: item.unit || 'per piece',
@@ -67,7 +67,7 @@ export default function Home_Page() {
         // Transform non-consumable data to match table structure
         const transformedNonConsumables = nonConsumablesResponse.data.data.map((item, index) => ({
           id: item.product_id || index + 1,
-          Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+          Consumable_Product_ID: `${String(item.product_id || index + 1).padStart(3, '0')}`,
           Category_Name: item.category || 'Equipment',
           Item_Description: item.item_description || 'No description',
           Unit: item.unit || 'per unit',
@@ -270,8 +270,8 @@ export default function Home_Page() {
                   <span className="text-xs text-green-700">Available: {availableEquipment}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-xs text-blue-700">Borrowed: {borrowedEquipment}</span>
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <span className="text-xs text-yellow-700">Borrowed: {borrowedEquipment}</span>
                 </div>
               </div>
             </div>
@@ -333,6 +333,7 @@ export default function Home_Page() {
             onSelect={setSelectedStocks}
             showCheckboxes={false}
             emptyMessage={loading ? "Loading..." : "No stocks found"}
+            loading={loading}
           />
         </Card>
 
@@ -354,6 +355,7 @@ export default function Home_Page() {
             onSelect={setSelectedEquipment}
             showCheckboxes={false}
             emptyMessage={loading ? "Loading..." : "No equipment found"}
+            loading={loading}
           />
         </Card>
       </div>

@@ -102,39 +102,17 @@ exports.forgotPassword = async (req, res) => {
       });
     }
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Email not found in our system. Please check your email address.'
-      });
-    }
-
-    // Check if PIN code matches the one on file (for additional security)
-    if (user.pin_code && user.pin_code !== pin_code) {
+    // Check if user exists and PIN matches
+    if (!user || user.pin_code !== parseInt(pin_code)) {
       return res.status(400).json({
         success: false,
-        message: 'PIN code does not match the one on file. Please check your PIN code and try again.'
+        message: 'Email or Pincode is not valid! Please Try Again.'
       });
-    }
-
-    // Generate reset token (simple implementation - in production, use crypto and expiry)
-    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour expiry
-
-    try {
-      // Store reset token in database (handle missing columns gracefully)
-      await User.updateResetToken(user.user_id, resetToken, resetTokenExpiry);
-    } catch (dbError) {
-      console.log('Reset token columns might not exist in database, using fallback method');
-      console.log('Database error:', dbError.message);
-      // Fallback: Don't store token, but still return it for development
     }
 
     res.status(200).json({
       success: true,
-      message: 'Password reset token generated. Please check your email for instructions.',
-      // In production, you would send email with reset link containing token
-      resetToken: resetToken // For development/testing only
+      message: 'Account verified successfully. Please proceed to reset your password.'
     });
 
   } catch (error) {
@@ -147,45 +125,25 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// Reset Password - Verify token and update password
+// Reset Password - Verify email, then update password
 exports.resetPassword = async (req, res) => {
   try {
-    const { resetToken, newPassword } = req.body;
+    const { email, newPassword } = req.body;
 
     // Validate required fields
-    if (!resetToken || !newPassword) {
+    if (!email || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Reset token and new password are required'
+        message: 'Email and new password are required'
       });
     }
 
-    let user = null;
-    
-    try {
-      // Find user by reset token
-      user = await User.getUserByResetToken(resetToken);
-    } catch (dbError) {
-      console.log('Reset token functionality not available in database, using simplified validation');
-      // Fallback: For development, accept any valid token format
-      if (resetToken && resetToken.length >= 20) {
-        // Create a temporary user object for validation
-        user = { user_id: 1, reset_token_expiry: new Date(Date.now() + 3600000) };
-      }
-    }
-
+    // Find user by email
+    const user = await User.getUserByEmail(email);
     if (!user) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
-        message: 'Invalid or expired reset token'
-      });
-    }
-
-    // Check if token is expired
-    if (user.reset_token_expiry && new Date() > new Date(user.reset_token_expiry)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Reset token has expired'
+        message: 'User not found'
       });
     }
 
@@ -193,19 +151,8 @@ exports.resetPassword = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    try {
-      // Update password and clear reset token
-      if (user.user_id) {
-        await User.updatePassword(user.user_id, hashedPassword);
-        await User.clearResetToken(user.user_id);
-      }
-    } catch (dbError) {
-      console.log('Password update failed, database columns might be missing');
-      return res.status(500).json({
-        success: false,
-        message: 'Database schema update required. Please contact administrator.'
-      });
-    }
+    // Update password
+    await User.updatePassword(user.user_id, hashedPassword);
 
     res.status(200).json({
       success: true,

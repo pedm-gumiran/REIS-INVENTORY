@@ -11,6 +11,14 @@ import * as XLSX from 'xlsx';
 import axiosInstance from '../../api/axios';
 import Button from '../../components/Buttons/Button';
 
+const getNonConsumableId = (item, index) => {
+  if (item.product_id) {
+    if (typeof item.product_id === 'string') return item.product_id;
+    return `EQ${String(item.product_id).padStart(3, '0')}`;
+  }
+  return `EQ${String(index + 1).padStart(3, '0')}`;
+};
+
 export default function Manage_Non_Consumable_Products() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
@@ -36,7 +44,7 @@ export default function Manage_Non_Consumable_Products() {
         // Transform data to match table structure
         const transformedProducts = response.data.data.map((item, index) => ({
           id: item.product_id || index + 1,
-          Non_Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+          Non_Consumable_Product_ID: getNonConsumableId(item, index),
           Category_Name: item.category || 'Equipment',
           Item_Description: item.item_description || 'No description',
           Unit: item.unit || 'per unit',
@@ -83,6 +91,7 @@ export default function Manage_Non_Consumable_Products() {
     try {
       // Transform data for API
       const apiData = {
+        product_id: newProduct.Non_Consumable_Product_ID,
         item_description: newProduct.Item_Description,
         category: newProduct.Category_Name,
         unit: newProduct.Unit,
@@ -99,7 +108,7 @@ export default function Manage_Non_Consumable_Products() {
       const refreshResponse = await axiosInstance.get('/non-consumables');
       const transformedProducts = refreshResponse.data.data.map((item, index) => ({
         id: item.product_id || index + 1,
-        Non_Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Non_Consumable_Product_ID: getNonConsumableId(item, index),
         Category_Name: item.category || 'Equipment',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per unit',
@@ -150,7 +159,7 @@ export default function Manage_Non_Consumable_Products() {
       const refreshResponse = await axiosInstance.get('/non-consumables');
       const transformedProducts = refreshResponse.data.data.map((item, index) => ({
         id: item.product_id || index + 1,
-        Non_Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Non_Consumable_Product_ID: getNonConsumableId(item, index),
         Category_Name: item.category || 'Equipment',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per unit',
@@ -197,7 +206,7 @@ export default function Manage_Non_Consumable_Products() {
       const refreshResponse = await axiosInstance.get('/non-consumables');
       const transformedProducts = refreshResponse.data.data.map((item, index) => ({
         id: item.product_id || index + 1,
-        Non_Consumable_Product_ID: `EQ${String(item.product_id || index + 1).padStart(3, '0')}`,
+        Non_Consumable_Product_ID: getNonConsumableId(item, index),
         Category_Name: item.category || 'Equipment',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per unit',
@@ -353,11 +362,11 @@ export default function Manage_Non_Consumable_Products() {
             </p>
           </div>
         </Card>
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-yellow-50 border-yellow-200">
           <div className="text-center">
-            <p className="text-blue-600 text-sm font-medium">In Use</p>
-            <p className="text-2xl font-bold text-blue-900">
-              {products.filter(p => p.Status === 'In Use').length}
+            <p className="text-yellow-600 text-sm font-medium">Borrowed</p>
+            <p className="text-2xl font-bold text-yellow-900">
+              {products.filter(p => p.Status === 'Borrowed').length}
             </p>
           </div>
         </Card>
@@ -441,6 +450,7 @@ export default function Manage_Non_Consumable_Products() {
           onSelect={setSelectedItems}
           showCheckboxes={false}
           emptyMessage={loading ? "Loading products..." : "No non-consumable products found"}
+          loading={loading}
         />
       </Card>
       {/* Add Product Modal */}

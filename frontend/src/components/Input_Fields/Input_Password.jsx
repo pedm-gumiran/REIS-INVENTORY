@@ -34,7 +34,11 @@ export default function Input_Password({
       <div className="relative">
         <input
           type={showPassword ? 'text' : 'password'}
-          className={`w-full rounded-xl border border-gray-500 px-4 py-3 text-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-green-700 focus:border-green-700 transition ${password_className}`}
+          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ${password_className} ${
+            disabled
+              ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300'
+              : 'bg-white text-gray-900 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500'
+          }`}
           required={required}
           onChange={onChange}
           value={value}

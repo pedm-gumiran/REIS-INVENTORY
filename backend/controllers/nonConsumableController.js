@@ -46,13 +46,13 @@ exports.getNonConsumableById = async (req, res) => {
 // CREATE new non-consumable
 exports.createNonConsumable = async (req, res) => {
   try {
-    const { item_description, category, unit, quantity, unit_cost, status } = req.body;
+    const { product_id, item_description, category, unit, quantity, unit_cost, status } = req.body;
     
     // Validate required fields
-    if (!item_description) {
+    if (!product_id || !item_description) {
       return res.status(400).json({
         success: false,
-        message: 'Item description is required'
+        message: 'Product ID and item description are required'
       });
     }
     
@@ -67,6 +67,7 @@ exports.createNonConsumable = async (req, res) => {
     const total_cost = (safeQuantity || 0) * (safeUnitCost || 0);
     
     const id = await NonConsumable.createNonConsumable(
+      product_id,
       item_description,
       safeCategory,
       safeUnit,
