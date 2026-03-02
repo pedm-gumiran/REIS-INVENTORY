@@ -1116,7 +1116,7 @@ export default function RetFormPreview({ formData, onClose }) {
 
                     <div className="mt-2">
 
-                      <p className="text-[~0.833rem]">
+                      <p className="text-[~0.833rem pl-10]">
 
                         Document/ Supplies/ Materials/ Equipment Requested:
 
