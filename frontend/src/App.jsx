@@ -21,7 +21,7 @@ const NotFound = React.lazy(
   () => import('./pages/Fallback_Page/Not_Found.jsx'),
 );
 import LoadingSpinner from './components/Loading_UI/LoadingSpinner.jsx';
-import Reset_Password_Form from './components/Forms/Authentication/Reset_Password_Form.jsx';
+
 // Pages
 const Home_Page = React.lazy(() => import('./pages/Dashboard/Home_Page.jsx'));
 const Manage_Consumable_Products = React.lazy(
@@ -30,14 +30,12 @@ const Manage_Consumable_Products = React.lazy(
 const Manage_Non_Consumable_Products = React.lazy(
   () => import('./pages/Dashboard/Manage_Non_Consumable_Products.jsx'),
 );
-const Product_Categories = React.lazy(
-  () => import('./pages/Dashboard/Product_Categories.jsx'),
-);
+
 const Transaction_Audit = React.lazy(
   () => import('./pages/Dashboard/Transaction_Audit.jsx'),
 );
-const Equipment_Returned_Audit = React.lazy(
-  () => import('./pages/Dashboard/Equipment_Returned_Audit.jsx'),
+const Equipment_Audit = React.lazy(
+  () => import('./pages/Dashboard/Equipment_Audit.jsx'),
 );
 const Create_Transaction_Page = React.lazy(
   () => import('./pages/Dashboard/Create_Transaction_Page.jsx'),
@@ -118,14 +116,7 @@ const router = createBrowserRouter([
           </Suspense>
         ),
       },
-      {
-        path: 'product_categories',
-        element: (
-          <Suspense fallback={<LoadingSpinner />}>
-            <Product_Categories />
-          </Suspense>
-        ),
-      },
+ 
       {
         path: 'transaction_audit',
         element: (
@@ -138,7 +129,7 @@ const router = createBrowserRouter([
         path: 'equipment_return',
         element: (
           <Suspense fallback={<LoadingSpinner />}>
-            <Equipment_Returned_Audit />
+            <Equipment_Audit />
           </Suspense>
         ),
       },

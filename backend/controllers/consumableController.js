@@ -46,13 +46,13 @@ exports.getConsumableById = async (req, res) => {
 // CREATE new consumable
 exports.createConsumable = async (req, res) => {
   try {
-    const { item_description, category, unit, quantity, unit_cost, status } = req.body;
+    const { product_id, item_description, category, unit, quantity, unit_cost, status } = req.body;
     
     // Validate required fields
-    if (!item_description || quantity === undefined || unit_cost === undefined) {
+    if (!product_id || !item_description || quantity === undefined || unit_cost === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'Item description, quantity, and unit cost are required'
+        message: 'Product ID, item description, quantity, and unit cost are required'
       });
     }
     
@@ -61,7 +61,7 @@ exports.createConsumable = async (req, res) => {
     const safeUnit = unit !== undefined ? unit : null;
     const safeStatus = status !== undefined ? status : null;
     
-    const id = await Consumable.createConsumable(item_description, safeCategory, safeUnit, quantity, unit_cost, safeStatus);
+    const id = await Consumable.createConsumable(product_id, item_description, safeCategory, safeUnit, quantity, unit_cost, safeStatus);
     
     res.status(201).json({
       success: true,

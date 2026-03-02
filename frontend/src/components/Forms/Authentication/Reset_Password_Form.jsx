@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Input_Password from '../../Input_Fields/Input_Password';
 import Button from '../../Buttons/Button';
-//import { toast } from 'react-toastify';
-//import { supabase } from '../../supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import axiosInstance from '../../../api/axios';
 
 export default function Reset_Password_Form() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get('email');
 
   const [formData, setFormData] = useState({
     newPassword: '',
     confirmPassword: '',
   });
   const [error, setError] = useState('');
-  const [loading] = useState(false);
-  //const [sessionReady, setSessionReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [emailValid, setEmailValid] = useState(null);
 
-  //  ADDED – Password Strength State
+  // Password Strength State
   const [strength, setStrength] = useState(0);
 
-  //  ADDED – Password Strength Checker
+  // Password Strength Checker
   const getPasswordStrength = (password) => {
     let score = 0;
     if (password.length >= 5) score++;
@@ -29,17 +31,27 @@ export default function Reset_Password_Form() {
     return score;
   };
 
+  // Validate email on component mount
+  useEffect(() => {
+    if (!email) {
+      setError('No email provided');
+      setEmailValid(false);
+      return;
+    }
+    setEmailValid(true); // In production, you could validate email format
+  }, [email]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updated = { ...formData, [name]: value };
     setFormData(updated);
 
-    //  ADDED – Live strength update
+    // Live strength update
     if (name === 'newPassword') {
       setStrength(getPasswordStrength(value));
     }
 
-    // Your existing password match logic
+    // Password match logic
     if (updated.newPassword && updated.confirmPassword) {
       setError(
         updated.newPassword !== updated.confirmPassword
@@ -52,7 +64,44 @@ export default function Reset_Password_Form() {
   };
 
   const isFormValid =
-    formData.newPassword.trim() && formData.confirmPassword.trim();
+    formData.newPassword.trim() && 
+    formData.confirmPassword.trim() && 
+    !error && 
+    emailValid;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!isFormValid) {
+      toast.error('Please fix all errors before submitting');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Send reset password request to backend
+      const response = await axiosInstance.post('/users/reset-password', {
+        email: email,
+        newPassword: formData.newPassword
+      });
+
+      if (response.data.success) {
+        toast.success('Password reset successfully! Please login with your new password.');
+        // Redirect to login page after successful reset
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        toast.error(response.data.message || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      toast.error(error.response?.data?.message || 'Failed to reset password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:px-10 border border-gray-300">
@@ -68,81 +117,89 @@ export default function Reset_Password_Form() {
           </div>
         </header>
 
-        <form className="space-y-5">
-          <Input_Password
-            label="New Password"
-            id="newPassword"
-            name="newPassword"
-            placeholder="Enter new password"
-            required
-            value={formData.newPassword}
-            onChange={handleChange}
-            disabled={loading}
-            className="font-semibold"
-          />
-
-          {/*  Password Strength Bar — only show if user types */}
-          {formData.newPassword.length > 0 && (
-            <div className="mt-1">
-              <div
-                className={`h-2 rounded transition-all ${
-                  strength === 0
-                    ? 'bg-gray-300 w-1/12'
-                    : strength === 1
-                      ? 'bg-red-500 w-4/12'
-                      : strength === 2
-                        ? 'bg-yellow-500 w-7/12'
-                        : strength === 3
-                          ? 'bg-blue-500 w-10/12'
-                          : 'bg-green-600 w-full'
-                }`}
-              ></div>
-
-              <p className="text-xs mt-1 font-semibold text-gray-600">
-                {strength === 1 && 'Weak'}
-                {strength === 2 && 'Moderate'}
-                {strength === 3 && 'Strong'}
-                {strength === 4 && 'Very Strong '}
-              </p>
-            </div>
-          )}
-
-          <Input_Password
-            label="Confirm Password"
-            id="confirmPassword"
-            name="confirmPassword"
-            placeholder="Confirm new password"
-            required
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            disabled={loading}
-            className="font-semibold"
-          />
-
-          {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
-
-          <Button
-            label={'Update Password'}
-            isLoading={loading}
-            loadingText="Updating Password........."
-            type="submit"
-            className={`bg-gradient-to-r from-green-500 to-emerald-600 w-full text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 ${
-              !isFormValid || loading || error ? 'opacity-70 cursor-not-allowed' : ''
-            }`}
-            disabled={!isFormValid || loading || error}
-          />
-
-          <p className="text-center text-sm text-gray-500 mt-4">
-            Remember your password?{' '}
+        {emailValid === false && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800">
+              Invalid or missing email. Please request a new password reset.
+            </p>
             <button
               type="button"
-              onClick={() => navigate('/login')}
-              className="text-green-600 hover:text-green-800 hover:underline font-medium transition-colors"
+              onClick={() => navigate('/forgot_password')}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
             >
-              Back to Login
+              Request New Reset
             </button>
-          </p>
-        </form>
+          </div>
+        )}
+
+        {emailValid === true && (
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <Input_Password
+              label="New Password"
+              id="newPassword"
+              name="newPassword"
+              placeholder="Enter new password"
+              required
+              value={formData.newPassword}
+              onChange={handleChange}
+              disabled={loading}
+              className="font-semibold"
+            />
+
+            {/* Password Strength Bar */}
+            {formData.newPassword.length > 0 && (
+              <div className="mt-1">
+                <div
+                  className={`h-2 rounded transition-all ${
+                    strength === 0
+                      ? 'bg-gray-300 w-1/12'
+                      : strength === 1
+                        ? 'bg-red-500 w-4/12'
+                        : strength === 2
+                          ? 'bg-yellow-500 w-7/12'
+                          : strength === 3
+                            ? 'bg-blue-500 w-10/12'
+                            : 'bg-green-600 w-full'
+                  }`}
+                ></div>
+
+                <p className="text-xs mt-1 font-semibold text-gray-600">
+                  {strength === 1 && 'Weak'}
+                  {strength === 2 && 'Moderate'}
+                  {strength === 3 && 'Strong'}
+                  {strength === 4 && 'Very Strong '}
+                </p>
+              </div>
+            )}
+
+            <Input_Password
+              label="Confirm Password"
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="Confirm new password"
+              required
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              disabled={loading}
+              className="font-semibold"
+            />
+
+            {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+
+            <Button
+              label={'Update Password'}
+              isLoading={loading}
+              loadingText="Updating Password........."
+              type="submit"
+              className={`bg-gradient-to-r from-green-500 to-emerald-600 w-full text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 ${
+                !isFormValid || loading || error ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
+              disabled={!isFormValid || loading || error}
+            />
+
+          
+          </form>
+        )}
       </div>
     </section>
   );

@@ -19,35 +19,25 @@ export default function Input_Text({
     onChange(event);
   };
 
-  // Capitalize first letter of each word (exclude number inputs)
-  const handleChange = (e) => {
-    let inputValue = e.target.value;
-
-    // send empty string as is
-    if (!inputValue.trim()) {
-      onChange({ target: { name, value: '' } });
-      return;
-    }
-
-    // Skip formatting for number inputs
-    if (type === 'number') {
-      onChange({ target: { name, value: inputValue } });
-      return;
-    }
-
-    // Format based on input type and name
-    let formattedValue;
+  // Format based on input type and name
+  const formatValue = (inputValue) => {
     if (type === 'email') {
-      formattedValue = inputValue; // keep as-is for email
+      return inputValue; // keep as-is for email
     } else if (name === 'rrfNumber') {
-      formattedValue = inputValue.toUpperCase(); // ALL CAPS for RRF number
+      return inputValue.toUpperCase(); // ALL CAPS for RRF number
     } else if (name === 'Unit' || name === 'Item_Description') {
-      formattedValue = inputValue; // keep as-is for Unit and Item_Description fields (no auto-capitalization)
+      return inputValue; // keep as-is for Unit and Item_Description fields (no auto-capitalization)
     } else {
-      formattedValue = inputValue.replace(/\b\w/g, (char) => char.toUpperCase()); // capitalize first letter of each word
+      // Default: capitalize first letter of each word
+      return inputValue.replace(/\b\w/g, (char) => char.toUpperCase());
     }
+  };
 
-    onChange({ target: { name, value: formattedValue } });
+  const handleChange = (e) => {
+    const inputValue = e.target.value;
+    
+    // Send formatted value to parent
+    onChange({ target: { name, value: formatValue(inputValue) } });
   };
 
   return (
@@ -72,6 +62,7 @@ export default function Input_Text({
         onChange={handleChange}
         value={value}
         disabled={disabled}
+        autoComplete={type === 'email' || name === 'email' ? 'off' : name === 'pin_code' ? 'off' : 'new-password'} // Disable auto-suggestion for email and PIN code
       />
       {value && !disabled && type !== 'number' && (
         <span

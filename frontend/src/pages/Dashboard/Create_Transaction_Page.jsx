@@ -11,6 +11,8 @@ import SearchBar from '../../components/Input_Fields/SearchBar';
 import DataTable from '../../components/DataTables/DataTable';
 import Button from '../../components/Buttons/Button';
 import Button_Clear from '../../components/Buttons/Button_Clear';
+import { toast } from 'react-toastify';
+import axiosInstance from '../../api/axios';
 export default function Create_Transaction_Page() {
   const [activeTab, setActiveTab] = useState('create');
   const [showPreview, setShowPreview] = useState(false);
@@ -26,6 +28,7 @@ export default function Create_Transaction_Page() {
 
   // New Form State for the updated UI
   const [formData, setFormData] = useState({
+    rrfNumber: '',
     requestType: [],
     description: '',
     dateOfActivity: '',
@@ -81,6 +84,9 @@ export default function Create_Transaction_Page() {
   const [isEditDocumentModalOpen, setIsEditDocumentModalOpen] = useState(false);
   const [isEditSuppliesModalOpen, setIsEditSuppliesModalOpen] = useState(false);
 
+  // Saving state
+  const [saving, setSaving] = useState(false);
+
   // Helper function to convert text to uppercase
   const toUpperCase = (str) => {
     return str.toUpperCase();
@@ -103,6 +109,7 @@ export default function Create_Transaction_Page() {
   // Reset form function
   const resetForm = () => {
     setFormData({
+      rrfNumber: '',
       requestType: [],
       description: '',
       dateOfActivity: '',
@@ -118,15 +125,48 @@ export default function Create_Transaction_Page() {
     setRequestedItems([]);
   };
 
-  const handleCreateTransaction = (e) => {
+  const handleCreateTransaction = async (e) => {
     e.preventDefault();
-    // Handle transaction submission with new form structure
-    console.log('Transaction submitted:', formData);
-    console.log('Requested documents:', requestedDocuments);
-    console.log('Requested items:', requestedItems);
     
-    // Reset form after submission
-    resetForm();
+    // Validate required fields
+    if (!formData.rrfNumber || !formData.requestorName) {
+      toast.error('Please fill in RRF Number and Requestor Name.');
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      // Prepare data for API
+      const transactionData = {
+        rrfNo: formData.rrfNumber,
+        typeOfRequest: formData.requestType.join(', '),
+        itemsRequested: formData.description,
+        dateOfActivity: formData.dateOfActivity || null,
+        startTime: formData.startTime || null,
+        endTime: formData.endTime || null,
+        purpose: formData.purpose,
+        requestedBy: formData.requestorName,
+        approvedBy: formData.approvedBy,
+        servedBy: formData.servedBy,
+        receivedBy: formData.receivedBy
+      };
+      
+      // Send request to backend
+      const response = await axiosInstance.post('/audits/transaction-audits', transactionData);
+      
+      if (response.data.success) {
+        toast.success('Transaction created successfully!');
+        // Reset form after successful submission
+        resetForm();
+      } else {
+        toast.error(response.data.message || 'Failed to create transaction');
+      }
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      toast.error(error.response?.data?.message || 'Failed to create transaction. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Document Modal Handlers
@@ -562,6 +602,9 @@ export default function Create_Transaction_Page() {
 
   // Memoize initialDocuments to prevent unnecessary re-renders  
   const memoizedInitialDocuments = useMemo(() => requestedDocuments, [requestedDocuments]);
+
+  // Form validation for save button - enabled when required fields are filled
+  const isFormValid = formData.rrfNumber && formData.requestorName && formData.purpose && formData.approvedBy && formData.servedBy;
 
   // Click outside handler to close dropdown
   useEffect(() => {
@@ -1046,10 +1089,11 @@ export default function Create_Transaction_Page() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 md:flex-initial bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-10 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2"
+                  disabled={saving || !isFormValid}
+                  className="flex-1 md:flex-initial bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-10 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2  cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FiSave className="w-5 h-5" />
-                  <span>Save</span>
+                  <span>{saving ? 'Saving...' : 'Save'}</span>
                 </button>
               </div>
             </div>

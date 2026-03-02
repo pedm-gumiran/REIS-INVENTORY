@@ -48,7 +48,7 @@ export default function Button({
   };
 
   const baseClasses = 'rounded-md transition-all flex items-center justify-center gap-2 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2';
-  const disabledClasses = (disabled || isLoading) ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none opacity-60' : '';
+  const disabledClasses = (disabled || isLoading) ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60' : '';
   
   const buttonClasses = `
     ${baseClasses}

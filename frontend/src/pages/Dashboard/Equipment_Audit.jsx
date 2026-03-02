@@ -3,10 +3,12 @@ import Card from '../../components/cards/Card';
 import DataTable from '../../components/DataTables/DataTable';
 import SearchBar from '../../components/Input_Fields/SearchBar';
 import Dropdown from '../../components/Input_Fields/Dropdown';
-import { FiDownload } from 'react-icons/fi';
+import Button from '../../components/Buttons/Button';
+import { FiDownload, FiTrash2, FiRefreshCw } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
-import axiosInstance from '../../utils/axiosInstance';
+import axiosInstance from '../../api/axios';
+import DeleteConfirmationModal from '../../components/Forms/Edit_Forms/DeleteConfirmationModal';
 
 
 export default function Equipment_Returned_Audit() {
@@ -17,6 +19,11 @@ export default function Equipment_Returned_Audit() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Update date and time every second
   useEffect(() => {
@@ -28,70 +35,162 @@ export default function Equipment_Returned_Audit() {
   }, []);
 
   // Fetch equipment returns data
-  useEffect(() => {
-    const fetchEquipmentReturns = async () => {
-      try {
-        setLoading(true);
-        const response = await axiosInstance.get('/audits/equipment-returns');
-        if (response.data.success) {
-          // Transform API data to match frontend structure
-          const transformedData = response.data.data.map(item => ({
-            id: item.et_id,
-            returnId: `RET${String(item.et_id).padStart(3, '0')}`,
-            date: item.borrowed_date ? new Date(item.borrowed_date).toLocaleDateString() : new Date().toLocaleDateString(),
-            time: item.borrowed_date ? new Date(item.borrowed_date).toLocaleTimeString() : new Date().toLocaleTimeString(),
-            equipmentName: item.item_description || 'Unknown Equipment',
-            serialNumber: item.product_id || 'N/A',
-            assignedTo: item.client_name || 'Unknown',
-            returnCondition: item.returned_quantity > 0 ? 'Returned' : 'Borrowed',
-            issuesFound: item.returned_notes || 'None',
-            processedBy: item.inspected_by || 'System',
-            department: 'General',
-            status: item.returned_quantity > 0 ? 'Completed' : 'Active',
-            notes: item.returned_notes || ''
-          }));
-          setEquipmentReturns(transformedData);
-        }
-      } catch (err) {
-        console.error('Error fetching equipment returns:', err);
-        setError('Failed to load equipment returns');
-        toast.error('Failed to load equipment returns');
-      } finally {
-        setLoading(false);
+  const fetchEquipmentReturns = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/audits/equipment-returns');
+      if (response.data.success) {
+        // Transform API data to match frontend structure
+        const transformedData = response.data.data.map(item => ({
+          id: item.et_id,
+          et_id: item.et_id,
+          client_name: item.client_name || 'Unknown',
+          product_id: item.product_id || 'N/A',
+          item_description: item.item_description || 'Unknown Equipment',
+          borrowed_quantity: item.borrowed_quantity || 0,
+          borrowed_date: item.borrowed_date ? new Date(item.borrowed_date).toLocaleDateString() : new Date().toLocaleDateString(),
+          borrowed_time: item.borrowed_date ? new Date(item.borrowed_date).toLocaleTimeString() : new Date().toLocaleTimeString(),
+          returned_quantity: item.returned_quantity || 0,
+          returned_date: item.returned_date ? new Date(item.returned_date).toLocaleDateString() : 'Not Returned',
+          returned_time: item.returned_date ? new Date(item.returned_date).toLocaleTimeString() : 'Not Returned',
+          returned_notes: item.returned_notes || 'None',
+          inspected_by: item.inspected_by || 'System'
+        }));
+        setEquipmentReturns(transformedData);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching equipment returns:', err);
+      setError('Failed to load equipment returns');
+      toast.error('Failed to load equipment returns');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Refresh data
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      await fetchEquipmentReturns();
+      toast.success('Data refreshed successfully!');
+    } catch (err) {
+      toast.error('Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Fetch equipment returns data
+  useEffect(() => {
     fetchEquipmentReturns();
   }, []);
+  const getMonthWithMostReturns = () => {
+    const monthCounts = {};
+    
+    equipmentReturns.forEach(returnItem => {
+      const date = new Date(returnItem.borrowed_date);
+      const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      monthCounts[monthYear] = (monthCounts[monthYear] || 0) + 1;
+    });
+    
+    let maxMonth = '';
+    let maxCount = 0;
+    
+    Object.entries(monthCounts).forEach(([month, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        maxMonth = month;
+      }
+    });
+    
+    return { month: maxMonth, count: maxCount };
+  };
+
+  const { month: topMonth, count: topMonthCount } = getMonthWithMostReturns();
 
   // Filter returns based on search term and status
   const filteredReturns = equipmentReturns.filter(returnItem => {
     const matchesSearch = 
-      returnItem.returnId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      returnItem.equipmentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      returnItem.assignedTo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      returnItem.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
+      String(returnItem.et_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      returnItem.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      returnItem.product_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      returnItem.item_description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'all' || returnItem.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
-  // Export to Excel
+  // Open delete modal with selected returns
+  const handleOpenDeleteModal = () => {
+    if (selectedItems.length > 0) {
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  // Open reset modal
+  const handleOpenResetModal = () => {
+    if (equipmentReturns.length > 0) {
+      setIsResetModalOpen(true);
+    }
+  };
+
+  // Delete selected returns
+  const handleDeleteReturn = async (itemsToDelete) => {
+    setIsDeleting(true);
+    try {
+      const deletePromises = itemsToDelete.map(async (item) => {
+        return axiosInstance.delete(`/audits/equipment-returns/${item.id}`);
+      });
+
+      await Promise.all(deletePromises);
+      
+      // Refresh data from server
+      await fetchEquipmentReturns();
+      setSelectedItems([]);
+      toast.success(`${itemsToDelete.length} equipment return(s) deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting equipment returns:', error);
+      toast.error('Failed to delete equipment returns. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Reset all returns
+  const handleResetReturns = async () => {
+    try {
+      setIsResetting(true);
+      
+      // Export to Excel before resetting
+      handleExportToExcel();
+      
+      // Delete all returns
+      await axiosInstance.delete('/audits/equipment-returns');
+      
+      // Clear data
+      setEquipmentReturns([]);
+      setSelectedItems([]);
+      toast.success('All equipment returns reset successfully!');
+    } catch (err) {
+      console.error('Error resetting equipment returns:', err);
+      toast.error('Failed to reset equipment returns');
+    } finally {
+      setIsResetting(false);
+    }
+  };
   const handleExportToExcel = () => {
     const exportData = filteredReturns.map(returnItem => ({
-      'Return ID': returnItem.returnId,
-      'Return Date': returnItem.date,
-      'Return Time': returnItem.time,
-      'Equipment Name': returnItem.equipmentName,
-      'Serial Number': returnItem.serialNumber,
-      'Assigned To': returnItem.assignedTo,
-      'Department': returnItem.department,
-      'Condition': returnItem.returnCondition,
-      'Issues Found': returnItem.issuesFound,
-      'Processed By': returnItem.processedBy,
-      'Status': returnItem.status,
-      'Notes': returnItem.notes
+      'Equipment Transaction ID': returnItem.et_id,
+      'Client Name': returnItem.client_name,
+      'Product ID': returnItem.product_id,
+      'Item Description': returnItem.item_description,
+      'Borrowed Quantity': returnItem.borrowed_quantity,
+      'Borrowed Date': returnItem.borrowed_date,
+      'Borrowed Time': returnItem.borrowed_time,
+      'Returned Quantity': returnItem.returned_quantity,
+      'Returned Date': returnItem.returned_date,
+      'Returned Time': returnItem.returned_time,
+      'Returned Notes': returnItem.returned_notes,
+      'Inspected By': returnItem.inspected_by
     }));
 
     // Create worksheet
@@ -118,49 +217,18 @@ export default function Equipment_Returned_Audit() {
 
   // Table columns
   const columns = [
-    { key: 'returnId', label: 'Return ID' },
-    { key: 'date', label: 'Return Date' },
-    { key: 'time', label: 'Time' },
-    { key: 'equipmentName', label: 'Equipment Name' },
-    { key: 'serialNumber', label: 'Serial Number' },
-    { key: 'assignedTo', label: 'Assigned To' },
-    { key: 'department', label: 'Department' },
-    { 
-      key: 'returnCondition', 
-      label: 'Condition',
-      render: (condition) => {
-        const conditionColors = {
-          'Excellent': 'bg-green-100 text-green-800',
-          'Good': 'bg-blue-100 text-blue-800',
-          'Fair': 'bg-yellow-100 text-yellow-800',
-          'Poor': 'bg-red-100 text-red-800'
-        };
-        return (
-          <span className={`px-2 py-1 text-xs rounded-full ${conditionColors[condition] || 'bg-gray-100 text-gray-800'}`}>
-            {condition}
-          </span>
-        );
-      }
-    },
-    { key: 'issuesFound', label: 'Issues Found' },
-    { key: 'processedBy', label: 'Processed By' },
-    { 
-      key: 'status', 
-      label: 'Status',
-      render: (status) => {
-        const statusColors = {
-          'Completed': 'bg-green-100 text-green-800',
-          'Maintenance Required': 'bg-orange-100 text-orange-800',
-          'Under Repair': 'bg-red-100 text-red-800',
-          'Pending': 'bg-yellow-100 text-yellow-800'
-        };
-        return (
-          <span className={`px-2 py-1 text-xs rounded-full ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
-            {status}
-          </span>
-        );
-      }
-    },
+    { key: 'et_id', label: 'Equipment Transaction ID' },
+    { key: 'client_name', label: 'Client Name' },
+    { key: 'product_id', label: 'Product ID' },
+    { key: 'item_description', label: 'Item Description' },
+    { key: 'borrowed_quantity', label: 'Borrowed Quantity' },
+    { key: 'borrowed_date', label: 'Borrowed Date' },
+    { key: 'borrowed_time', label: 'Borrowed Time' },
+    { key: 'returned_quantity', label: 'Returned Quantity' },
+    { key: 'returned_date', label: 'Returned Date' },
+    { key: 'returned_time', label: 'Returned Time' },
+    { key: 'returned_notes', label: 'Returned Notes' },
+    { key: 'inspected_by', label: 'Inspected By' }
   ];
 
   const formatDate = (date) => {
@@ -200,14 +268,14 @@ export default function Equipment_Returned_Audit() {
 
       {/* Filters and Search */}
       <Card>
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <SearchBar
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search equipment returns..."
               name="returnSearch"
-              width="w-full sm:w-64"
+              width="w-full"
             />
             <Dropdown
               id="statusFilter"
@@ -218,49 +286,81 @@ export default function Equipment_Returned_Audit() {
                 { value: 'all', label: 'All Status' },
                 { value: 'Completed', label: 'Completed' },
                 { value: 'Maintenance Required', label: 'Maintenance Required' },
-                { value: 'Under Repair', label: 'Under Repair' },
-                { value: 'Pending', label: 'Pending' }
+                { value: 'Under Repair', label: 'Under Repair' }
               ]}
             />
           </div>
-          <div className="flex gap-2">
-            <button 
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <Button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              isLoading={isRefreshing}
+              loadingText="Refreshing..."
+              icon={<FiRefreshCw size={16} />}
+              label="Refresh"
+              className="bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0"
+            />
+            <Button
               onClick={handleExportToExcel}
               disabled={filteredReturns.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              icon={<FiDownload size={16} />}
+              label="Export to Excel"
+              className={`flex items-center gap-2 flex-shrink-0 ${
                 filteredReturns.length > 0 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-blue-300 text-white cursor-not-allowed'
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+                  : 'bg-orange-300 text-white cursor-not-allowed'
               }`}
-            >
-              <FiDownload size={16} />
-              Export Report
-            </button>
+            />
+            <Button
+              onClick={handleOpenDeleteModal}
+              disabled={selectedItems.length === 0 || isDeleting}
+              isLoading={isDeleting}
+              loadingText="Deleting..."
+              icon={<FiTrash2 size={16} />}
+              label="Delete "
+              className={`flex items-center gap-2 flex-shrink-0 ${
+                selectedItems.length > 0 && !isDeleting
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : 'bg-red-300 text-white cursor-not-allowed'
+              }`}
+            />
+            <Button
+              onClick={handleOpenResetModal}
+              disabled={equipmentReturns.length === 0}
+              isLoading={isResetting}
+              loadingText="Resetting..."
+              icon={<FiRefreshCw size={16} />}
+              label="Reset All"
+              className={`flex items-center gap-2 flex-shrink-0 ${
+                equipmentReturns.length > 0 
+                  ? 'bg-red-800 text-white hover:bg-orange-700' 
+                  : 'bg-red-700 text-white cursor-not-allowed'
+              }`}
+            />
           </div>
         </div>
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-blue-600 text-sm font-medium">Total Returns</p>
             <p className="text-2xl font-bold text-blue-900">{equipmentReturns.length}</p>
           </div>
         </Card>
+        <Card className="bg-purple-50 border-purple-200">
+          <div className="text-center">
+            <p className="text-purple-600 text-sm font-medium">Busiest Month</p>
+            <p className="text-2xl font-bold text-purple-900">{topMonth}</p>
+            <p className="text-purple-500 text-xs">{topMonthCount} returns</p>
+          </div>
+        </Card>
         <Card className="bg-green-50 border-green-200">
           <div className="text-center">
             <p className="text-green-600 text-sm font-medium">Completed</p>
             <p className="text-2xl font-bold text-green-900">
-              {equipmentReturns.filter(r => r.status === 'Completed').length}
-            </p>
-          </div>
-        </Card>
-        <Card className="bg-orange-50 border-orange-200">
-          <div className="text-center">
-            <p className="text-orange-600 text-sm font-medium">Maintenance Required</p>
-            <p className="text-2xl font-bold text-orange-900">
-              {equipmentReturns.filter(r => r.status === 'Maintenance Required').length}
+              {equipmentReturns.filter(r => r.returned_quantity > 0).length}
             </p>
           </div>
         </Card>
@@ -277,8 +377,39 @@ export default function Equipment_Returned_Audit() {
           onSelect={setSelectedItems}
           showCheckboxes={false}
           emptyMessage="No equipment returns found"
+          loading={loading}
         />
       </Card>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteReturn}
+        selectedItems={selectedItems.map(id => {
+          const returnItem = equipmentReturns.find(r => r.id === id);
+          return returnItem ? {
+            id: returnItem.id,
+            Item_Description: `Equipment Transaction ID: ${returnItem.et_id}`,
+            Consumable_Product_ID: returnItem.product_id
+          } : {
+            id: id,
+            Item_Description: id,
+            Consumable_Product_ID: id
+          };
+        })}
+        isLoading={isDeleting}
+        title="Delete Equipment Return Confirmation"
+      />
+
+      <DeleteConfirmationModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={handleResetReturns}
+        selectedItems={equipmentReturns.map(r => r.et_id)}
+        isLoading={isResetting}
+        title="Reset All Equipment Returns Confirmation"
+        confirmButtonText="Proceed Reset"
+      />
     </div>
   );
 }

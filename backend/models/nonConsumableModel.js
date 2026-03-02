@@ -13,12 +13,12 @@ exports.getNonConsumableById = async (id) => {
 };
 
 /* CREATE */
-exports.createNonConsumable = async (item_description, category, unit, quantity, unit_cost, total_cost, status) => {
+exports.createNonConsumable = async (product_id, item_description, category, unit, quantity, unit_cost, total_cost, status) => {
   const [result] = await db.execute(
     'INSERT INTO non_consumable_products (product_id, item_description, category, unit, quantity, unit_cost, total_cost, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [generateProductId(), item_description, category, unit, quantity, unit_cost, total_cost, status]
+    [product_id, item_description, category, unit, quantity, unit_cost, total_cost, status]
   );
-  return result.insertId;
+  return product_id;
 };
 
 /* UPDATE / EDIT */
