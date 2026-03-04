@@ -82,3 +82,12 @@ exports.getExpiringWarrantyItems = async (days = 30) => {
   );
   return rows;
 };
+
+/* ADD RETURNED QUANTITY */
+exports.addReturnedQuantity = async (productId, returnedQuantity) => {
+  const [result] = await db.execute(
+    'UPDATE non_consumable_products SET quantity = quantity + ?, updated_at = CURRENT_TIMESTAMP WHERE product_id = ?',
+    [returnedQuantity, productId]
+  );
+  return result.affectedRows;
+};

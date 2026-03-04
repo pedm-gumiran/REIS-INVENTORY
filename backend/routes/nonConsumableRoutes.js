@@ -29,6 +29,9 @@ router.patch('/:id/condition', nonConsumableController.updateNonConsumableCondit
 // PATCH /api/non-consumables/:id/assignment - Update non-consumable assignment
 router.patch('/:id/assignment', nonConsumableController.updateNonConsumableAssignment);
 
+// PUT /api/non-consumables/:id/stock - Update non-consumable stock
+router.put('/:id/stock', nonConsumableController.updateStock);
+
 // DELETE /api/non-consumables/:id - Delete non-consumable
 router.delete('/:id', nonConsumableController.deleteNonConsumable);
 

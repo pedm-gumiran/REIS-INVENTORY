@@ -94,11 +94,7 @@ exports.createEquipmentReturn = async (req, res) => {
       productId, 
       itemDescription, 
       borrowedQuantity, 
-      borrowedDate, 
-      returnedQuantity, 
-      returnedDate, 
-      returnedNotes, 
-      inspectedBy 
+      borrowedDate
     } = req.body;
     
     // Validate required fields
@@ -115,11 +111,7 @@ exports.createEquipmentReturn = async (req, res) => {
       productId,
       itemDescription,
       borrowedQuantity,
-      borrowedDate || new Date(),
-      returnedQuantity || 0,
-      returnedDate || null,
-      returnedNotes || '',
-      inspectedBy || 'System'
+      borrowedDate || new Date()
     );
     
     res.status(201).json({
@@ -140,7 +132,13 @@ exports.createEquipmentReturn = async (req, res) => {
 exports.updateEquipmentReturn = async (req, res) => {
   try {
     const { id } = req.params;
-    const { returned_quantity, returned_date, returned_notes, inspected_by } = req.body;
+    const { returned_quantity, returned_notes, inspected_by } = req.body;
+    
+    console.log('Update equipment return request received:');
+    console.log('ID:', id);
+    console.log('returned_quantity:', returned_quantity);
+    console.log('returned_notes:', returned_notes);
+    console.log('inspected_by:', inspected_by);
     
     if (!id) {
       return res.status(400).json({
@@ -149,7 +147,9 @@ exports.updateEquipmentReturn = async (req, res) => {
       });
     }
     
-    const result = await Audit.updateEquipmentReturn(id, returned_quantity, returned_date, returned_notes, inspected_by);
+    const result = await Audit.updateEquipmentReturn(id, returned_quantity, returned_notes, inspected_by);
+    
+    console.log('Update result:', result);
     
     if (result === 0) {
       return res.status(404).json({

@@ -21,6 +21,7 @@ export default function ReturnEquipmentModal({
 }) {
   const [localReturnNotes, setLocalReturnNotes] = useState(returnNotes);
   const [localInspectedBy, setLocalInspectedBy] = useState(inspectedBy);
+  const [saving, setSaving] = useState(false);
 
   // Sync with parent state when modal opens
   useEffect(() => {
@@ -30,11 +31,21 @@ export default function ReturnEquipmentModal({
     }
   }, [isOpen, returnNotes, inspectedBy]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setReturnNotes(localReturnNotes);
-    setInspectedBy(localInspectedBy);
-    onSubmit(e);
+    setSaving(true);
+    
+    try {
+      // Set parent state first
+      setReturnNotes(localReturnNotes);
+      setInspectedBy(localInspectedBy);
+      // Pass the local values directly to onSubmit to ensure they're available immediately
+      await onSubmit(e, localReturnNotes, localInspectedBy);
+    } catch (error) {
+      console.error('Error submitting return:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleClose = () => {
@@ -150,6 +161,8 @@ export default function ReturnEquipmentModal({
             label="Save"
             onClick={handleSubmit}
             disabled={!localInspectedBy.trim()}
+            isLoading={saving}
+            loadingText="Saving..."
             variant="modal-primary"
           />
         </div>

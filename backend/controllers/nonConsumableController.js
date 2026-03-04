@@ -341,3 +341,75 @@ exports.getExpiringWarrantyItems = async (req, res) => {
     });
   }
 };
+
+// UPDATE stock for non-consumable
+exports.updateStock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { quantity, operation } = req.body;
+    
+    if (!quantity || !operation) {
+      return res.status(400).json({
+        success: false,
+        message: 'Quantity and operation are required'
+      });
+    }
+    
+    if (operation !== 'add' && operation !== 'subtract') {
+      return res.status(400).json({
+        success: false,
+        message: 'Operation must be either "add" or "subtract"'
+      });
+    }
+    
+    // Check if non-consumable exists
+    const existingNonConsumable = await NonConsumable.getNonConsumableById(id);
+    if (!existingNonConsumable) {
+      return res.status(404).json({
+        success: false,
+        message: 'Non-consumable not found'
+      });
+    }
+    
+    let result;
+    if (operation === 'add') {
+      result = await NonConsumable.addReturnedQuantity(id, parseInt(quantity));
+    } else {
+      // For subtract operation, we would need to implement a similar function
+      // For now, let's use the existing update function
+      const newQuantity = Math.max(0, existingNonConsumable.quantity - parseInt(quantity));
+      result = await NonConsumable.updateNonConsumable(
+        id,
+        existingNonConsumable.item_description,
+        existingNonConsumable.category,
+        existingNonConsumable.unit,
+        newQuantity,
+        existingNonConsumable.unit_cost,
+        existingNonConsumable.total_cost
+      );
+    }
+    
+    if (result === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to update stock'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: `Stock ${operation}ed successfully`,
+      data: {
+        product_id: id,
+        quantity: parseInt(quantity),
+        operation
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update stock'
+    });
+  }
+};

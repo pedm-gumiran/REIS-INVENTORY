@@ -42,12 +42,8 @@ export default function Create_Transaction_Page() {
     receivedBy: ''
   });
 
-  // Return Equipment Form State
-  const [returnProduct, setReturnProduct] = useState('');
-  const [returnQuantity, setReturnQuantity] = useState('');
+  // Return Equipment Form State (for Return Equipment tab)
   const [returnNotes, setReturnNotes] = useState('');
-  const [returnDate, setReturnDate] = useState('');
-  const [returneeName, setReturneeName] = useState('');
   const [inspectedBy, setInspectedBy] = useState('');
   const [itemReturnQuantities, setItemReturnQuantities] = useState({});
 
@@ -160,8 +156,9 @@ export default function Create_Transaction_Page() {
       
       if (response.data.success) {
         toast.success('Transaction created successfully! Quantities have been updated.');
-        // Reset form after successful submission
-        resetForm();
+        // Show preview after successful save
+        setShowPreview(true);
+        // Form will be reset when preview is closed
       } else {
         toast.error(response.data.message || 'Failed to create transaction');
       }
@@ -366,28 +363,6 @@ export default function Create_Transaction_Page() {
     }
   };
 
-  const handleReturnEquipment = (e) => {
-    e.preventDefault();
-    // Handle return submission
-    console.log('Equipment returned:', {
-      returnProduct,
-      returnQuantity,
-      returnCondition,
-      returnNotes,
-      returnDate,
-      returneeName,
-      inspectedBy
-    });
-    // Reset form
-    setReturnProduct('');
-    setReturnQuantity('');
-    setReturnCondition('');
-    setReturnNotes('');
-    setReturnDate('');
-    setReturneeName('');
-    setInspectedBy('');
-  };
-
   // Client Search Handlers
   const handleClientSearch = async (query) => {
     setClientSearchQuery(query);
@@ -576,8 +551,12 @@ export default function Create_Transaction_Page() {
   };
 
   // Handle Return Form Submission
-  const handleReturnFormSubmit = async (e) => {
+  const handleReturnFormSubmit = async (e, notesParam, inspectorParam) => {
     e.preventDefault();
+    
+    // Use the passed parameters if available, otherwise use state
+    const currentReturnNotes = notesParam || returnNotes;
+    const currentInspectedBy = inspectorParam || inspectedBy;
     
     const returnData = {
       client: selectedClient,
@@ -586,11 +565,14 @@ export default function Create_Transaction_Page() {
         returnQuantity: parseInt(itemReturnQuantities[item.et_id]) || 0
       })),
       returnDate: new Date().toISOString().split('T')[0], // Use current date
-      returnNotes,
-      inspectedBy
+      returnTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }), // Use current time
+      returnNotes: currentReturnNotes,
+      inspectedBy: currentInspectedBy
     };
     
     console.log('Processing equipment return:', returnData);
+        console.log('Current returnNotes:', returnNotes);
+        console.log('Current inspectedBy:', inspectedBy);
     
     try {
       // Update each selected item in the equipment_trail
@@ -598,31 +580,17 @@ export default function Create_Transaction_Page() {
         const updateData = {
           et_id: item.et_id,
           returned_quantity: item.returnQuantity,
-          returned_date: returnData.returnDate,
-          returned_notes: returnNotes,
-          inspected_by: inspectedBy
+          returned_notes: currentReturnNotes,
+          inspected_by: currentInspectedBy
         };
+        
+        console.log('Sending update data for item:', item.et_id, updateData);
         
         // Call API to update the equipment trail record
         const response = await axiosInstance.put(`/audits/equipment-returns/${item.et_id}`, updateData);
         
         if (!response.data.success) {
           throw new Error(`Failed to update equipment trail for ${item.item_description}`);
-        }
-        
-        // If fully returned, also update the inventory stock
-        if (item.returnQuantity === item.borrowed_quantity) {
-          // Add back to non-consumable inventory
-          try {
-            const stockUpdateResponse = await axiosInstance.put(`/non-consumable/${item.product_id}/stock`, {
-              quantity: item.returnQuantity,
-              operation: 'add'
-            });
-            console.log('Stock updated for returned item:', stockUpdateResponse.data);
-          } catch (stockError) {
-            console.error('Failed to update stock for returned item:', stockError);
-            // Continue with return process even if stock update fails
-          }
         }
       }
       
@@ -652,9 +620,7 @@ export default function Create_Transaction_Page() {
     setSelectedItems([]);
     setShowReturnForm(false);
     setShowReturnModal(false);
-    setReturnDate('');
     setReturnNotes('');
-    setReturneeName('');
     setInspectedBy('');
     setItemReturnQuantities({});
   };
@@ -1133,15 +1099,6 @@ export default function Create_Transaction_Page() {
               </div>
               <div className="flex space-x-3 w-full md:w-auto overflow-x-auto">
                 <button
-                onClick={() => setShowPreview(true)}
-                  type="button"
-                  className="flex-1 md:flex-initial px-6 py-3 text-slate-600 font-semibold hover:bg-slate-100 rounded-xl transition-all flex items-center justify-center space-x-2 border-2 border-green-700"
-                >
-                  <FiEye className="w-4 h-4" />
-                  <span>Preview</span>
-                </button>
-                
-                <button
                   type="button"
                   onClick={resetForm}
                   className="flex-1 md:flex-initial px-6 py-3 text-slate-600 font-semibold hover:bg-slate-100 rounded-xl transition-all flex items-center justify-center space-x-2 border-2 border-green-700"
@@ -1176,7 +1133,10 @@ export default function Create_Transaction_Page() {
       {showPreview && (
         <RetFormPreview 
           formData={formData} 
-          onClose={() => setShowPreview(false)}
+          onClose={() => {
+            setShowPreview(false);
+            resetForm();
+          }}
         />
       )}
 
@@ -1250,15 +1210,17 @@ export default function Create_Transaction_Page() {
                 <div className="overflow-x-auto">
                   <DataTable
                     columns={[
-                      { key: 'et_id', label: 'ET ID', className: 'text-center min-w-[80px]' },
-                      { key: 'client_name', label: 'Client Name', className: 'min-w-[120px]' },
-                      { key: 'product_id', label: 'Product ID', className: 'min-w-[100px]' },
+                      { key: 'et_id', label: 'Equipment Transaction ID', className: 'text-center min-w-[100px]' },
+                      { key: 'client_name', label: 'Client Name', className: 'min-w-[150px]' },
+                      { key: 'product_id', label: 'Product ID', className: 'min-w-[120px]' },
                       { key: 'item_description', label: 'Item Description', className: 'min-w-[200px]' },
-                      { key: 'borrowed_quantity', label: 'Borrowed Qty', className: 'text-center min-w-[100px]' },
-                      { key: 'borrowed_date', label: 'Borrow Date', className: 'text-center min-w-[120px]' },
-                      { key: 'returned_quantity', label: 'Returned Qty', className: 'text-center min-w-[100px]' },
-                      { key: 'returned_date', label: 'Return Date', className: 'text-center min-w-[120px]' },
-                      { key: 'returned_notes', label: 'Return Notes', className: 'min-w-[150px]' },
+                      { key: 'borrowed_quantity', label: 'Borrowed Quantity', className: 'text-center min-w-[120px]' },
+                      { key: 'borrowed_date', label: 'Borrowed Date', className: 'text-center min-w-[120px]' },
+                      { key: 'borrowed_time', label: 'Borrowed Time', className: 'text-center min-w-[120px]' },
+                      { key: 'returned_quantity', label: 'Returned Quantity', className: 'text-center min-w-[120px]' },
+                      { key: 'returned_date', label: 'Returned Date', className: 'text-center min-w-[120px]' },
+                      { key: 'returned_time', label: 'Returned Time', className: 'text-center min-w-[120px]' },
+                      { key: 'returned_notes', label: 'Returned Notes', className: 'min-w-[150px]' },
                       { key: 'inspected_by', label: 'Inspected By', className: 'min-w-[120px]' },
                     ]}
                     data={borrowedItems}

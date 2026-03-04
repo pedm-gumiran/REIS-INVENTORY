@@ -48,11 +48,11 @@ export default function Equipment_Returned_Audit() {
           product_id: item.product_id || 'N/A',
           item_description: item.item_description || 'Unknown Equipment',
           borrowed_quantity: item.borrowed_quantity || 0,
-          borrowed_date: item.borrowed_date ? new Date(item.borrowed_date).toLocaleDateString() : new Date().toLocaleDateString(),
-          borrowed_time: item.borrowed_date ? new Date(item.borrowed_date).toLocaleTimeString() : new Date().toLocaleTimeString(),
+          borrowed_date: item.borrowed_date || '-',
+          borrowed_time: item.borrowed_time || '-',
           returned_quantity: item.returned_quantity || '-',
-          returned_date: item.returned_date ? new Date(item.returned_date).toLocaleDateString() : '-',
-          returned_time: item.returned_date ? new Date(item.returned_date).toLocaleTimeString() : '-',
+          returned_date: item.returned_date || '-',
+          returned_time: item.returned_time || '-',
           returned_notes: item.returned_notes || '-',
           inspected_by: item.inspected_by || '-'
         }));
