@@ -35,7 +35,7 @@ export default function Transaction_Audit() {
         const transformedData = response.data.data.map(item => ({
           id: item.transaction_id,
           transactionId: String(item.transaction_id),
-          rf_no: item.rrf_no || `RRF-${new Date().getFullYear()}-${String(item.transaction_id).padStart(3, '0')}`,
+          rf_no: item.rrf_no || 'N/A',
           type_of_request: item.type_of_request || 'Issue',
           document_supplies_materials_equipment_requested: item.items_requested || 'N/A',
           date_of_activity: item.date_of_activity ? new Date(item.date_of_activity).toLocaleDateString() : (item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : new Date().toLocaleDateString()),
@@ -135,7 +135,7 @@ export default function Transaction_Audit() {
   const handleExportToExcel = () => {
     const exportData = filteredTransactions.map(transaction => ({
       'Transaction ID': transaction.transactionId,
-      'RF No': transaction.rf_no,
+      'RRF No': transaction.rf_no,
       'Type of Request': transaction.type_of_request,
       'Document/Supplies/Materials/Equipment Requested': transaction.document_supplies_materials_equipment_requested,
       'Date of Activity': transaction.date_of_activity,
@@ -247,7 +247,7 @@ export default function Transaction_Audit() {
   // Table columns
   const columns = [
     { key: 'transactionId', label: 'Transaction ID' },
-    { key: 'rf_no', label: 'RF No' },
+    { key: 'rf_no', label: 'RRF No' },
     { key: 'type_of_request', label: 'Type of Request' },
     { key: 'document_supplies_materials_equipment_requested', label: 'Document/Supplies/Materials/Equipment Requested' },
     { key: 'date_of_activity', label: 'Date of Activity' },

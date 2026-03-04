@@ -46,7 +46,7 @@ exports.getConsumableById = async (req, res) => {
 // CREATE new consumable
 exports.createConsumable = async (req, res) => {
   try {
-    const { product_id, item_description, category, unit, quantity, unit_cost, status } = req.body;
+    const { product_id, item_description, category, unit, quantity, unit_cost } = req.body;
     
     // Validate required fields
     if (!product_id || !item_description || quantity === undefined || unit_cost === undefined) {
@@ -56,12 +56,22 @@ exports.createConsumable = async (req, res) => {
       });
     }
     
+    // Check if product_id already exists
+    const existing = await Consumable.getConsumableById(product_id);
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product ID already exists'
+      });
+    }
+    
     // Convert undefined values to null for database
     const safeCategory = category !== undefined ? category : null;
     const safeUnit = unit !== undefined ? unit : null;
-    const safeStatus = status !== undefined ? status : null;
+    const safeQuantity = parseInt(quantity) || 0;
+    const safeUnitCost = parseFloat(unit_cost) || 0;
     
-    const id = await Consumable.createConsumable(product_id, item_description, safeCategory, safeUnit, quantity, unit_cost, safeStatus);
+    const id = await Consumable.createConsumable(product_id, item_description, safeCategory, safeUnit, safeQuantity, safeUnitCost);
     
     res.status(201).json({
       success: true,
@@ -81,7 +91,7 @@ exports.createConsumable = async (req, res) => {
 exports.updateConsumable = async (req, res) => {
   try {
     const { id } = req.params;
-    const { item_description, category, unit, quantity, unit_cost, status } = req.body;
+    const { item_description, category, unit, quantity, unit_cost } = req.body;
     
     // Check if consumable exists
     const existingConsumable = await Consumable.getConsumableById(id);
@@ -95,9 +105,10 @@ exports.updateConsumable = async (req, res) => {
     // Convert undefined values to null for database
     const safeCategory = category !== undefined ? category : null;
     const safeUnit = unit !== undefined ? unit : null;
-    const safeStatus = status !== undefined ? status : null;
+    const safeQuantity = quantity !== undefined ? parseInt(quantity) || 0 : existingConsumable.quantity;
+    const safeUnitCost = unit_cost !== undefined ? parseFloat(unit_cost) || 0 : existingConsumable.unit_cost;
     
-    const result = await Consumable.updateConsumable(id, item_description, safeCategory, safeUnit, quantity, unit_cost, safeStatus);
+    const result = await Consumable.updateConsumable(id, item_description, safeCategory, safeUnit, safeQuantity, safeUnitCost);
     
     if (result === 0) {
       return res.status(400).json({

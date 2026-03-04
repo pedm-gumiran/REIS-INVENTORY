@@ -4,6 +4,7 @@ import SearchBar from '../../Input_Fields/SearchBar';
 import Input_Text from '../../Input_Fields/Input_Text';
 import Button from '../../Buttons/Button';
 import DataTable from '../../DataTables/DataTable';
+import axiosInstance from '../../../api/axios';
 
 export default function EditSuppliesModal({ 
   isOpen, 
@@ -15,6 +16,12 @@ export default function EditSuppliesModal({
   const [selectedItems, setSelectedItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('consumable');
+
+  // Data states
+  const [consumableData, setConsumableData] = useState([]);
+  const [nonConsumableData, setNonConsumableData] = useState([]);
+  const [loadingConsumable, setLoadingConsumable] = useState(false);
+  const [loadingNonConsumable, setLoadingNonConsumable] = useState(false);
 
   // Reset search term when switching tabs
   useEffect(() => {
@@ -35,40 +42,70 @@ export default function EditSuppliesModal({
     }
   }, [existingItems, isOpen]);
 
-  // Mock data for consumable products
-  const consumableProducts = [
-    { id: 'C001', name: 'Bond Paper (A4)', category: 'Office Supplies', stock: 500, unit: 'reams' },
-    { id: 'C002', name: 'Inkjet Printer Cartridge', category: 'Office Supplies', stock: 50, unit: 'pieces' },
-    { id: 'C003', name: 'Ballpoint Pens', category: 'Writing Materials', stock: 200, unit: 'boxes' },
-    { id: 'C004', name: 'Marker Pens', category: 'Writing Materials', stock: 100, unit: 'pieces' },
-    { id: 'C005', name: 'Folder (Legal Size)', category: 'Office Supplies', stock: 150, unit: 'pieces' },
-    { id: 'C006', name: 'Staples', category: 'Office Supplies', stock: 80, unit: 'boxes' },
-    { id: 'C007', name: 'Paper Clips', category: 'Office Supplies', stock: 200, unit: 'boxes' },
-    { id: 'C008', name: 'Envelopes (Brown)', category: 'Office Supplies', stock: 300, unit: 'pieces' },
-    { id: 'C009', name: 'Correction Fluid', category: 'Office Supplies', stock: 60, unit: 'bottles' },
-    { id: 'C010', name: 'Highlighters', category: 'Writing Materials', stock: 120, unit: 'pieces' },
-  ];
+  // Sync selectedItems with parent state and handle clearing
+  useEffect(() => {
+    if (isOpen) {
+      // Always sync with parent state when modal opens
+      setSelectedItems(existingItems);
+      // Fetch data when modal opens
+      fetchConsumables();
+      fetchNonConsumables();
+    }
+  }, [existingItems, isOpen]);
 
-  // Mock data for non-consumable products (equipment)
-  const nonConsumableProducts = [
-    { id: 'N001', name: 'Laptop Computer', category: 'IT Equipment', stock: 15, unit: 'units', condition: 'Good' },
-    { id: 'N002', name: 'Desktop Computer', category: 'IT Equipment', stock: 10, unit: 'units', condition: 'Good' },
-    { id: 'N003', name: 'Projector', category: 'AV Equipment', stock: 8, unit: 'units', condition: 'Excellent' },
-    { id: 'N004', name: 'Printer (Laser)', category: 'IT Equipment', stock: 12, unit: 'units', condition: 'Good' },
-    { id: 'N005', name: 'Scanner', category: 'IT Equipment', stock: 6, unit: 'units', condition: 'Fair' },
-    { id: 'N006', name: 'Photocopier', category: 'Office Equipment', stock: 4, unit: 'units', condition: 'Good' },
-    { id: 'N007', name: 'Whiteboard', category: 'Office Equipment', stock: 20, unit: 'units', condition: 'Good' },
-    { id: 'N008', name: 'Conference Table', category: 'Furniture', stock: 5, unit: 'units', condition: 'Excellent' },
-    { id: 'N009', name: 'Office Chair', category: 'Furniture', stock: 25, unit: 'units', condition: 'Fair' },
-    { id: 'N010', name: 'Filing Cabinet', category: 'Furniture', stock: 12, unit: 'units', condition: 'Good' },
-  ];
+  // Function to fetch consumables
+  const fetchConsumables = async () => {
+    setLoadingConsumable(true);
+    try {
+      const response = await axiosInstance.get('/consumables');
+      if (response.data.success) {
+        const mappedData = response.data.data.map(item => ({
+          id: item.product_id,
+          name: item.item_description,
+          category: item.category,
+          stock: item.quantity,
+          unit: item.unit
+        }));
+        setConsumableData(mappedData);
+      }
+    } catch (error) {
+      console.error('Error fetching consumables:', error);
+      setConsumableData([]);
+    } finally {
+      setLoadingConsumable(false);
+    }
+  };
 
-  const filteredConsumable = consumableProducts.filter(item =>
+  // Function to fetch non-consumables
+  const fetchNonConsumables = async () => {
+    setLoadingNonConsumable(true);
+    try {
+      const response = await axiosInstance.get('/non-consumables');
+      if (response.data.success) {
+        const mappedData = response.data.data.map(item => ({
+          id: item.product_id,
+          name: item.item_description,
+          category: item.category,
+          stock: item.quantity,
+          unit: item.unit,
+          condition: item.condition || 'Unknown'
+        }));
+        setNonConsumableData(mappedData);
+      }
+    } catch (error) {
+      console.error('Error fetching non-consumables:', error);
+      setNonConsumableData([]);
+    } finally {
+      setLoadingNonConsumable(false);
+    }
+  };
+
+  const filteredConsumable = consumableData.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredNonConsumable = nonConsumableProducts.filter(item =>
+  const filteredNonConsumable = nonConsumableData.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -180,7 +217,7 @@ export default function EditSuppliesModal({
                             max={row.stock}
                             value={selectedItem?.quantity || 1}
                             onChange={(e) => handleQuantityChange(row.id, e.target.value)}
-                            className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary"
                             onClick={(e) => e.stopPropagation()}
                           />
                         ) : null;
@@ -200,7 +237,9 @@ export default function EditSuppliesModal({
                     setSelectedItems([...newConsumableItems, ...newSelectedItems]);
                   }}
                   keyField="id"
-                  emptyMessage="No consumable products found"
+                  emptyMessage={loadingConsumable ? "Loading consumable products..." : "No consumable products found"}
+                  loading={loadingConsumable}
+                  showCheckboxes={false}
                 />
               </div>
             )}
@@ -216,19 +255,6 @@ export default function EditSuppliesModal({
                     { key: 'category', label: 'Category' },
                     { key: 'stock', label: 'Available' },
                     { 
-                      key: 'condition', 
-                      label: 'Condition',
-                      render: (value) => (
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          value === 'Excellent' ? 'bg-green-100 text-green-800' :
-                          value === 'Good' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {value}
-                        </span>
-                      )
-                    },
-                    { 
                       key: 'quantity', 
                       label: 'Quantity',
                       render: (value, row) => {
@@ -242,7 +268,7 @@ export default function EditSuppliesModal({
                             max={row.stock}
                             value={selectedItem?.quantity || 1}
                             onChange={(e) => handleQuantityChange(row.id, e.target.value)}
-                            className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary"
                             onClick={(e) => e.stopPropagation()}
                           />
                         ) : null;
@@ -262,7 +288,9 @@ export default function EditSuppliesModal({
                     setSelectedItems([...newSelectedItems, ...newNonConsumableItems]);
                   }}
                   keyField="id"
-                  emptyMessage="No equipment found"
+                  emptyMessage={loadingNonConsumable ? "Loading equipment..." : "No equipment found"}
+                  loading={loadingNonConsumable}
+                  showCheckboxes={false}
                 />
               </div>
             )}

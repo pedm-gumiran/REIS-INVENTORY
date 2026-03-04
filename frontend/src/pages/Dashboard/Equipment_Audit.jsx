@@ -50,11 +50,11 @@ export default function Equipment_Returned_Audit() {
           borrowed_quantity: item.borrowed_quantity || 0,
           borrowed_date: item.borrowed_date ? new Date(item.borrowed_date).toLocaleDateString() : new Date().toLocaleDateString(),
           borrowed_time: item.borrowed_date ? new Date(item.borrowed_date).toLocaleTimeString() : new Date().toLocaleTimeString(),
-          returned_quantity: item.returned_quantity || 0,
-          returned_date: item.returned_date ? new Date(item.returned_date).toLocaleDateString() : 'Not Returned',
-          returned_time: item.returned_date ? new Date(item.returned_date).toLocaleTimeString() : 'Not Returned',
-          returned_notes: item.returned_notes || 'None',
-          inspected_by: item.inspected_by || 'System'
+          returned_quantity: item.returned_quantity || '-',
+          returned_date: item.returned_date ? new Date(item.returned_date).toLocaleDateString() : '-',
+          returned_time: item.returned_date ? new Date(item.returned_date).toLocaleTimeString() : '-',
+          returned_notes: item.returned_notes || '-',
+          inspected_by: item.inspected_by || '-'
         }));
         setEquipmentReturns(transformedData);
       }
@@ -342,7 +342,7 @@ export default function Equipment_Returned_Audit() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-blue-600 text-sm font-medium">Total Returns</p>
@@ -354,14 +354,6 @@ export default function Equipment_Returned_Audit() {
             <p className="text-purple-600 text-sm font-medium">Busiest Month</p>
             <p className="text-2xl font-bold text-purple-900">{topMonth}</p>
             <p className="text-purple-500 text-xs">{topMonthCount} returns</p>
-          </div>
-        </Card>
-        <Card className="bg-green-50 border-green-200">
-          <div className="text-center">
-            <p className="text-green-600 text-sm font-medium">Completed</p>
-            <p className="text-2xl font-bold text-green-900">
-              {equipmentReturns.filter(r => r.returned_quantity > 0).length}
-            </p>
           </div>
         </Card>
       </div>

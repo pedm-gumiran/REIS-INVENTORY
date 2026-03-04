@@ -7,6 +7,7 @@ import DocumentRequestModal from '../../components/Forms/Add_Forms/DocumentReque
 import SuppliesEquipmentModal from '../../components/Forms/Add_Forms/SuppliesEquipmentModal';
 import EditDocumentModal from '../../components/Forms/Edit_Forms/EditDocumentModal';
 import EditSuppliesModal from '../../components/Forms/Edit_Forms/EditSuppliesModal';
+import ReturnEquipmentModal from '../../components/Forms/Add_Forms/ReturnEquipmentModal';
 import SearchBar from '../../components/Input_Fields/SearchBar';
 import DataTable from '../../components/DataTables/DataTable';
 import Button from '../../components/Buttons/Button';
@@ -129,33 +130,36 @@ export default function Create_Transaction_Page() {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.rrfNumber || !formData.requestorName) {
-      toast.error('Please fill in RRF Number and Requestor Name.');
+    if (!formData.requestorName || formData.requestType.length === 0) {
+      toast.error('Please fill in Requestor Name and select at least one Type of Request.');
       return;
     }
     
     setSaving(true);
     try {
-      // Prepare data for API
+      // Prepare transaction data for API
       const transactionData = {
-        rrfNo: formData.rrfNumber,
-        typeOfRequest: formData.requestType.join(', '),
+        rrfNo: formData.rrfNumber || null, // Backend expects rrfNo (camelCase)
+        typeOfRequest: formData.requestType.map(type => type === 'conference' ? 'Use of Conference' : type.charAt(0).toUpperCase() + type.slice(1)).join(', '), // Backend expects typeOfRequest (camelCase)
+        requestedBy: formData.requestorName, // Backend expects requestedBy (camelCase)
         itemsRequested: formData.description,
         dateOfActivity: formData.dateOfActivity || null,
         startTime: formData.startTime || null,
         endTime: formData.endTime || null,
         purpose: formData.purpose,
-        requestedBy: formData.requestorName,
         approvedBy: formData.approvedBy,
         servedBy: formData.servedBy,
-        receivedBy: formData.receivedBy
+        receivedBy: formData.receivedBy,
+        requested_items: requestedItems // Backend expects requested_items for quantity deduction
       };
       
-      // Send request to backend
+      console.log('Sending transaction data:', transactionData);
+      
+      // Send request to backend to save transaction and update quantities
       const response = await axiosInstance.post('/audits/transaction-audits', transactionData);
       
       if (response.data.success) {
-        toast.success('Transaction created successfully!');
+        toast.success('Transaction created successfully! Quantities have been updated.');
         // Reset form after successful submission
         resetForm();
       } else {
@@ -163,7 +167,16 @@ export default function Create_Transaction_Page() {
       }
     } catch (error) {
       console.error('Error creating transaction:', error);
-      toast.error(error.response?.data?.message || 'Failed to create transaction. Please try again.');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      // Show more detailed error message
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          error.message || 
+                          'Failed to create transaction. Please try again.';
+      
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -328,7 +341,7 @@ export default function Create_Transaction_Page() {
       // Remove supplies from description
       const currentDescription = formData.description || '';
       const itemPatterns = requestedItems.map(item => 
-        `${item.name.replace(/[.*+?^${}()[\]\\]/g, '\\$&')}\\s*\\(Qty:\\s*\\d+\\)`
+        `${item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\(Qty:\\s*\\d+\\)`
       );
       let newDescription = currentDescription;
       
@@ -344,6 +357,12 @@ export default function Create_Transaction_Page() {
         ...prev,
         description: newDescription
       }));
+    } else if (type === 'return') {
+      // Clear selected items (uncheck checkboxes in DataTable)
+      setSelectedItems([]);
+      setShowReturnForm(false);
+      setShowReturnModal(false);
+      setItemReturnQuantities({});
     }
   };
 
@@ -383,38 +402,42 @@ export default function Create_Transaction_Page() {
     if (query.length < 2) {
       setSearchResults([]);
       setShowClientDropdown(false);
-      // Only clear client state if query is empty or very short
+      // Only clear client state if query is empty or very short AND no client is selected
       if (!query || query.length < 2) {
-        setSelectedClient(null);
-        setBorrowedItems([]);
-        setSelectedItems([]);
-        setShowReturnForm(false);
+        if (!selectedClient) {
+          setBorrowedItems([]);
+          setSelectedItems([]);
+          setShowReturnForm(false);
+        }
       }
       return;
     }
 
     setLoadingClients(true);
     try {
-      // Mock API call - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Call actual API to search clients
+      const response = await axiosInstance.get(`/audits/clients/search?q=${encodeURIComponent(query)}`);
       
-      // Mock client data - replace with actual API response
-      const mockClients = [
-        { id: 1, name: 'John Doe', email: 'john@example.com', department: 'IT' },
-        { id: 2, name: 'Jane Smith', email: 'jane@example.com', department: 'HR' },
-        { id: 3, name: 'Bob Johnson', email: 'bob@example.com', department: 'Finance' },
-        { id: 4, name: 'Alice Brown', email: 'alice@example.com', department: 'Marketing' },
-        { id: 5, name: 'Charlie Wilson', email: 'charlie@example.com', department: 'Operations' },
-      ];
-      
-      const filteredClients = mockClients.filter(client => 
-        client.name.toLowerCase().includes(query.toLowerCase().trim())
-      );
-      
-      setSearchResults(filteredClients);
-      setShowClientDropdown(filteredClients.length > 0);
+      if (response.data.success) {
+        // Transform the data to match expected format
+        const clients = response.data.data.map(client => ({
+          id: client.name, // Use name as ID since we don't have separate IDs
+          name: client.name,
+          email: '', // Email not available in equipment_trail
+          department: '' // Department not available in equipment_trail
+        }));
+        
+        setSearchResults(clients);
+        setShowClientDropdown(clients.length > 0);
+      } else {
+        console.error('Failed to search clients:', response.data.message);
+        setSearchResults([]);
+        setShowClientDropdown(false);
+      }
     } catch (error) {
       console.error('Error searching for client:', error);
+      setSearchResults([]);
+      setShowClientDropdown(false);
     } finally {
       setLoadingClients(false);
     }
@@ -426,7 +449,36 @@ export default function Create_Transaction_Page() {
     setSearchResults([]);
     setShowClientDropdown(false);
     setClientSearchQuery(client.name);
-    await loadBorrowedItems(client.id);
+    // Pass client name directly to avoid timing issues with state updates
+    await loadBorrowedItemsForClient(client.name);
+  };
+
+  // Separate function to load borrowed items for a specific client
+  const loadBorrowedItemsForClient = async (clientName) => {
+    if (!clientName) {
+      console.log('No client name provided');
+      setBorrowedItems([]);
+      return;
+    }
+
+    setLoadingBorrowedItems(true);
+    try {
+      // Fetch actual borrowed equipment from API using client name
+      const response = await axiosInstance.get(`/audits/equipment-returns/client/${encodeURIComponent(clientName)}`);
+
+      if (response.data.success) {
+        // Return the raw data from equipment_trail table
+        setBorrowedItems(response.data.data);
+      } else {
+        console.error('Failed to fetch borrowed items:', response.data.message);
+        setBorrowedItems([]);
+      }
+    } catch (error) {
+      console.error('Error loading borrowed items:', error);
+      setBorrowedItems([]);
+    } finally {
+      setLoadingBorrowedItems(false);
+    }
   };
 
   // Handle search bar clear
@@ -456,63 +508,28 @@ export default function Create_Transaction_Page() {
 
   // Load Borrowed Items for Selected Client
   const loadBorrowedItems = async (clientId) => {
+    // Check if selectedClient exists before proceeding
+    if (!selectedClient) {
+      console.log('No client selected');
+      setBorrowedItems([]);
+      return;
+    }
+    
     setLoadingBorrowedItems(true);
     try {
-      // Mock API call - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Fetch actual borrowed equipment from API using client name instead of ID
+      const response = await axiosInstance.get(`/audits/equipment-returns/client/${encodeURIComponent(selectedClient.name)}`);
       
-      // Mock borrowed items data - replace with actual API response
-      const allItems = [
-        {
-          id: 1,
-          product_name: 'Laptop Dell XPS 15',
-          consumable_product_id: 'LAP-001',
-          quantity: 1,
-          borrowDate: '2024-01-15',
-          dueDate: '2024-01-30',
-          status: 'borrowed',
-        
-        },
-        {
-          id: 2,
-          product_name: 'Projector Epson EB-X41',
-          consumable_product_id: 'PROJ-002',
-          quantity: 1,
-          borrowDate: '2024-01-20',
-          dueDate: '2024-02-03',
-          status: 'borrowed',
-         
-        },
-        {
-          id: 3,
-          product_name: 'Office Chair Ergonomic',
-          consumable_product_id: 'CHR-003',
-          quantity: 2,
-          borrowDate: '2024-01-10',
-          dueDate: '2024-01-24',
-          status: 'borrowed',
-          
-        },
-        {
-          id: 4,
-          product_name: 'Available Item - Not Borrowed',
-          consumable_product_id: 'AVAIL-001',
-          quantity: 5,
-          borrowDate: '2024-01-01',
-          dueDate: '2024-02-15',
-          status: 'borrowed',
-          
-        }
-      ];
-      
-      // Only show items that are actually borrowed (status is 'borrowed')
-      const borrowedItems = allItems.filter(item => 
-        item.status === 'borrowed'
-      );
-      
-      setBorrowedItems(borrowedItems);
+      if (response.data.success) {
+        // Return the raw data from equipment_trail table
+        setBorrowedItems(response.data.data);
+      } else {
+        console.error('Failed to fetch borrowed items:', response.data.message);
+        setBorrowedItems([]);
+      }
     } catch (error) {
       console.error('Error loading borrowed items:', error);
+      setBorrowedItems([]);
     } finally {
       setLoadingBorrowedItems(false);
     }
@@ -559,25 +576,70 @@ export default function Create_Transaction_Page() {
   };
 
   // Handle Return Form Submission
-  const handleReturnFormSubmit = (e) => {
+  const handleReturnFormSubmit = async (e) => {
     e.preventDefault();
     
     const returnData = {
       client: selectedClient,
-      selectedItems: borrowedItems.filter(item => selectedItems.includes(item.id)).map(item => ({
+      selectedItems: borrowedItems.filter(item => selectedItems.includes(item.et_id)).map(item => ({
         ...item,
-        returnQuantity: parseInt(itemReturnQuantities[item.id]) || 0
+        returnQuantity: parseInt(itemReturnQuantities[item.et_id]) || 0
       })),
-      returnDate,
+      returnDate: new Date().toISOString().split('T')[0], // Use current date
       returnNotes,
-      returneeName,
       inspectedBy
     };
     
     console.log('Processing equipment return:', returnData);
     
-    // Reset form after submission
-    resetReturnForm();
+    try {
+      // Update each selected item in the equipment_trail
+      for (const item of returnData.selectedItems) {
+        const updateData = {
+          et_id: item.et_id,
+          returned_quantity: item.returnQuantity,
+          returned_date: returnData.returnDate,
+          returned_notes: returnNotes,
+          inspected_by: inspectedBy
+        };
+        
+        // Call API to update the equipment trail record
+        const response = await axiosInstance.put(`/audits/equipment-returns/${item.et_id}`, updateData);
+        
+        if (!response.data.success) {
+          throw new Error(`Failed to update equipment trail for ${item.item_description}`);
+        }
+        
+        // If fully returned, also update the inventory stock
+        if (item.returnQuantity === item.borrowed_quantity) {
+          // Add back to non-consumable inventory
+          try {
+            const stockUpdateResponse = await axiosInstance.put(`/non-consumable/${item.product_id}/stock`, {
+              quantity: item.returnQuantity,
+              operation: 'add'
+            });
+            console.log('Stock updated for returned item:', stockUpdateResponse.data);
+          } catch (stockError) {
+            console.error('Failed to update stock for returned item:', stockError);
+            // Continue with return process even if stock update fails
+          }
+        }
+      }
+      
+      toast.success('Equipment return processed successfully!');
+      
+      // Reset form and refresh data
+      resetReturnForm();
+      
+      // Refresh the borrowed items list
+      if (selectedClient) {
+        await loadBorrowedItemsForClient(selectedClient.name);
+      }
+      
+    } catch (error) {
+      console.error('Error processing equipment return:', error);
+      toast.error(error.response?.data?.message || 'Failed to process equipment return. Please try again.');
+    }
   };
 
   // Reset Return Form
@@ -604,7 +666,7 @@ export default function Create_Transaction_Page() {
   const memoizedInitialDocuments = useMemo(() => requestedDocuments, [requestedDocuments]);
 
   // Form validation for save button - enabled when required fields are filled
-  const isFormValid = formData.rrfNumber && formData.requestorName && formData.purpose && formData.approvedBy && formData.servedBy;
+  const isFormValid = formData.requestorName && formData.requestType.length > 0 && formData.purpose && formData.approvedBy && formData.servedBy;
 
   // Click outside handler to close dropdown
   useEffect(() => {
@@ -1092,7 +1154,17 @@ export default function Create_Transaction_Page() {
                   disabled={saving || !isFormValid}
                   className="flex-1 md:flex-initial bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-10 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2  cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <FiSave className="w-5 h-5" />
+                  {/* Show spinner if saving */}
+                  {saving && (
+                    <span
+                      className="inline-block h-4 w-4 rounded-full border-2 border-white/60 border-t-white animate-spin"
+                      aria-hidden="true"
+                    />
+                  )}
+
+                  {/* Optional icon (only show when not saving) */}
+                  {!saving && <FiSave className="w-5 h-5" />}
+
                   <span>{saving ? 'Saving...' : 'Save'}</span>
                 </button>
               </div>
@@ -1116,21 +1188,23 @@ export default function Create_Transaction_Page() {
               <p className="text-green-100 text-sm mt-1">Search for clients and process equipment returns</p>
             </div>
             
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               {/* Client Search Section */}
-              <div className="relative" ref={searchContainerRef}>
+              <div className="relative">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Search Client Name
                 </label>
-                <SearchBar
-                  value={clientSearchQuery}
-                  onChange={(e) => handleClientSearch(e.target.value)}
-                  onFocus={handleSearchFocus}
-                  onClear={handleSearchClear}
-                  placeholder="Type client name to search..."
-                  width="w-full"
-                  disabled={loadingClients}
-                />
+                <div className="w-full">
+                  <SearchBar
+                    value={clientSearchQuery}
+                    onChange={(e) => handleClientSearch(e.target.value)}
+                    onFocus={handleSearchFocus}
+                    onClear={handleSearchClear}
+                    placeholder="Type client name to search..."
+                    width="w-full"
+                    disabled={loadingClients}
+                  />
+                </div>
                 
                 {/* Client Dropdown Results */}
                 {showClientDropdown && searchResults.length > 0 && (
@@ -1139,10 +1213,9 @@ export default function Create_Transaction_Page() {
                       <div
                         key={client.id}
                         onClick={() => handleClientSelect(client)}
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                        className="px-3 md:px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
                       >
-                        <div className="font-medium text-gray-900">{client.name}</div>
-                        <div className="text-sm text-gray-500">{client.email} • {client.department}</div>
+                        <div className="font-medium text-gray-900 text-sm md:text-base">{client.name}</div>
                       </div>
                     ))}
                   </div>
@@ -1151,7 +1224,7 @@ export default function Create_Transaction_Page() {
                 {/* No Results Message */}
                 {clientSearchQuery.length >= 2 && !loadingClients && searchResults.length === 0 && !selectedClient && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    <div className="px-4 py-3 text-gray-500 text-sm">
+                    <div className="px-3 md:px-4 py-3 text-gray-500 text-sm">
                       No clients found matching "{clientSearchQuery}"
                     </div>
                   </div>
@@ -1159,20 +1232,12 @@ export default function Create_Transaction_Page() {
                 
                 {/* Selected Client Info */}
                 {selectedClient && (
-                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-semibold text-green-800 mb-2">Selected Client:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-600">Name:</span>
-                        <p className="text-gray-900">{selectedClient.name}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Email:</span>
-                        <p className="text-gray-900">{selectedClient.email}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Department:</span>
-                        <p className="text-gray-900">{selectedClient.department}</p>
+                  <div className="mt-3 md:mt-4 p-2 md:p-3 lg:p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm">
+                    <h4 className="font-semibold text-green-800 mb-1 md:mb-2 text-xs md:text-sm lg:text-base">Selected Client:</h4>
+                    <div className="text-xs md:text-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <span className="font-medium text-gray-600 text-xs md:text-sm whitespace-nowrap">Name:</span>
+                        <p className="text-gray-900 break-words text-xs md:text-sm lg:text-base font-medium">{selectedClient.name}</p>
                       </div>
                     </div>
                   </div>
@@ -1182,34 +1247,31 @@ export default function Create_Transaction_Page() {
               {/* Borrowed Items DataTable */}
               <div>
                 <h4 className="text-lg font-semibold text-gray-800 mb-4">Borrowed Items</h4>
-                <DataTable
-                  columns={[
-                    { key: 'consumable_product_id', label: 'Product ID', className: 'text-center' },
-                    { key: 'product_name', label: 'Product Name' },
-                    { key: 'quantity', label: 'Quantity', className: 'text-center' },
-                    { key: 'borrowDate', label: 'Borrow Date', className: 'text-center' },
-                    { 
-                      key: 'status', 
-                      label: 'Status', 
-                      className: 'text-center',
-                      render: (status) => (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          Borrowed
-                        </span>
-                      )
-                    },
-                  
-                  ]}
-                  data={borrowedItems}
-                  selectable={true}
-                  selected={selectedItems}
-                  onSelect={handleItemSelection}
-                  onSelectAll={handleSelectAll}
-                  keyField="id"
-                  loading={loadingBorrowedItems}
-                  emptyMessage={selectedClient ? "No borrowed items found for this client" : "Please select a client to view borrowed items"}
-                  showCheckboxes={true}
-                />
+                <div className="overflow-x-auto">
+                  <DataTable
+                    columns={[
+                      { key: 'et_id', label: 'ET ID', className: 'text-center min-w-[80px]' },
+                      { key: 'client_name', label: 'Client Name', className: 'min-w-[120px]' },
+                      { key: 'product_id', label: 'Product ID', className: 'min-w-[100px]' },
+                      { key: 'item_description', label: 'Item Description', className: 'min-w-[200px]' },
+                      { key: 'borrowed_quantity', label: 'Borrowed Qty', className: 'text-center min-w-[100px]' },
+                      { key: 'borrowed_date', label: 'Borrow Date', className: 'text-center min-w-[120px]' },
+                      { key: 'returned_quantity', label: 'Returned Qty', className: 'text-center min-w-[100px]' },
+                      { key: 'returned_date', label: 'Return Date', className: 'text-center min-w-[120px]' },
+                      { key: 'returned_notes', label: 'Return Notes', className: 'min-w-[150px]' },
+                      { key: 'inspected_by', label: 'Inspected By', className: 'min-w-[120px]' },
+                    ]}
+                    data={borrowedItems}
+                    selectable={true}
+                    selected={selectedItems}
+                    onSelect={handleItemSelection}
+                    onSelectAll={handleSelectAll}
+                    keyField="et_id"
+                    loading={loadingBorrowedItems}
+                    emptyMessage={selectedClient ? "No borrowed items found for this client" : "Please select a client to view borrowed items"}
+                    showCheckboxes={true}
+                  />
+                </div>
               </div>
 
                           </div>
@@ -1257,146 +1319,20 @@ export default function Create_Transaction_Page() {
       />
 
       {/* Return Equipment Modal */}
-      {showReturnModal && (
-        <div className="fixed inset-0 w-screen h-screen bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-          <div className={`bg-white rounded-lg shadow-xl w-full overflow-hidden transition-all duration-300 ${
-            selectedItems.length > 5 ? 'max-w-6xl' : 
-            selectedItems.length > 3 ? 'max-w-5xl' : 
-            selectedItems.length > 1 ? 'max-w-4xl' : 'max-w-3xl'
-          } max-h-[90vh]`}>
-            {/* Header */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-semibold">Return Equipment</h2>
-                <p className="text-blue-100 text-sm mt-1">Fill in the return information for selected items</p>
-              </div>
-              <button
-                onClick={() => setShowReturnModal(false)}
-                className="text-white hover:text-gray-200 transition-colors"
-              >
-                <FiX size={24} />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleReturnFormSubmit} className="p-6 space-y-6 h-full flex flex-col">
-              <div className="flex-1 overflow-hidden flex flex-col">
-                {/* Selected Items with Return Quantities */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-4">Selected Items ({selectedItems.length})</h4>
-                  <div className={`space-y-3 overflow-y-auto ${
-                    selectedItems.length > 8 ? 'max-h-40' : 
-                    selectedItems.length > 5 ? 'max-h-48' : 
-                    selectedItems.length > 3 ? 'max-h-56' : 'max-h-64'
-                  }`}>
-                    {borrowedItems
-                      .filter(item => selectedItems.includes(item.id))
-                      .map(item => (
-                        <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-800 truncate">{item.product_name}</div>
-                            <div className="text-sm text-gray-600">{item.consumable_product_id}</div>
-                            <div className="text-xs text-gray-500">Borrowed: {item.quantity}</div>
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Return Qty:</label>
-                            <input
-                              type="number"
-                              min="0"
-                              max={item.quantity}
-                              value={itemReturnQuantities[item.id] || ''}
-                              onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
-                              className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center flex-shrink-0"
-                              required
-                            />
-                            <span className="text-sm text-gray-600 whitespace-nowrap">/ {item.quantity}</span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-                
-                {/* Form Fields */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-auto">
-                  {/* Returnee Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Returnee Name
-                    </label>
-                    <input
-                      type="text"
-                      value={returneeName}
-                      onChange={(e) => setReturneeName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      placeholder="Enter name of person returning equipment"
-                      required
-                    />
-                  </div>
-
-                  {/* Return Date */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Return Date
-                    </label>
-                    <input
-                      type="date"
-                      value={returnDate}
-                      onChange={(e) => setReturnDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      required
-                    />
-                  </div>
-
-                  {/* Return Notes */}
-                  <div className="lg:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Return Notes
-                    </label>
-                    <textarea
-                      value={returnNotes}
-                      onChange={(e) => setReturnNotes(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      rows="3"
-                      placeholder="Enter any damage notes or observations..."
-                    />
-                  </div>
-
-                  {/* Inspected By */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Inspected By
-                    </label>
-                    <input
-                      type="text"
-                      value={inspectedBy}
-                      onChange={(e) => setInspectedBy(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      placeholder="Enter name of inspector"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-4 pt-4 justify-end mt-auto">
-                  <Button_Clear
-                    onClick={resetReturnForm}
-                    label="Clear Form"
-                  />
-                  <Button
-                    label="Save"
-                    icon={<FiSave />}
-                    variant="primary"
-                    size="lg"
-                    type="submit"
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-                  />
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ReturnEquipmentModal
+        isOpen={showReturnModal}
+        onClose={() => setShowReturnModal(false)}
+        selectedItems={selectedItems}
+        borrowedItems={borrowedItems}
+        onReturnQuantityChange={handleReturnQuantityChange}
+        returnNotes={returnNotes}
+        setReturnNotes={setReturnNotes}
+        inspectedBy={inspectedBy}
+        setInspectedBy={setInspectedBy}
+        onSubmit={handleReturnFormSubmit}
+        itemReturnQuantities={itemReturnQuantities}
+        onClearData={handleClearData}
+      />
 
     
     </div>

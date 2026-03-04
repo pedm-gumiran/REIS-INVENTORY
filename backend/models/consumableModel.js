@@ -13,19 +13,19 @@ exports.getConsumableById = async (id) => {
 };
 
 /* CREATE */
-exports.createConsumable = async (product_id, item_description, category, unit, quantity, unit_cost, status) => {
+exports.createConsumable = async (product_id, item_description, category, unit, quantity, unit_cost) => {
   const [result] = await db.execute(
-    'INSERT INTO consumable_products (product_id, item_description, category, unit, quantity, unit_cost, total_cost, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [product_id, item_description, category, unit, quantity, unit_cost, quantity * unit_cost, status || 'In Stock']
+    'INSERT INTO consumable_products (product_id, item_description, category, unit, quantity, unit_cost, total_cost) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [product_id, item_description, category, unit, quantity, unit_cost, quantity * unit_cost]
   );
   return product_id;
 };
 
 /* UPDATE / EDIT */
-exports.updateConsumable = async (id, item_description, category, unit, quantity, unit_cost, status) => {
+exports.updateConsumable = async (id, item_description, category, unit, quantity, unit_cost) => {
   const [result] = await db.execute(
-    'UPDATE consumable_products SET item_description = ?, category = ?, unit = ?, quantity = ?, unit_cost = ?, total_cost = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE product_id = ?',
-    [item_description, category, unit, quantity, unit_cost, quantity * unit_cost, status, id]
+    'UPDATE consumable_products SET item_description = ?, category = ?, unit = ?, quantity = ?, unit_cost = ?, total_cost = ?, updated_at = CURRENT_TIMESTAMP WHERE product_id = ?',
+    [item_description, category, unit, quantity, unit_cost, quantity * unit_cost, id]
   );
   return result.affectedRows;
 };

@@ -13,19 +13,19 @@ exports.getNonConsumableById = async (id) => {
 };
 
 /* CREATE */
-exports.createNonConsumable = async (product_id, item_description, category, unit, quantity, unit_cost, total_cost, status) => {
+exports.createNonConsumable = async (product_id, item_description, category, unit, quantity, unit_cost, total_cost) => {
   const [result] = await db.execute(
-    'INSERT INTO non_consumable_products (product_id, item_description, category, unit, quantity, unit_cost, total_cost, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [product_id, item_description, category, unit, quantity, unit_cost, total_cost, status]
+    'INSERT INTO non_consumable_products (product_id, item_description, category, unit, quantity, unit_cost, total_cost) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [product_id, item_description, category, unit, quantity, unit_cost, total_cost]
   );
   return product_id;
 };
 
 /* UPDATE / EDIT */
-exports.updateNonConsumable = async (id, item_description, category, unit, quantity, unit_cost, total_cost, status) => {
+exports.updateNonConsumable = async (id, item_description, category, unit, quantity, unit_cost, total_cost) => {
   const [result] = await db.execute(
-    'UPDATE non_consumable_products SET item_description = ?, category = ?, unit = ?, quantity = ?, unit_cost = ?, total_cost = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE product_id = ?',
-    [item_description, category, unit, quantity, unit_cost, total_cost, status, id]
+    'UPDATE non_consumable_products SET item_description = ?, category = ?, unit = ?, quantity = ?, unit_cost = ?, total_cost = ?, updated_at = CURRENT_TIMESTAMP WHERE product_id = ?',
+    [item_description, category, unit, quantity, unit_cost, total_cost, id]
   );
   return result.affectedRows;
 };

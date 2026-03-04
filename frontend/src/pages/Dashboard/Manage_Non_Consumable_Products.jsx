@@ -48,9 +48,9 @@ export default function Manage_Non_Consumable_Products() {
           Category_Name: item.category || 'Equipment',
           Item_Description: item.item_description || 'No description',
           Unit: item.unit || 'per unit',
-          Quantity: item.quantity || 1,
+          Quantity: item.quantity ,
           Unit_Cost: parseFloat(item.unit_cost) || 0,
-          Status: item.status || 'Available'
+          Status: item.quantity === 0 ? 'Borrowed' : (item.status || 'Available')
         }));
         
         setProducts(transformedProducts);
@@ -112,9 +112,9 @@ export default function Manage_Non_Consumable_Products() {
         Category_Name: item.category || 'Equipment',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per unit',
-        Quantity: item.quantity || 1,
+        Quantity: item.quantity ,
         Unit_Cost: parseFloat(item.unit_cost) || 0,
-        Status: item.status || 'Available'
+        Status: item.quantity === 0 ? 'Borrowed' : (item.status || 'Available')
       }));
       
       setProducts(transformedProducts);
@@ -122,7 +122,8 @@ export default function Manage_Non_Consumable_Products() {
       setIsAddModalOpen(false); // Only close on success
     } catch (error) {
       console.error('Error adding product:', error);
-      toast.error('Failed to add product. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Failed to add product. Please try again.';
+      toast.error(errorMessage);
       // Don't close modal on failure - let user try again
     } finally {
       setIsAdding(false);
@@ -163,9 +164,9 @@ export default function Manage_Non_Consumable_Products() {
         Category_Name: item.category || 'Equipment',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per unit',
-        Quantity: item.quantity || 1,
+        Quantity: item.quantity ,
         Unit_Cost: parseFloat(item.unit_cost) || 0,
-        Status: item.status || 'Available'
+        Status: item.quantity === 0 ? 'Borrowed' : (item.status || 'Available')
       }));
       
       setProducts(transformedProducts);
@@ -210,9 +211,9 @@ export default function Manage_Non_Consumable_Products() {
         Category_Name: item.category || 'Equipment',
         Item_Description: item.item_description || 'No description',
         Unit: item.unit || 'per unit',
-        Quantity: item.quantity || 1,
+        Quantity: item.quantity ,
         Unit_Cost: parseFloat(item.unit_cost) || 0,
-        Status: item.status || 'Available'
+        Status: item.quantity === 0 ? 'Borrowed' : (item.status || 'Available')
       }));
       
       setProducts(transformedProducts);

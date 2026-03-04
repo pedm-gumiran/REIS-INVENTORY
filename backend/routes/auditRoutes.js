@@ -8,12 +8,18 @@ const {
   deleteTransactionAudit,
   deleteAllTransactionAudits,
   deleteEquipmentReturn,
-  deleteAllEquipmentReturns
+  deleteAllEquipmentReturns,
+  getBorrowedEquipmentByClient,
+  updateEquipmentReturn,
+  searchClients
 } = require('../controllers/auditController');
 
 // Equipment Returns routes
 router.get('/equipment-returns', getEquipmentReturns);
+router.get('/equipment-returns/client/:clientName', getBorrowedEquipmentByClient);
+router.get('/clients/search', searchClients);
 router.post('/equipment-returns', createEquipmentReturn);
+router.put('/equipment-returns/:id', updateEquipmentReturn);
 router.delete('/equipment-returns/:id', deleteEquipmentReturn);
 router.delete('/equipment-returns', deleteAllEquipmentReturns);
 

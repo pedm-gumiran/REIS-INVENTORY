@@ -50,7 +50,6 @@ export default function Manage_Consumable_Products() {
           Unit: item.unit || 'per piece',
           Quantity: item.quantity || 0,
           Unit_Cost: parseFloat(item.unit_cost) || 0,
-          Status: item.status || ((item.quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
         }));
         
         setProducts(transformedProducts);
@@ -81,8 +80,7 @@ export default function Manage_Consumable_Products() {
     product.Consumable_Product_ID.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.Category_Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.Item_Description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.Unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.Status.toLowerCase().includes(searchTerm.toLowerCase())
+    product.Unit.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle add product
@@ -97,7 +95,6 @@ export default function Manage_Consumable_Products() {
         unit: newProduct.Unit,
         quantity: newProduct.Quantity,
         unit_cost: newProduct.Unit_Cost,
-        status: newProduct.Status || ((newProduct.Quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
       };
 
       const response = await axiosInstance.post('/consumables', apiData);
@@ -115,7 +112,6 @@ export default function Manage_Consumable_Products() {
         Unit: item.unit || 'per piece',
         Quantity: item.quantity || 0,
         Unit_Cost: parseFloat(item.unit_cost) || 0,
-        Status: item.status || ((item.quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
       }));
       
       setProducts(transformedProducts);
@@ -123,7 +119,8 @@ export default function Manage_Consumable_Products() {
       setIsAddModalOpen(false); // Only close on success
     } catch (error) {
       console.error('Error adding product:', error);
-      toast.error('Failed to add product. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Failed to add product. Please try again.';
+      toast.error(errorMessage);
       // Don't close modal on failure - let user try again
     } finally {
       setIsAdding(false);
@@ -149,7 +146,6 @@ export default function Manage_Consumable_Products() {
         unit: updatedProduct.Unit,
         quantity: updatedProduct.Quantity,
         unit_cost: updatedProduct.Unit_Cost,
-        status: updatedProduct.Status || ((updatedProduct.Quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
       };
 
       await axiosInstance.put(`/consumables/${originalProduct.id}`, apiData);
@@ -167,7 +163,6 @@ export default function Manage_Consumable_Products() {
         Unit: item.unit || 'per piece',
         Quantity: item.quantity || 0,
         Unit_Cost: parseFloat(item.unit_cost) || 0,
-        Status: item.status || ((item.quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
       }));
       
       setProducts(transformedProducts);
@@ -214,7 +209,6 @@ export default function Manage_Consumable_Products() {
         Unit: item.unit || 'per piece',
         Quantity: item.quantity || 0,
         Unit_Cost: parseFloat(item.unit_cost) || 0,
-        Status: item.status || ((item.quantity || 0) <= 10 ? 'Low Stock' : 'In Stock')
       }));
       
       setProducts(transformedProducts);
@@ -245,7 +239,6 @@ export default function Manage_Consumable_Products() {
       'Quantity': product.Quantity,
       'Unit Cost': product.Unit_Cost,
       'Total Cost': (product.Quantity * product.Unit_Cost).toFixed(2),
-      'Status': product.Status
     }));
 
     // Create worksheet

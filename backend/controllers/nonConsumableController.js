@@ -46,7 +46,7 @@ exports.getNonConsumableById = async (req, res) => {
 // CREATE new non-consumable
 exports.createNonConsumable = async (req, res) => {
   try {
-    const { product_id, item_description, category, unit, quantity, unit_cost, status } = req.body;
+    const { product_id, item_description, category, unit, quantity, unit_cost } = req.body;
     
     // Validate required fields
     if (!product_id || !item_description) {
@@ -56,12 +56,20 @@ exports.createNonConsumable = async (req, res) => {
       });
     }
     
+    // Check if product_id already exists
+    const existing = await NonConsumable.getNonConsumableById(product_id);
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product ID already exists'
+      });
+    }
+    
     // Ensure all values are properly defined (not undefined)
     const safeCategory = category !== undefined ? category : 'Equipment';
     const safeUnit = unit !== undefined ? unit : 'per unit';
-    const safeQuantity = quantity !== undefined ? quantity : 1;
-    const safeUnitCost = unit_cost !== undefined ? unit_cost : 0;
-    const safeStatus = status !== undefined ? status : 'Available';
+    const safeQuantity = quantity !== undefined ? parseInt(quantity) || 0 : 1;
+    const safeUnitCost = unit_cost !== undefined ? parseFloat(unit_cost) || 0 : 0;
     
     // Calculate total cost
     const total_cost = (safeQuantity || 0) * (safeUnitCost || 0);
@@ -73,8 +81,7 @@ exports.createNonConsumable = async (req, res) => {
       safeUnit,
       safeQuantity,
       safeUnitCost,
-      total_cost,
-      safeStatus
+      total_cost
     );
     
     res.status(201).json({
@@ -95,7 +102,7 @@ exports.createNonConsumable = async (req, res) => {
 exports.updateNonConsumable = async (req, res) => {
   try {
     const { id } = req.params;
-    const { item_description, category, unit, quantity, unit_cost, status } = req.body;
+    const { item_description, category, unit, quantity, unit_cost } = req.body;
     
     // Check if non-consumable exists
     const existingNonConsumable = await NonConsumable.getNonConsumableById(id);
@@ -110,9 +117,8 @@ exports.updateNonConsumable = async (req, res) => {
     const safeItemDescription = item_description !== undefined ? item_description : existingNonConsumable.item_description;
     const safeCategory = category !== undefined ? category : existingNonConsumable.category;
     const safeUnit = unit !== undefined ? unit : existingNonConsumable.unit;
-    const safeQuantity = quantity !== undefined ? quantity : existingNonConsumable.quantity;
-    const safeUnitCost = unit_cost !== undefined ? unit_cost : existingNonConsumable.unit_cost;
-    const safeStatus = status !== undefined ? status : existingNonConsumable.status;
+    const safeQuantity = quantity !== undefined ? parseInt(quantity) || 0 : existingNonConsumable.quantity;
+    const safeUnitCost = unit_cost !== undefined ? parseFloat(unit_cost) || 0 : existingNonConsumable.unit_cost;
     
     // Calculate total cost
     const total_cost = (safeQuantity || 0) * (safeUnitCost || 0);
@@ -124,8 +130,7 @@ exports.updateNonConsumable = async (req, res) => {
       safeUnit,
       safeQuantity,
       safeUnitCost,
-      total_cost,
-      safeStatus
+      total_cost
     );
     
     if (result === 0) {

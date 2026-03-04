@@ -82,7 +82,8 @@ export default function SuppliesEquipmentModal({
           category: item.category,
           stock: item.quantity,
           unit: item.unit,
-          condition: item.condition || 'Unknown'
+          condition: item.condition || 'Unknown',
+          className: item.quantity === 0 ? 'bg-gray-100 opacity-50 cursor-not-allowed text-gray-500' : ''
         }));
         setNonConsumableData(mappedData);
       }
@@ -277,11 +278,16 @@ export default function SuppliesEquipmentModal({
                   selected={selectedItems.filter(item => item.type === 'non-consumable').map(item => item.id)}
                   onSelect={(selectedIds) => {
                     const newSelectedItems = selectedItems.filter(item => item.type !== 'non-consumable');
-                    const newNonConsumableItems = selectedIds.map(id => {
-                      const item = filteredNonConsumable.find(item => item.id === id);
-                      const existingItem = selectedItems.find(selected => selected.id === id);
-                      return item ? { ...item, quantity: existingItem?.quantity || 1, type: 'non-consumable' } : null;
-                    }).filter(Boolean);
+                    const newNonConsumableItems = selectedIds
+                      .filter(id => {
+                        const item = filteredNonConsumable.find(item => item.id === id);
+                        return item && item.stock > 0;
+                      })
+                      .map(id => {
+                        const item = filteredNonConsumable.find(item => item.id === id);
+                        const existingItem = selectedItems.find(selected => selected.id === id);
+                        return item ? { ...item, quantity: existingItem?.quantity || 1, type: 'non-consumable' } : null;
+                      }).filter(Boolean);
                     setSelectedItems([...newSelectedItems, ...newNonConsumableItems]);
                   }}
                   keyField="id"
