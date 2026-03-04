@@ -66,6 +66,12 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
       { name: 'Home', icon: <FaHome />, path: '/home_admin' },
       
       {
+        name: 'Create Transaction',
+        icon: <FaExchangeAlt />,
+        path: '/create_transaction',
+      },
+      
+      {
         name: 'Inventory',
         icon: <FaBoxes />,
         textTooltip: 'Please expand to see inventory options',
@@ -79,11 +85,6 @@ export default function Sidebar({ isMobileOpen, onCloseMobile, isModalOpen }) {
             name: 'Non-consumable Products',
             icon: <FaBoxes />,
             path: '/non_consumable_products',
-          },
-          {
-            name: 'Create Transaction',
-            icon: <FaExchangeAlt />,
-            path: '/create_transaction',
           },
         ],
       },

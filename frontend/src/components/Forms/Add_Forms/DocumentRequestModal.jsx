@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiX, FiPlus, FiMinus } from 'react-icons/fi';
 import Input_Text from '../../Input_Fields/Input_Text';
 import Button from '../../Buttons/Button';
@@ -17,6 +17,9 @@ export default function DocumentRequestModal({
       : [{ id: 1, name: '' }]
   );
 
+  // Refs to store input elements for focus management
+  const inputRefs = useRef({});
+
   // Sync documents with parent state and handle clearing
   useEffect(() => {
     if (isOpen) {
@@ -34,6 +37,26 @@ export default function DocumentRequestModal({
   const addDocument = () => {
     const newId = Math.max(...documents.map(d => d.id), 0) + 1;
     setDocuments([...documents, { id: newId, name: '' }]);
+    
+    // Focus on the newly created document field after a short delay
+    setTimeout(() => {
+      if (inputRefs.current[newId]) {
+        inputRefs.current[newId].focus();
+      }
+    }, 100);
+  };
+
+  const handleKeyDown = (e, documentId) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission
+      // Check if current document has content and it's the last document
+      const currentDoc = documents.find(doc => doc.id === documentId);
+      const isLastDocument = documents[documents.length - 1].id === documentId;
+      
+      if (currentDoc && currentDoc.name.trim() && isLastDocument) {
+        addDocument();
+      }
+    }
   };
 
   const removeDocument = (id) => {
@@ -102,8 +125,10 @@ export default function DocumentRequestModal({
                       label="Document Name *"
                       value={document.name}
                       onChange={(e) => updateDocument(document.id, 'name', e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, document.id)}
                       placeholder="e.g., Birth Certificate, Transcript of Records"
                       required
+                      inputRef={(el) => { inputRefs.current[document.id] = el; }}
                     />
                   </div>
                 </div>

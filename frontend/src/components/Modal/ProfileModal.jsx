@@ -82,15 +82,6 @@ export default function ProfileModal({ isOpen, onClose }) {
               <div className="text-gray-900">{user?.email || '-'}</div>
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-600">Role</label>
-              <div className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium w-25">
-                {user?.role || 'Guest'}
-              </div>
-            </div>
-
-
-
           </div>
         </div>
       </div>

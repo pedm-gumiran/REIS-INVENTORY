@@ -13,6 +13,8 @@ export default function Input_Text({
   className,
   text_ClassName,
   type = 'text',
+  onKeyDown,
+  inputRef,
 }) {
   const handleClear = () => {
     const event = { target: { name, value: '' } };
@@ -60,8 +62,10 @@ export default function Input_Text({
         }`}
         required={required}
         onChange={handleChange}
+        onKeyDown={onKeyDown}
         value={value}
         disabled={disabled}
+        ref={inputRef}
         autoComplete={type === 'email' || name === 'email' ? 'off' : name === 'pin_code' ? 'off' : 'new-password'} // Disable auto-suggestion for email and PIN code
       />
       {value && !disabled && type !== 'number' && (
