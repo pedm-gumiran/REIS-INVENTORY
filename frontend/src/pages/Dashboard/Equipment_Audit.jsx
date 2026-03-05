@@ -108,6 +108,17 @@ export default function Equipment_Returned_Audit() {
 
   const { month: topMonth, count: topMonthCount } = getMonthWithMostReturns();
 
+  // Calculate not yet returned items
+  const getNotYetReturnedCount = () => {
+    return equipmentReturns.filter(item => 
+      item.returned_date === '-' || 
+      item.returned_time === '-' || 
+      item.returned_quantity === '-'
+    ).length;
+  };
+
+  const notYetReturnedCount = getNotYetReturnedCount();
+
   // Filter returns based on search term and status
   const filteredReturns = equipmentReturns.filter(returnItem => {
     const matchesSearch = 
@@ -342,11 +353,17 @@ export default function Equipment_Returned_Audit() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-blue-600 text-sm font-medium">Total Returns</p>
             <p className="text-2xl font-bold text-blue-900">{equipmentReturns.length}</p>
+          </div>
+        </Card>
+        <Card className="bg-red-50 border-red-200">
+          <div className="text-center">
+            <p className="text-red-600 text-sm font-medium">Not Yet Returned</p>
+            <p className="text-2xl font-bold text-red-900">{notYetReturnedCount}</p>
           </div>
         </Card>
         <Card className="bg-purple-50 border-purple-200">

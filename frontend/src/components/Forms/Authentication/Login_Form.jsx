@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Input_Text from '../../Input_Fields/Input_Text';
 import Input_Password from '../../Input_Fields/Input_Password';
 import Button from '../../Buttons/Button';
+import axiosInstance from '../../../api/axios';
 //import { useNavigate } from 'react-router-dom';
 //import { toast } from 'react-toastify';
 
@@ -21,6 +22,23 @@ export default function LoginForm() {
   });
 
   const [loading] = useState(false);
+  const [hasUsers, setHasUsers] = useState(null); // null = loading, true = has users, false = no users
+
+  // Check if there are existing users
+  const checkUserCount = async () => {
+    try {
+      const response = await axiosInstance.get('/users/count');
+      setHasUsers(response.data.count > 0);
+    } catch (error) {
+      console.error('Error checking user count:', error);
+      // If API fails, default to showing register option
+      setHasUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    checkUserCount();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,7 +101,7 @@ export default function LoginForm() {
           <Link to="/home_admin">
             {' '}
             <Button
-              label={'Log In'}
+              label={'Login'}
               isLoading={loading}
               loadingText="Logging in ...."
               type="submit"
@@ -94,15 +112,18 @@ export default function LoginForm() {
             />
           </Link>
         </form>
-        <div className="flex justify-center gap-3 mt-4">
-          <p>No Account?</p>
-          <Link
-            to="/register_account"
-            className="text-sm text-green-600 hover:text-green-800 hover:underline font-medium transition-colors mt-1"
-          >
-            Register Account
-          </Link>
-        </div>
+        {/* Show register option only if no users exist */}
+        {hasUsers === false && (
+          <div className="flex justify-center gap-3 mt-4">
+            <p>No Account?</p>
+            <Link
+              to="/register_account"
+              className="text-sm text-green-600 hover:text-green-800 hover:underline font-medium transition-colors mt-1"
+            >
+              Register Account
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

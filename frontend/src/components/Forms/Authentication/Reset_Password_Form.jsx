@@ -109,10 +109,10 @@ export default function Reset_Password_Form() {
         <header className="text-center mb-8">
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-xl shadow-lg">
             <h2 className="text-2xl md:text-3xl font-bold mb-2">
-              Set New Password
+              Reset Password
             </h2>
             <p className="text-green-100">
-              Complete REIMS Password Reset
+              Please set and confirm your new password
             </p>
           </div>
         </header>

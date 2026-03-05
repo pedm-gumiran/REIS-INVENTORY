@@ -105,10 +105,15 @@ export default function ReturnEquipmentModal({
                       <Input_Text
                         type="number"
                         value={itemReturnQuantities[item.et_id] || ''}
-                        onChange={(e) => onReturnQuantityChange(item.et_id, e.target.value)}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          if (value >= 1 && value <= item.borrowed_quantity) {
+                            onReturnQuantityChange(item.et_id, value);
+                          }
+                        }}
                         className="w-16 md:w-20 text-center flex-shrink-0 text-sm"
                         text_ClassName="text-center"
-                        min="0"
+                        min="1"
                         max={item.borrowed_quantity}
                         required
                       />

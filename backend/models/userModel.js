@@ -6,6 +6,12 @@ exports.getAllUsers = async () => {
   return rows;
 };
 
+/* GET USER COUNT */
+exports.getUserCount = async () => {
+  const [rows] = await db.execute('SELECT COUNT(*) as count FROM users');
+  return rows[0].count;
+};
+
 /* READ ONE BY ID */
 exports.getUserById = async (user_id) => {
   const [rows] = await db.execute('SELECT * FROM users WHERE user_id = ?', [user_id]);

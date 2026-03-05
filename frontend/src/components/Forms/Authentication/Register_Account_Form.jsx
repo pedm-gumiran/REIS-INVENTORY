@@ -74,7 +74,7 @@ export default function Register_Account_Form() {
         <header className="text-center mb-8">
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-xl shadow-lg">
             <h2 className="text-2xl md:text-3xl font-bold mb-2">
-              Create REIMS Account
+              Register Account
             </h2>
             <p className="text-green-100">
               Please all the fields to create your account
@@ -168,7 +168,7 @@ export default function Register_Account_Form() {
           />
 
           <p className="text-center text-sm text-gray-500 mt-4">
-            Remember your password?{' '}
+            Already have an account? {' '}
             <button
               type="button"
               onClick={() => navigate('/login')}

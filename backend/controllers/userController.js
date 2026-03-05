@@ -11,6 +11,16 @@ exports.getUsers = async (req, res) => {
   }
 };
 
+exports.getUserCount = async (req, res) => {
+  try {
+    const count = await User.getUserCount();
+    res.status(200).json({ count });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to get user count' });
+  }
+};
+
 exports.registerUser = async (req, res) => {
   try {
     const { first_name, last_name, email, password, pin_code } = req.body;
