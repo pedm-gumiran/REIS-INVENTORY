@@ -413,3 +413,20 @@ exports.updateStock = async (req, res) => {
     });
   }
 };
+
+// GET low stock non-consumables
+exports.getLowStockNonConsumables = async (req, res) => {
+  try {
+    const lowStockItems = await NonConsumable.getLowStockNonConsumables();
+    res.status(200).json({
+      success: true,
+      data: lowStockItems
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch low stock non-consumables'
+    });
+  }
+};

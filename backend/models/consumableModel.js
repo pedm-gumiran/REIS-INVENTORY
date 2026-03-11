@@ -62,6 +62,12 @@ function generateProductId() {
 
 /* GET LOW STOCK ITEMS */
 exports.getLowStockConsumables = async () => {
-  const [rows] = await db.execute('SELECT * FROM consumable_products WHERE quantity <= reorder_level ORDER BY quantity ASC');
+  const query = 'SELECT * FROM consumable_products WHERE quantity <= 10 ORDER BY quantity ASC';
+  console.log('Executing low stock query:', query);
+  const [rows] = await db.execute(query);
+  console.log('Low stock query result:', rows.length, 'items found');
+  if (rows.length > 0) {
+    console.log('First item:', rows[0]);
+  }
   return rows;
 };

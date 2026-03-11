@@ -91,3 +91,9 @@ exports.addReturnedQuantity = async (productId, returnedQuantity) => {
   );
   return result.affectedRows;
 };
+
+/* GET LOW STOCK ITEMS */
+exports.getLowStockNonConsumables = async () => {
+  const [rows] = await db.execute('SELECT * FROM non_consumable_products WHERE quantity <= 10 ORDER BY quantity ASC');
+  return rows;
+};

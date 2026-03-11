@@ -8,6 +8,7 @@ const consumableRoutes = require('./routes/consumableRoutes.js');
 const nonConsumableRoutes = require('./routes/nonConsumableRoutes.js');
 const auditRoutes = require('./routes/auditRoutes.js');
 const backupRestoreRoutes = require('./routes/backupRestoreRoutes.js');
+const notificationRoutes = require('./routes/notificationRoutes.js');
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/consumables', consumableRoutes);
 app.use('/api/non-consumables', nonConsumableRoutes);
 app.use('/api/audits', auditRoutes);
 app.use('/api/backup-restore', backupRestoreRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/', (req, res) => res.send('Server is Ready!'));
 
