@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Card from '../../components/cards/Card';
 import DataTable from '../../components/DataTables/DataTable';
 import SearchBar from '../../components/Input_Fields/SearchBar';
@@ -10,6 +11,7 @@ import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
 import axiosInstance from '../../api/axios';
 import Button from '../../components/Buttons/Button';
+import { useNotificationContext } from '../../context/NotificationContext';
 
 const getConsumableId = (item, index) => {
   if (item.product_id) {
@@ -20,6 +22,7 @@ const getConsumableId = (item, index) => {
 };
 
 export default function Manage_Consumable_Products() {
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [products, setProducts] = useState([]);
@@ -28,11 +31,15 @@ export default function Manage_Consumable_Products() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [highlightedItemId, setHighlightedItemId] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [isAdding, setIsAdding] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Get notification context to refresh notifications after CRUD operations
+  const { refetchNotifications } = useNotificationContext();
 
   // Fetch data from API
   useEffect(() => {
@@ -74,6 +81,37 @@ export default function Manage_Consumable_Products() {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Handle navigation state for highlighting
+  useEffect(() => {
+    // Only highlight if we have a valid highlightItemId from notification state
+    if (location.state?.highlightItemId && location.state?.fromNotification === true) {
+      console.log('Highlighting item from notification:', location.state.highlightItemId);
+      setHighlightedItemId(location.state.highlightItemId);
+      
+      // Scroll to the highlighted item after a short delay
+      setTimeout(() => {
+        const element = document.getElementById(`highlight-${location.state.highlightItemId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
+      
+      // Clear the navigation state to prevent re-highlighting on refresh
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      // Ensure no highlighting if not coming from notification
+      setHighlightedItemId(null);
+    }
+  }, [location.state]);
+
+  // Clear highlighted item after any CRUD operation
+  const clearHighlight = () => {
+    if (highlightedItemId) {
+      console.log('Clearing highlight after CRUD operation');
+      setHighlightedItemId(null);
+    }
+  };
 
   // Filter products based on search term
   const filteredProducts = products.filter(product =>
@@ -117,6 +155,8 @@ export default function Manage_Consumable_Products() {
       setProducts(transformedProducts);
       toast.success('Consumable product added successfully!');
       setIsAddModalOpen(false); // Only close on success
+      refetchNotifications(); // Refresh notification bell
+      clearHighlight(); // Clear highlight after operation
     } catch (error) {
       console.error('Error adding product:', error);
       const errorMessage = error.response?.data?.message || 'Failed to add product. Please try again.';
@@ -170,6 +210,8 @@ export default function Manage_Consumable_Products() {
       toast.success('Consumable product updated successfully!');
       setIsEditModalOpen(false); // Only close on success
       setEditingProduct(null);
+      refetchNotifications(); // Refresh notification bell
+      clearHighlight(); // Clear highlight after operation
     } catch (error) {
       console.error('Error updating product:', error);
       toast.error('Failed to update product. Please try again.');
@@ -214,6 +256,8 @@ export default function Manage_Consumable_Products() {
       setProducts(transformedProducts);
       setSelectedItems([]);
       toast.success(`${itemsToDelete.length} consumable product(s) deleted successfully!`);
+      refetchNotifications(); // Refresh notification bell
+      clearHighlight(); // Clear highlight after operation
     } catch (error) {
       console.error('Error deleting products:', error);
       toast.error('Failed to delete products. Please try again.');
@@ -453,6 +497,8 @@ export default function Manage_Consumable_Products() {
           showCheckboxes={false}
           emptyMessage={loading ? "Loading products..." : "No consumable products found"}
           loading={loading}
+          highlightedItemId={highlightedItemId}
+          getRowId={(row) => row.id}
         />
       </Card>
       {/* Add Product Modal */}

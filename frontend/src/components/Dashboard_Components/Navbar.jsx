@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaBars } from 'react-icons/fa';
+import { FaBars, FaBell } from 'react-icons/fa';
 import ProfileModal from '../Modal/ProfileModal';
 import ChangePasswordModal from '../Modal/ChangePasswordModal';
 import ConfirmationBox from '../Modal/ConfirmationBox';
 import { useUser } from '../context/UserContext';
+import NotificationDropdown from './NotificationDropdown';
+import { useNotificationContext } from '../../context/NotificationContext';
 //import { supabase } from '../../supabaseClient';
 
 export default function Navbar({
@@ -17,24 +19,29 @@ export default function Navbar({
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { user } = useUser(); // get dynamic logged-in user
   const [loading, setLoading] = useState(false);
+  
+  // Custom hook for notifications
+  const { notificationCount, loading: notificationLoading } = useNotificationContext();
 
   // Handle modal state for sidebar z-index
   useEffect(() => {
     const anyModalOpen =
-      isProfileModalOpen || isChangePasswordModalOpen || logoutConfirm;
+      isProfileModalOpen || isChangePasswordModalOpen || logoutConfirm || isNotificationOpen;
     setIsModalOpen(anyModalOpen);
   }, [
     isProfileModalOpen,
     isChangePasswordModalOpen,
     logoutConfirm,
+    isNotificationOpen,
     setIsModalOpen,
   ]);
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -44,6 +51,30 @@ export default function Navbar({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close notifications when clicking outside notification area (but not on the button itself)
+  useEffect(() => {
+    function handleNotificationClickOutside(event) {
+      const notificationButton = event.target.closest('[data-notification-button]');
+      const notificationDropdown = event.target.closest('[data-notification-dropdown]');
+      
+      // Only close if clicking outside both button and dropdown
+      // Add a small delay to avoid conflicts with button click
+      setTimeout(() => {
+        if (!notificationButton && !notificationDropdown && isNotificationOpen) {
+          setIsNotificationOpen(false);
+        }
+      }, 10);
+    }
+    
+    if (isNotificationOpen) {
+      document.addEventListener('mousedown', handleNotificationClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleNotificationClickOutside);
+    };
+  }, [isNotificationOpen]);
 
   const handlePasswordChange = (data) => {
     console.log('Password data:', data);
@@ -84,8 +115,49 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Right: Profile Dropdown */}
-      <div className="relative" ref={dropdownRef}>
+      {/* Right: Notifications + Profile Dropdown */}
+      <div className="flex items-center gap-3">
+        {/* Notification Button */}
+        <div className="relative">
+          <button
+            data-notification-button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Notification button clicked! Current state:', isNotificationOpen);
+              
+              // Toggle the notification state
+              const newState = !isNotificationOpen;
+              setIsNotificationOpen(newState);
+              setOpen(false); // Close profile dropdown when opening notifications
+            }}
+            className={`relative p-2 rounded-full transition-all duration-200 focus:outline-none text-gray-600 hover:bg-gray-100 hover:scale-105`}
+            title="Notifications"
+            aria-label="Notifications"
+            aria-expanded={isNotificationOpen}
+          >
+            <FaBell className="text-xl" />
+            {/* Notification Badge */}
+            {notificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg animate-bounce bg-red-500">
+                {notificationCount > 99 ? '99+' : notificationCount}
+              </span>
+            )}
+            {/* Loading indicator */}
+            {notificationLoading && (
+              <span className="absolute -bottom-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            )}
+          </button>
+          
+          {/* Notification Dropdown */}
+          <NotificationDropdown
+            isOpen={isNotificationOpen}
+            onClose={() => setIsNotificationOpen(false)}
+          />
+        </div>
+
+        {/* Profile Dropdown */}
+        <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setOpen(!open)}
           className="focus:outline-none group"
@@ -108,6 +180,7 @@ export default function Navbar({
             onClick={() => {
               setIsProfileModalOpen(true);
               setOpen(false);
+              setIsNotificationOpen(false); // Close notifications when opening profile
             }}
             className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-600 hover:text-white rounded text-sm sm:text-base transition-colors"
           >
@@ -118,6 +191,7 @@ export default function Navbar({
             onClick={() => {
               setIsChangePasswordModalOpen(true);
               setOpen(false);
+              setIsNotificationOpen(false); // Close notifications when opening change password
             }}
             className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-600 hover:text-white rounded text-sm sm:text-base transition-colors"
           >
@@ -128,12 +202,14 @@ export default function Navbar({
             onClick={() => {
               setLogoutConfirm(true);
               setOpen(false);
+              setIsNotificationOpen(false); // Close notifications when opening logout
             }}
             className="w-full text-left px-4 py-2 text-red-600 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-600 hover:text-white rounded text-sm sm:text-base transition-colors"
           >
             Logout
           </button>
         </div>
+      </div>
       </div>
 
       {/* Profile Modal */}

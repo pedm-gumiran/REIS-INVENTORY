@@ -13,6 +13,8 @@ export default function DataTable({
   keyField = '', // default key field
   loading = false, //
   showCheckboxes = true, // control checkbox visibility
+  highlightedItemId = null, // for highlighting specific row
+  getRowId = (row) => row[keyField] || row.id, // function to get row ID
 }) {
   const allSelected = data.length > 0 && selected.length === data.length;
   const headerCheckboxRef = useRef();
@@ -85,15 +87,25 @@ export default function DataTable({
             </tr>
           ) : data.length > 0 ? (
             data.map((row) => {
-              const rowId = row[keyField];
+              const rowId = getRowId(row);
               const isSelected = selected.includes(rowId);
+              const isHighlighted = highlightedItemId && getRowId(row) === highlightedItemId;
 
               return (
                 <tr
                   key={rowId}
+                  id={isHighlighted ? `highlight-${highlightedItemId}` : undefined}
                   onClick={() => selectable && handleRowSelect(rowId)}
-                  className={`transition-colors ${row.className || ''} ${
-                    isSelected ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : row.className ? '' : 'hover:bg-green-100'
+                  className={`transition-all duration-300 ${row.className || ''} ${
+                    isHighlighted && isSelected 
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                      : isHighlighted 
+                        ? 'bg-gradient-to-r from-yellow-200 to-yellow-300 border-l-4 border-yellow-500 shadow-lg animate-pulse' 
+                        : isSelected 
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                          : row.className 
+                            ? '' 
+                            : 'hover:bg-green-100'
                   }`}
                 >
                   {selectable && showCheckboxes && (

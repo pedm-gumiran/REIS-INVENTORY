@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/Layouts/Layout.jsx';
 //import PrivateRoute from './components/Layouts/PrivateRoute.jsx';
 import { UserProvider } from './components/context/UserContext.jsx';
+import { NotificationProvider } from './context/NotificationContext.jsx';
 
 // Lazy load Page
 import LogIn_Page from './pages/Authentication/LogIn_Page.jsx';
@@ -165,21 +166,23 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <UserProvider>
-      <div className="bg-gray-50 font-sans">
-        <RouterProvider router={router} />
-        <ToastContainer
-          position="top-center"
-          autoClose={3000}
-          hideProgressBar={true}
-          newestOnTop={false}
-          closeOnClick
-          pauseOnHover
-          draggable={false}
-          theme="colored"
-          transition={Slide}
-          limit={3}
-        />
-      </div>
+      <NotificationProvider>
+        <div className="bg-gray-50 font-sans">
+          <RouterProvider router={router} />
+          <ToastContainer
+            position="top-center"
+            autoClose={3000}
+            hideProgressBar={true}
+            newestOnTop={false}
+            closeOnClick
+            pauseOnHover
+            draggable={false}
+            theme="colored"
+            transition={Slide}
+            limit={3}
+          />
+        </div>
+      </NotificationProvider>
     </UserProvider>
   );
 }

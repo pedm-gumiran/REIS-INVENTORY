@@ -8,6 +8,9 @@ router.get('/', nonConsumableController.getNonConsumables);
 // GET /api/non-consumables/expiring-warranty - Get expiring warranty items
 router.get('/expiring-warranty', nonConsumableController.getExpiringWarrantyItems);
 
+// GET /api/non-consumables/low-stock - Get low stock non-consumables
+router.get('/low-stock', nonConsumableController.getLowStockNonConsumables);
+
 // GET /api/non-consumables/location/:location - Get non-consumables by location
 router.get('/location/:location', nonConsumableController.getNonConsumablesByLocation);
 
