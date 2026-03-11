@@ -102,6 +102,11 @@ export default function Home_Page() {
     return () => clearInterval(timer);
   }, []);
 
+  // Reset scroll position to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Filter stocks based on stock search term
   const filteredStocks = stocksData.filter(stock =>
     stock.Consumable_Product_ID.toLowerCase().includes(stockSearchTerm.toLowerCase()) ||
@@ -220,7 +225,7 @@ export default function Home_Page() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              Welcome back, {user?.name || 'User'}! <span className="wave-hand">👋</span>
+              Welcome back, {user?.first_name || 'User'}! <span className="wave-hand">👋</span>
             </h1>
             <p className="text-green-100">
               Here's what's happening with your inventory today.
@@ -332,7 +337,7 @@ export default function Home_Page() {
             selected={selectedStocks}
             onSelect={setSelectedStocks}
             showCheckboxes={false}
-            emptyMessage={loading ? "Loading..." : "No stocks found"}
+            emptyMessage={loading ? "Loading..." : "No consumable products found"}
             loading={loading}
           />
         </Card>
@@ -354,7 +359,7 @@ export default function Home_Page() {
             selected={selectedEquipment}
             onSelect={setSelectedEquipment}
             showCheckboxes={false}
-            emptyMessage={loading ? "Loading..." : "No equipment found"}
+            emptyMessage={loading ? "Loading..." : "No non consumable products found"}
             loading={loading}
           />
         </Card>

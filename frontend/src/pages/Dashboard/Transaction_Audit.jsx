@@ -110,6 +110,11 @@ export default function Transaction_Audit() {
     return () => clearInterval(timer);
   }, []);
 
+  // Reset scroll position to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Filter transactions based on search term and date
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = 

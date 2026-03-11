@@ -291,7 +291,7 @@ export default function SuppliesEquipmentModal({
                     setSelectedItems([...newSelectedItems, ...newNonConsumableItems]);
                   }}
                   keyField="id"
-                  emptyMessage={loadingNonConsumable ? "Loading equipment..." : "No equipment found"}
+                  emptyMessage={loadingNonConsumable ? "Loading equipment..." : "No non consumable product found"}
                   loading={loadingNonConsumable}
                   showCheckboxes={false}
                 />

@@ -34,6 +34,11 @@ export default function Equipment_Returned_Audit() {
     return () => clearInterval(timer);
   }, []);
 
+  // Reset scroll position to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Fetch equipment returns data
   const fetchEquipmentReturns = async () => {
     try {

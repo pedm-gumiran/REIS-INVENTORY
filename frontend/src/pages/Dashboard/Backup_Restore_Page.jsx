@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/cards/Card';
 import axiosInstance from '../../api/axios';
 import { toast } from 'react-toastify';
+import DeleteConfirmationModal from '../../components/Forms/Edit_Forms/DeleteConfirmationModal';
 
 export default function Backup_Restore_Page() {
   const [backupType, setBackupType] = useState('full');
@@ -9,11 +10,13 @@ export default function Backup_Restore_Page() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [backups, setBackups] = useState([]);
-  const [storageInfo, setStorageInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedBackup, setSelectedBackup] = useState(null);
   const [understandRisks, setUnderstandRisks] = useState(false);
   const [createBackupBeforeRestore, setCreateBackupBeforeRestore] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [backupToDelete, setBackupToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Update date and time every second
   useEffect(() => {
@@ -24,10 +27,14 @@ export default function Backup_Restore_Page() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch backups and storage info
+  // Reset scroll position to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Fetch backups
   useEffect(() => {
     fetchBackups();
-    fetchStorageInfo();
   }, []);
 
   const fetchBackups = async () => {
@@ -44,16 +51,6 @@ export default function Backup_Restore_Page() {
     }
   };
 
-  const fetchStorageInfo = async () => {
-    try {
-      const response = await axiosInstance.get('/backup-restore/storage-info');
-      if (response.data.success) {
-        setStorageInfo(response.data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching storage info:', error);
-    }
-  };
 
   const handleBackup = async () => {
     try {
@@ -65,7 +62,6 @@ export default function Backup_Restore_Page() {
       if (response.data.success) {
         toast.success(`Backup created successfully! File: ${response.data.backup.filename}`);
         await fetchBackups();
-        await fetchStorageInfo();
       } else {
         toast.error('Backup failed');
       }
@@ -100,7 +96,6 @@ export default function Backup_Restore_Page() {
       if (response.data.success) {
         toast.success('Restore completed successfully!');
         await fetchBackups();
-        await fetchStorageInfo();
         setSelectedBackup(null);
         setRestoreFile(null);
         setUnderstandRisks(false);
@@ -143,21 +138,34 @@ export default function Backup_Restore_Page() {
     setRestoreFile(null);
   };
 
-  const handleDeleteBackup = async (filename) => {
-    if (!window.confirm('Are you sure you want to delete this backup?')) {
-      return;
-    }
+  // Check if restore form is valid
+  const isRestoreFormValid = () => {
+    return (restoreFile || selectedBackup) && understandRisks;
+  };
+
+  const handleDeleteBackup = (filename) => {
+    setBackupToDelete(filename);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteBackup = async (selectedItems) => {
+    if (!selectedItems || selectedItems.length === 0) return;
     
+    setIsDeleting(true);
     try {
+      const filename = Array.isArray(selectedItems) ? selectedItems[0] : selectedItems;
       const response = await axiosInstance.delete(`/backup-restore/backup/${filename}`);
       if (response.data.success) {
         toast.success('Backup deleted successfully');
         await fetchBackups();
-        await fetchStorageInfo();
       }
     } catch (error) {
       console.error('Delete error:', error);
       toast.error('Failed to delete backup');
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setBackupToDelete(null);
     }
   };
 
@@ -199,65 +207,27 @@ export default function Backup_Restore_Page() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Backup Section */}
         <Card title="Create Backup">
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Backup Type
               </label>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="full"
-                    checked={backupType === 'full'}
-                    onChange={(e) => setBackupType(e.target.value)}
-                    className="mr-2"
-                  />
-                  <div>
-                    <span className="font-medium">Full Backup</span>
-                    <p className="text-sm text-gray-600">Complete system backup including all data</p>
-                  </div>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="incremental"
-                    checked={backupType === 'incremental'}
-                    onChange={(e) => setBackupType(e.target.value)}
-                    className="mr-2"
-                  />
-                  <div>
-                    <span className="font-medium">Incremental Backup</span>
-                    <p className="text-sm text-gray-600">Only changes since last backup</p>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Backup Schedule
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                <option value="daily">Daily at 2:00 AM</option>
-                <option value="weekly">Weekly on Sunday</option>
-                <option value="monthly">Monthly on 1st</option>
-                <option value="manual">Manual Only</option>
+              <select 
+                value={backupType} 
+                onChange={(e) => setBackupType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="full">📦 Full Backup - All data</option>
+                <option value="incremental">🔄 Incremental Backup - Recent changes only</option>
               </select>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-800 mb-2">Next Scheduled Backup</h4>
-              <p className="text-blue-600">Today at 2:00 AM (Full Backup)</p>
-              <p className="text-sm text-blue-500">Estimated size: ~{storageInfo ? (parseFloat(storageInfo.totalStorageUsed) * 0.2).toFixed(2) : '250'} MB</p>
             </div>
 
             <button
               onClick={handleBackup}
               disabled={isProcessing}
-              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium cursor-pointer"
             >
-              {isProcessing ? 'Creating Backup...' : 'Create Backup Now'}
+              {isProcessing ? '⏳ Creating Backup...' : '🚀 Create Backup Now'}
             </button>
           </div>
         </Card>
@@ -269,15 +239,73 @@ export default function Backup_Restore_Page() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Select Backup File
               </label>
-              <input
-                type="file"
-                accept=".bak,.backup,.zip"
-                onChange={(e) => setRestoreFile(e.target.files[0])}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Supported formats: .bak, .backup, .zip
-              </p>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".bak,.backup,.zip,.json"
+                  onChange={(e) => setRestoreFile(e.target.files[0])}
+                  className="hidden"
+                  id="backup-file-input"
+                />
+                <label
+                  htmlFor="backup-file-input"
+                  className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all duration-200 bg-white"
+                >
+                  <div className="text-center">
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-400 mb-3"
+                      stroke="currentColor"
+                      fill="none"
+                      viewBox="0 0 48 48"
+                    >
+                      <path
+                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 16m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {restoreFile ? (
+                      <div>
+                        <p className="text-sm font-medium text-green-600">
+                          {restoreFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(restoreFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Supported formats: .bak, .backup, .zip, .json
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </label>
+              </div>
+              {restoreFile && (
+                <div className="mt-3 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center">
+                    <svg className="h-4 w-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm text-green-700 font-medium">
+                      File selected: {restoreFile.name}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRestoreFile(null)}
+                    className="text-red-500 hover:text-red-700 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -298,14 +326,21 @@ export default function Backup_Restore_Page() {
                 />
                 <span className="text-sm">I understand the risks and want to proceed</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-start p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
                 <input 
                   type="checkbox" 
                   checked={createBackupBeforeRestore}
                   onChange={(e) => setCreateBackupBeforeRestore(e.target.checked)}
-                  className="mr-2" 
+                  className="mr-3 mt-1" 
                 />
-                <span className="text-sm">Create backup before restore</span>
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-blue-800 block">
+                    🛡️ Create backup before restore
+                  </span>
+                  <span className="text-xs text-blue-600 block mt-1">
+                    Automatically backs up current data before restoring. This creates a safety net in case the restore fails or causes issues.
+                  </span>
+                </div>
               </label>
             </div>
 
@@ -319,10 +354,14 @@ export default function Backup_Restore_Page() {
 
             <button
               onClick={handleRestore}
-              disabled={isProcessing}
-              className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={isProcessing || !isRestoreFormValid()}
+              className={`w-full px-4 py-3 rounded-lg font-medium transition-colors ${
+                isRestoreFormValid()
+                  ? 'bg-orange-600 text-white hover:bg-orange-700 cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
-              {isProcessing ? 'Restoring...' : 'Restore Backup'}
+              {isProcessing ? '⏳ Restoring...' : '🔄 Restore'}
             </button>
           </div>
         </Card>
@@ -381,21 +420,13 @@ export default function Backup_Restore_Page() {
                       <div className="flex gap-2">
                         <button 
                           onClick={() => handleDownloadBackup(backup.filename)}
-                          className="text-blue-600 hover:text-blue-800 text-sm"
+                          className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
                         >
                           Download
                         </button>
-                        {backup.status === 'Completed' && (
-                          <button 
-                            onClick={() => handleRestoreFromBackup(backup.filename)}
-                            className="text-green-600 hover:text-green-800 text-sm"
-                          >
-                            Restore
-                          </button>
-                        )}
                         <button 
                           onClick={() => handleDeleteBackup(backup.filename)}
-                          className="text-red-600 hover:text-red-800 text-sm"
+                          className="text-red-600 hover:text-red-800 text-sm cursor-pointer"
                         >
                           Delete
                         </button>
@@ -409,26 +440,16 @@ export default function Backup_Restore_Page() {
         </div>
       </Card>
 
-      {/* Storage Information */}
-      <Card title="Storage Information">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">Total Storage Used</p>
-            <p className="text-2xl font-bold text-gray-900">{storageInfo?.totalStorageUsed || 'Loading...'}</p>
-            <p className="text-xs text-gray-500">Of {storageInfo?.availableStorage || '10 GB'} available</p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">Backup Files</p>
-            <p className="text-2xl font-bold text-gray-900">{storageInfo?.backupFiles || '0'}</p>
-            <p className="text-xs text-gray-500">Last 30 days</p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">Retention Period</p>
-            <p className="text-2xl font-bold text-gray-900">{storageInfo?.retentionPeriod || '30 days'}</p>
-            <p className="text-xs text-gray-500">Auto-cleanup {storageInfo?.autoCleanupEnabled ? 'enabled' : 'disabled'}</p>
-          </div>
-        </div>
-      </Card>
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteBackup}
+        selectedItems={backupToDelete ? [backupToDelete] : []}
+        title="Delete Backup"
+        confirmButtonText="Delete Backup"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

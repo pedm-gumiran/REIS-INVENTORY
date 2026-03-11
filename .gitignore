@@ -30,6 +30,7 @@ frontend/build/
 backend/build/
 backend/dist/
 
+
 # =====================
 # Environment variables
 # =====================
@@ -37,6 +38,7 @@ backend/dist/
 .env.local
 frontend/.env
 backend/.env
+backend/backups/
 
 # =====================
 # Local config files

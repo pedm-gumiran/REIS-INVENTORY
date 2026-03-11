@@ -76,6 +76,11 @@ export default function Manage_Non_Consumable_Products() {
     return () => clearInterval(timer);
   }, []);
 
+  // Reset scroll position to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Filter products based on search term
   const filteredProducts = products.filter(product =>
     product.Non_Consumable_Product_ID.toLowerCase().includes(searchTerm.toLowerCase()) ||

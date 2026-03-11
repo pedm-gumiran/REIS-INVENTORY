@@ -56,6 +56,11 @@ export default function Create_Transaction_Page() {
     return () => clearInterval(timer);
   }, []);
 
+  // Reset scroll position to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Client Search and Borrowed Items State
   const [clientSearchQuery, setClientSearchQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);

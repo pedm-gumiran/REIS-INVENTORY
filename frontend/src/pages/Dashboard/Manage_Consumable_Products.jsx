@@ -75,6 +75,11 @@ export default function Manage_Consumable_Products() {
     return () => clearInterval(timer);
   }, []);
 
+  // Reset scroll position to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Filter products based on search term
   const filteredProducts = products.filter(product =>
     product.Consumable_Product_ID.toLowerCase().includes(searchTerm.toLowerCase()) ||

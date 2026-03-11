@@ -32,7 +32,12 @@ export default function DataTable({
   };
 
   return (
-    <div className="overflow-y-auto max-h-[400px] overflow-x-auto shadow rounded-md">
+    <div>
+      {/* Results Count */}
+      <div className="mb-3 text-sm text-gray-600 font-medium">
+        Results: {data.length} {data.length === 1 ? 'item' : 'items'} 
+      </div>
+      <div className="overflow-y-auto max-h-[400px] overflow-x-auto shadow rounded-md">
       <table className="w-full text-left border-gray-300 border-1 min-w-max text-xs sm:text-sm">
         <thead className="bg-white border-b-2 border-gray-400 sticky top-0 z-10">
           <tr>
@@ -141,6 +146,7 @@ export default function DataTable({
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
