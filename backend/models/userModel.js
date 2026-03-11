@@ -65,9 +65,28 @@ exports.getUserByResetToken = async (resetToken) => {
 
 /* UPDATE PASSWORD */
 exports.updatePassword = async (user_id, hashedPassword) => {
+  // Validate parameters
+  if (user_id === undefined || hashedPassword === undefined) {
+    throw new Error('user_id and hashedPassword are required');
+  }
+  
   const [result] = await db.execute(
     'UPDATE users SET password = ? WHERE user_id = ?',
     [hashedPassword, user_id]
+  );
+  return result.affectedRows;
+};
+
+/* UPDATE PASSWORD BY EMAIL */
+exports.updatePasswordByEmail = async (email, hashedPassword) => {
+  // Validate parameters
+  if (!email || hashedPassword === undefined) {
+    throw new Error('email and hashedPassword are required');
+  }
+  
+  const [result] = await db.execute(
+    'UPDATE users SET password = ? WHERE email = ?',
+    [hashedPassword, email]
   );
   return result.affectedRows;
 };

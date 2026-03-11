@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../Buttons/Button';
 import Input_Password from '../Input_Fields/Input_Password';
-//import { supabase } from '../../supabaseClient';
-//import { toast } from 'react-toastify';
+import { toast } from 'react-toastify';
+import axiosInstance from '../../api/axios';
 
 export default function ChangePasswordModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
@@ -68,6 +68,45 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
 
   const isFormValid = formData.newPassword.trim() && formData.confirmPassword;
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!isFormValid || error) {
+      toast.error('Please fix all errors before submitting');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Get current user from localStorage
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      if (!currentUser || !currentUser.email) {
+        toast.error('User not found. Please login again.');
+        onClose();
+        return;
+      }
+      
+      // Update password using current user's email
+      const response = await axiosInstance.post('/users/reset-password', {
+        email: currentUser.email,
+        newPassword: formData.newPassword
+      });
+
+      if (response.data.success) {
+        toast.success('Password updated successfully!');
+        onClose();
+      } else {
+        toast.error(response.data.message || 'Failed to update password');
+      }
+    } catch (error) {
+      console.error('Change password error:', error);
+      toast.error(error.response?.data?.message || 'Failed to update password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/20 bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md max-h-[90vh] flex flex-col m-4">
@@ -78,7 +117,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
 
         {/* Body */}
         <div className="p-6 overflow-y-auto">
-          <form className="space-y-3">
+          <form className="space-y-3" onSubmit={handleSubmit}>
             <Input_Password
               label="New Password"
               name="newPassword"

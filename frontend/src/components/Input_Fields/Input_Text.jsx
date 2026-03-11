@@ -66,7 +66,7 @@ export default function Input_Text({
         value={value}
         disabled={disabled}
         ref={inputRef}
-        autoComplete={type === 'email' || name === 'email' ? 'off' : name === 'pin_code' ? 'off' : 'new-password'} // Disable auto-suggestion for email and PIN code
+        autoComplete={type === 'email' || name === 'email' ? 'email' : name === 'pin_code' ? 'off' : 'new-password'} // Enable auto-suggestion for email, disable for PIN code
       />
       {value && !disabled && type !== 'number' && (
         <span

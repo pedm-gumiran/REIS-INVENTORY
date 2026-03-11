@@ -66,7 +66,7 @@ exports.registerUser = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
-      data: { userId }
+      data: { email: email }
     });
 
   } catch (error) {
@@ -74,6 +74,60 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Registration failed',
+      error: error.message
+    });
+  }
+};
+
+// Login User
+exports.loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+
+    // Find user by email
+    const user = await User.getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Return user data without password
+    const userResponse = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      user: userResponse
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
       error: error.message
     });
   }
@@ -138,18 +192,21 @@ exports.forgotPassword = async (req, res) => {
 // Reset Password - Verify email, then update password
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
+    const { email, newPassword, currentPassword } = req.body;
 
     // Validate required fields
-    if (!email || !newPassword) {
+    if (!email || !newPassword || email.trim() === '' || newPassword.trim() === '') {
       return res.status(400).json({
         success: false,
         message: 'Email and new password are required'
       });
     }
 
+    // Trim email to remove whitespace
+    const trimmedEmail = email.trim();
+
     // Find user by email
-    const user = await User.getUserByEmail(email);
+    const user = await User.getUserByEmail(trimmedEmail);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -157,12 +214,40 @@ exports.resetPassword = async (req, res) => {
       });
     }
 
+    // Always check if new password is same as current password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be different from current password'
+      });
+    }
+
+    // If currentPassword is provided, verify it's correct
+    if (currentPassword) {
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current password is incorrect'
+        });
+      }
+    }
+
     // Hash new password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    // Update password
-    await User.updatePassword(user.user_id, hashedPassword);
+    // Validate hashed password was created
+    if (!hashedPassword) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to hash password'
+      });
+    }
+
+    // Update password using email as identifier
+    await User.updatePasswordByEmail(trimmedEmail, hashedPassword);
 
     res.status(200).json({
       success: true,

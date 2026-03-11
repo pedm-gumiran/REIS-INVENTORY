@@ -44,7 +44,8 @@ export default function Forgot_Password_Form() {
         toast.success('Account Successfully Verified!');
         // Navigate to reset page with email only on success
         setTimeout(() => {
-          navigate(`/reset_password?email=${formData.email}`);
+          const encodedEmail = encodeURIComponent(formData.email);
+          navigate(`/reset_password?email=${encodedEmail}`);
         }, 2000);
       } else {
         // Show specific error message and stay on forgot password form
@@ -104,7 +105,7 @@ export default function Forgot_Password_Form() {
           />
 
           <Button
-            label={'Veriy Account'}
+            label={'Verify Account'}
             isLoading={loading}
             loadingText="Verifying...."
             type="submit"

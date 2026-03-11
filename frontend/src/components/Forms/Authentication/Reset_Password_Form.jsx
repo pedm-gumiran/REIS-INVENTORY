@@ -8,7 +8,7 @@ import axiosInstance from '../../../api/axios';
 export default function Reset_Password_Form() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const email = searchParams.get('email');
+  const email = searchParams.get('email') ? decodeURIComponent(searchParams.get('email')) : null;
 
   const [formData, setFormData] = useState({
     newPassword: '',
@@ -80,9 +80,15 @@ export default function Reset_Password_Form() {
     try {
       setLoading(true);
       
+      // Validate email before sending request
+      if (!email || email.trim() === '') {
+        toast.error('Email is required for password reset');
+        return;
+      }
+      
       // Send reset password request to backend
       const response = await axiosInstance.post('/users/reset-password', {
-        email: email,
+        email: email.trim(),
         newPassword: formData.newPassword
       });
 
@@ -93,7 +99,16 @@ export default function Reset_Password_Form() {
           navigate('/login');
         }, 2000);
       } else {
-        toast.error(response.data.message || 'Failed to reset password');
+        // Handle specific error cases
+        if (response.data.message === 'User not found') {
+          toast.error('Account not found. Please check your email or request a new password reset.');
+          // Redirect back to forgot password after delay
+          setTimeout(() => {
+            navigate('/forgot_password');
+          }, 3000);
+        } else {
+          toast.error(response.data.message || 'Failed to reset password');
+        }
       }
     } catch (error) {
       console.error('Reset password error:', error);
