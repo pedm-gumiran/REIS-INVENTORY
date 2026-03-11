@@ -82,12 +82,11 @@ export default function Manage_Consumable_Products() {
     return () => clearInterval(timer);
   }, []);
 
-<<<<<<< HEAD
-  // Reset scroll position to top when component mounts
+// Reset scroll position to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-=======
+
   // Handle navigation state for highlighting
   useEffect(() => {
     // Only highlight if we have a valid highlightItemId from notification state
@@ -118,7 +117,6 @@ export default function Manage_Consumable_Products() {
       setHighlightedItemId(null);
     }
   };
->>>>>>> 35b413fff958d3702d17648a165cb8bd1320b6f1
 
   // Filter products based on search term
   const filteredProducts = products.filter(product =>
