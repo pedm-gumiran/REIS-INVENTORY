@@ -301,6 +301,23 @@ export default function Transaction_Audit() {
         </div>
       </Card>
 
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="text-center">
+            <p className="text-blue-600 text-sm font-medium">Total Transactions</p>
+            <p className="text-2xl font-bold text-blue-900">{transactions.length}</p>
+          </div>
+        </Card>
+        <Card className="bg-purple-50 border-purple-200">
+          <div className="text-center">
+            <p className="text-purple-600 text-sm font-medium">Busiest Month</p>
+            <p className="text-2xl font-bold text-purple-900">{topMonth}</p>
+            <p className="text-purple-500 text-xs">{topMonthCount} transactions</p>
+          </div>
+        </Card>
+      </div>
+
       {/* Filters and Search */}
       <Card>
         <div className="space-y-4">
@@ -379,23 +396,6 @@ export default function Transaction_Audit() {
           </div>
         </div>
       </Card>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <div className="text-center">
-            <p className="text-blue-600 text-sm font-medium">Total Transactions</p>
-            <p className="text-2xl font-bold text-blue-900">{transactions.length}</p>
-          </div>
-        </Card>
-        <Card className="bg-purple-50 border-purple-200">
-          <div className="text-center">
-            <p className="text-purple-600 text-sm font-medium">Busiest Month</p>
-            <p className="text-2xl font-bold text-purple-900">{topMonth}</p>
-            <p className="text-purple-500 text-xs">{topMonthCount} transactions</p>
-          </div>
-        </Card>
-      </div>
 
       {/* Transactions Table */}
       <Card title="Transaction Audit Trail">

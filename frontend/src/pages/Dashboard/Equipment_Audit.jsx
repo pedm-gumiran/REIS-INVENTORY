@@ -282,6 +282,29 @@ export default function Equipment_Returned_Audit() {
         </div>
       </Card>
 
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="text-center">
+            <p className="text-blue-600 text-sm font-medium">Total Returns</p>
+            <p className="text-2xl font-bold text-blue-900">{equipmentReturns.length}</p>
+          </div>
+        </Card>
+        <Card className="bg-red-50 border-red-200">
+          <div className="text-center">
+            <p className="text-red-600 text-sm font-medium">Not Yet Returned</p>
+            <p className="text-2xl font-bold text-red-900">{notYetReturnedCount}</p>
+          </div>
+        </Card>
+        <Card className="bg-purple-50 border-purple-200">
+          <div className="text-center">
+            <p className="text-purple-600 text-sm font-medium">Busiest Month</p>
+            <p className="text-2xl font-bold text-purple-900">{topMonth}</p>
+            <p className="text-purple-500 text-xs">{topMonthCount} returns</p>
+          </div>
+        </Card>
+      </div>
+
       {/* Filters and Search */}
       <Card>
         <div className="space-y-4">
@@ -356,29 +379,6 @@ export default function Equipment_Returned_Audit() {
           </div>
         </div>
       </Card>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <div className="text-center">
-            <p className="text-blue-600 text-sm font-medium">Total Returns</p>
-            <p className="text-2xl font-bold text-blue-900">{equipmentReturns.length}</p>
-          </div>
-        </Card>
-        <Card className="bg-red-50 border-red-200">
-          <div className="text-center">
-            <p className="text-red-600 text-sm font-medium">Not Yet Returned</p>
-            <p className="text-2xl font-bold text-red-900">{notYetReturnedCount}</p>
-          </div>
-        </Card>
-        <Card className="bg-purple-50 border-purple-200">
-          <div className="text-center">
-            <p className="text-purple-600 text-sm font-medium">Busiest Month</p>
-            <p className="text-2xl font-bold text-purple-900">{topMonth}</p>
-            <p className="text-purple-500 text-xs">{topMonthCount} returns</p>
-          </div>
-        </Card>
-      </div>
 
       {/* Returns Table */}
       <Card title="Equipment Return Records">
