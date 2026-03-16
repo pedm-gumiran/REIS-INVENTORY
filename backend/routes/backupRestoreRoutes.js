@@ -8,26 +8,40 @@ const Consumable = require('../models/consumableModel');
 const NonConsumable = require('../models/nonConsumableModel');
 const User = require('../models/userModel');
 
-// Backup directory
-const BACKUP_DIR = path.join(__dirname, '../backups');
+// Backup directory - handle Electron environment
+const isElectron = process.versions && process.versions.electron;
+const BACKUP_DIR = isElectron 
+  ? path.join(process.resourcesPath, 'backups')
+  : path.join(__dirname, '../backups');
+
+console.log('📁 Backup directory:', BACKUP_DIR);
+console.log('🔧 Running in Electron:', isElectron);
 
 // Ensure backup directory exists
 const ensureBackupDir = async () => {
   try {
     await fs.access(BACKUP_DIR);
+    console.log('✅ Backup directory exists');
   } catch (error) {
+    console.log('📁 Creating backup directory...');
     await fs.mkdir(BACKUP_DIR, { recursive: true });
+    console.log('✅ Backup directory created');
   }
 };
 
 // Get all data for backup
 const getAllData = async () => {
   try {
+    console.log('📊 Fetching data for backup...');
+    
     // Fetch real data from database
     const consumable_products = await Consumable.getAllConsumables();
-    const non_consumable_products = await NonConsumable.getAllNonConsumables();
+    console.log(`📦 Found ${consumable_products.length} consumable products`);
     
-    return {
+    const non_consumable_products = await NonConsumable.getAllNonConsumables();
+    console.log(`🔧 Found ${non_consumable_products.length} non-consumable products`);
+    
+    const data = {
       consumable_products,
       non_consumable_products,
       // Add other data as needed
@@ -35,9 +49,16 @@ const getAllData = async () => {
       equipment_trail: [], // Implement if you have equipment trail
       transaction_trail: [] // Implement if you have transaction trail
     };
+    
+    console.log('✅ Backup data fetched successfully');
+    return data;
   } catch (error) {
-    console.error('Error getting backup data:', error);
-    throw error;
+    console.error('❌ Error getting backup data:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno
+    });
+    throw new Error('Failed to fetch backup data: ' + error.message);
   }
 };
 
@@ -98,36 +119,45 @@ router.post('/backup', async (req, res) => {
 // Get backup list
 router.get('/backups', async (req, res) => {
   try {
+    console.log('📋 Fetching backup list...');
     await ensureBackupDir();
     
     const files = await fs.readdir(BACKUP_DIR);
+    console.log(`📁 Found ${files.length} files in backup directory`);
+    
     const backups = [];
     
     for (const file of files) {
       if (file.endsWith('.json')) {
-        const filepath = path.join(BACKUP_DIR, file);
-        const stats = await fs.stat(filepath);
-        
-        // Read backup metadata
-        const content = await fs.readFile(filepath, 'utf8');
-        const backup = JSON.parse(content);
-        
-        backups.push({
-          id: file,
-          filename: file,
-          date: new Date(backup.timestamp).toLocaleDateString(),
-          time: new Date(backup.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          type: backup.type,
-          size: `${(stats.size / 1024 / 1024).toFixed(2)} MB`,
-          status: 'Completed',
-          timestamp: backup.timestamp,
-          records: backup.metadata.totalRecords
-        });
+        try {
+          const filepath = path.join(BACKUP_DIR, file);
+          const stats = await fs.stat(filepath);
+          
+          // Read backup metadata
+          const content = await fs.readFile(filepath, 'utf8');
+          const backup = JSON.parse(content);
+          
+          backups.push({
+            id: file,
+            filename: file,
+            date: new Date(backup.timestamp).toLocaleDateString(),
+            time: new Date(backup.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: backup.type,
+            size: `${(stats.size / 1024 / 1024).toFixed(2)} MB`,
+            status: 'Completed',
+            timestamp: backup.timestamp,
+            records: backup.metadata.totalRecords
+          });
+        } catch (fileError) {
+          console.warn(`⚠️  Skipping corrupted backup file: ${file}`, fileError.message);
+        }
       }
     }
     
     // Sort by date (newest first)
     backups.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    console.log(`✅ Successfully loaded ${backups.length} backups`);
     
     res.json({
       success: true,
@@ -135,7 +165,12 @@ router.get('/backups', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Get backups error:', error);
+    console.error('❌ Get backups error:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      backupDir: BACKUP_DIR
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to get backups',

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path')
 const errorHandler = require('./middlewares/errorHandler');
 // const { authenticate } = require('./middleware/authMiddleware');
 const userRoutes = require('./routes/userRoutes.js');
@@ -15,12 +16,16 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
-  }),
-);
+// app.use(
+//   cors({
+//     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+//     credentials: true,
+//   }),
+// );
+console.log("Looking for frontend at:", path.join(__dirname, '../frontend/dist'));
+// This line tells Express to "find" the packaged React files
+app.use(express.static(path.join(__dirname, '../frontend/dist'))); 
+
 app.use(morgan('dev'));
 
 // Routes (protected)
@@ -36,6 +41,17 @@ app.use('/api/notifications', notificationRoutes);
 
 app.get('/', (req, res) => res.send('Server is Ready!'));
 
+// Fallback for any unhandled routes that are not static assets to serve the React app
+app.use((req, res, next) => {
+  // Check if the request is for a static asset
+  if (req.path.startsWith('/assets/') || req.path.includes('.')) {
+    return next();
+  }
+  // Serve React app for all other routes
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+});
+
+// 404 handler for static assets and other unmatched routes
 app.use((req, res, next) => {
   res.status(404).json({ success: false, message: 'Endpoint not found' });
 });
