@@ -14,7 +14,7 @@ import DeleteConfirmationModal from '../../components/Forms/Edit_Forms/DeleteCon
 export default function Equipment_Returned_Audit() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
   const [equipmentReturns, setEquipmentReturns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -124,7 +124,7 @@ export default function Equipment_Returned_Audit() {
 
   const notYetReturnedCount = getNotYetReturnedCount();
 
-  // Filter returns based on search term and status
+  // Filter returns based on search term and date
   const filteredReturns = equipmentReturns.filter(returnItem => {
     const matchesSearch = 
       String(returnItem.et_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -132,7 +132,12 @@ export default function Equipment_Returned_Audit() {
       returnItem.product_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       returnItem.item_description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return matchesSearch;
+    const matchesDate = dateFilter === 'all' || 
+      (dateFilter === 'today' && returnItem.returned_date !== '-' && new Date(returnItem.returned_date).toDateString() === new Date().toDateString()) ||
+      (dateFilter === 'week' && returnItem.returned_date !== '-' && new Date(returnItem.returned_date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) ||
+      (dateFilter === 'month' && returnItem.returned_date !== '-' && new Date(returnItem.returned_date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+    
+    return matchesSearch && matchesDate;
   });
 
   // Open delete modal with selected returns
@@ -317,15 +322,15 @@ export default function Equipment_Returned_Audit() {
               width="w-full"
             />
             <Dropdown
-              id="statusFilter"
-              name="statusFilter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              id="dateFilter"
+              name="dateFilter"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
               options={[
-                { value: 'all', label: 'All Status' },
-                { value: 'Completed', label: 'Completed' },
-                { value: 'Maintenance Required', label: 'Maintenance Required' },
-                { value: 'Under Repair', label: 'Under Repair' }
+                { value: 'all', label: 'All Dates' },
+                { value: 'today', label: 'Today' },
+                { value: 'week', label: 'This Week' },
+                { value: 'month', label: 'This Month' }
               ]}
             />
           </div>

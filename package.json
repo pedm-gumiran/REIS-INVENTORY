@@ -31,12 +31,15 @@
       "main.js",
       "backend/**/*",
       "frontend/dist/**/*",
+      "frontend/public/reims-logo.png",
+      "frontend/public/reims-logo.png",
       "package.json",
       "backend/.env"
     ],
+    "icon": "frontend/public/reims-logo.png",
     "win": {
       "target": "nsis",
-      "icon": "icon.ico"
+      "icon": "frontend/public/reims-logo.png"
     },
     "nsis": {
       "oneClick": false,
