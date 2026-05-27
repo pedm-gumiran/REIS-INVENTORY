@@ -17,7 +17,7 @@ function createWindow() {
 
   // 2. Load the React Frontend through the Express server
   // This ensures all assets are served correctly
-  win.loadURL("http://localhost:5000");
+  win.loadURL("http://localhost:5001");
 }
 
 // Remove the default menu bar
